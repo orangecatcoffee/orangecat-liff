@@ -67,6 +67,37 @@
   }
   .hint b { color: #4A3428; }
 
+  .amount-input-row {
+    margin-bottom: 18px;
+  }
+  .amount-input-row label {
+    font-size: 12px; color: #8a6a4a; margin-bottom: 6px; display: block; text-align: left;
+  }
+  .amount-input-wrap {
+    display: flex; gap: 8px;
+  }
+  .amount-input-wrap input {
+    flex: 1;
+    border: 2px solid #F0E4D8;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 16px;
+    font-family: inherit;
+    text-align: right;
+    font-weight: 700;
+    color: #4A3428;
+  }
+  .amount-input-wrap input:focus { outline: none; border-color: #E8863A; }
+  .amount-input-wrap button {
+    background: #E8863A; color: #fff; border: none; border-radius: 10px;
+    padding: 0 18px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  .amount-input-wrap button:active { transform: scale(0.97); }
+  .no-amount-link {
+    display: inline-block; margin-top: 8px; font-size: 11.5px; color: #A8876F;
+    text-decoration: underline; background: none; border: none; cursor: pointer; font-family: inherit;
+  }
+
   .loading { text-align: center; color: #A8876F; font-size: 13px; padding: 40px 0; }
 </style>
 </head>
@@ -81,6 +112,15 @@
   </div>
 
   <div class="card">
+    <div class="amount-input-row">
+      <label for="amountInput">ใส่ยอดเงินที่ต้องการจ่าย (บาท)</label>
+      <div class="amount-input-wrap">
+        <input type="number" id="amountInput" inputmode="decimal" placeholder="เช่น 75" min="0" step="0.01">
+        <button id="generateBtn">สร้าง QR</button>
+      </div>
+      <button class="no-amount-link" id="noAmountBtn">ไม่ระบุยอด (ใส่เองตอนสแกน)</button>
+    </div>
+
     <div class="qr-frame">
       <div id="qrcode"><div class="loading">กำลังสร้าง QR...</div></div>
     </div>
@@ -92,7 +132,7 @@
     <div class="shop-number">PromptPay: 097 134 4100</div>
 
     <div class="hint">
-      🐾 <b>วิธีจ่าย:</b> เปิดแอปธนาคาร → สแกน QR นี้ → ตรวจสอบยอด/ใส่จำนวนเงินเอง (ถ้า QR ไม่ระบุยอด) → ยืนยันการโอน แล้วแจ้งพนักงานหน้าร้านได้เลยค่ะ
+      🐾 <b>วิธีจ่าย:</b> ใส่ยอดเงินแล้วกด "สร้าง QR" (หรือข้ามได้ถ้าจะใส่ยอดเองตอนสแกน) → เปิดแอปธนาคาร → สแกน QR นี้ → ยืนยันการโอน แล้วแจ้งพนักงานหน้าร้านได้เลยค่ะ
     </div>
   </div>
 </div>
@@ -143,22 +183,56 @@
   }
 
   const params = new URLSearchParams(window.location.search);
-  const amount = params.get('amount');
+  const initialAmount = params.get('amount');
 
-  const payload = buildPromptPayPayload(PROMPTPAY_NUMBER, amount);
+  const qrDiv = document.getElementById('qrcode');
+  const amountInput = document.getElementById('amountInput');
+  const amountBlock = document.getElementById('amountBlock');
+  const amountDisplay = document.getElementById('amountDisplay');
 
-  new QRCode(document.getElementById('qrcode'), {
-    text: payload,
-    width: 220,
-    height: 220,
-    colorDark: "#4A3428",
-    colorLight: "#ffffff"
+  function renderQR(amount) {
+    qrDiv.innerHTML = '';
+    const payload = buildPromptPayPayload(PROMPTPAY_NUMBER, amount);
+    new QRCode(qrDiv, {
+      text: payload,
+      width: 220,
+      height: 220,
+      colorDark: "#4A3428",
+      colorLight: "#ffffff"
+    });
+
+    if (amount) {
+      amountBlock.style.display = 'block';
+      amountDisplay.textContent = Number(amount).toLocaleString('th-TH', {minimumFractionDigits: 2}) + ' บาท';
+    } else {
+      amountBlock.style.display = 'none';
+    }
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', () => {
+    const val = parseFloat(amountInput.value);
+    if (!val || val <= 0) {
+      amountInput.focus();
+      return;
+    }
+    renderQR(val);
   });
-  document.getElementById('qrcode').querySelector('.loading')?.remove();
 
-  if (amount) {
-    document.getElementById('amountBlock').style.display = 'block';
-    document.getElementById('amountDisplay').textContent = Number(amount).toLocaleString('th-TH', {minimumFractionDigits: 2}) + ' บาท';
+  amountInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('generateBtn').click();
+  });
+
+  document.getElementById('noAmountBtn').addEventListener('click', () => {
+    amountInput.value = '';
+    renderQR(null);
+  });
+
+  // initial render: prefill from ?amount= if present (e.g. linked from order.html in future), else amount-less QR
+  if (initialAmount) {
+    amountInput.value = initialAmount;
+    renderQR(parseFloat(initialAmount));
+  } else {
+    renderQR(null);
   }
 </script>
 
