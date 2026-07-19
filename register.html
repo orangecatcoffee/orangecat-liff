@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สมัครสมาชิก - กาแฟแมวส้ม</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    background: #FFF8F0;
+    color: #4A3428;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 440px; margin: 0 auto; padding: 20px; }
+
+  .banner {
+    background: linear-gradient(135deg, #FFF3E8 0%, #FFE4CC 100%);
+    border-radius: 20px;
+    padding: 28px 24px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .banner .brand { font-size: 13px; color: #A8876F; letter-spacing: 1px; margin-bottom: 6px; }
+  .banner .icon { font-size: 48px; margin-bottom: 8px; }
+  .banner h1 { font-size: 24px; color: #4A3428; margin-bottom: 4px; }
+  .banner h1 span { color: #E8863A; }
+  .banner p { font-size: 13px; color: #8a6a4a; }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .profile-preview {
+    display: flex; align-items: center; gap: 12px;
+    background: #FFF3E8; border-radius: 12px; padding: 12px; margin-bottom: 18px;
+  }
+  .profile-preview img { width: 48px; height: 48px; border-radius: 50%; }
+  .profile-preview .info { font-size: 13px; color: #8a6a4a; }
+  .profile-preview .info b { display: block; font-size: 15px; color: #4A3428; }
+
+  label.field-label { font-size: 12px; color: #8a6a4a; margin-bottom: 6px; display: block; }
+  input {
+    width: 100%;
+    border: 2px solid #F0E4D8;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    margin-bottom: 16px;
+  }
+  input:focus { outline: none; border-color: #E8863A; }
+
+  .btn {
+    width: 100%; padding: 14px; background: #E8863A; color: #fff;
+    border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  .btn:disabled { background: #D8C4B0; cursor: not-allowed; }
+  .btn:active:not(:disabled) { transform: scale(0.98); }
+
+  .status-msg { text-align: center; margin-top: 14px; font-size: 13px; min-height: 18px; }
+  .status-msg.error { color: #D64545; }
+  .status-msg.success { color: #4A9B5C; }
+  .loading { text-align: center; color: #A8876F; font-size: 13px; padding: 40px 0; }
+
+  .already-member {
+    text-align: center; padding: 30px 10px;
+  }
+  .already-member .icon { font-size: 48px; margin-bottom: 12px; }
+  .already-member h2 { font-size: 18px; margin-bottom: 6px; }
+  .already-member p { font-size: 13px; color: #8a6a4a; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="banner">
+    <div class="brand">กาแฟแมวส้ม · MEMBER</div>
+    <div class="icon">🐱📝</div>
+    <h1>สมัคร<span>สมาชิก</span></h1>
+    <p>สมัครครั้งเดียว รับสิทธิพิเศษเฉพาะสมาชิกทุกครั้งที่แวะมา</p>
+  </div>
+
+  <div class="card" id="mainCard">
+    <div class="loading" id="loadingMsg">กำลังโหลด...</div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://nhzjnutvirjgiclkkfgx.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oempudXR2aXJqZ2ljbGtrZmd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMjc3NjEsImV4cCI6MjA5ODcwMzc2MX0.Bv2zsjmo3yd9YpmfxUAmXf-aaFy7SbY77fmM_k4f7eg";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const LIFF_ID = "2010600301-1tjt7IdG";
+
+  const card = document.getElementById('mainCard');
+
+  async function init() {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+      const profile = await liff.getProfile();
+
+      // check if already a member
+      const { data: existing } = await sb
+        .from('members')
+        .select('id, display_name')
+        .eq('line_user_id', profile.userId)
+        .maybeSingle();
+
+      if (existing) {
+        renderAlreadyMember(existing.display_name || profile.displayName);
+        return;
+      }
+
+      renderForm(profile);
+    } catch (e) {
+      card.innerHTML = `<div class="status-msg error">เชื่อมต่อ LINE ไม่สำเร็จ ลองเปิดใหม่อีกครั้ง</div>`;
+      console.error(e);
+    }
+  }
+
+  function renderAlreadyMember(name) {
+    card.innerHTML = `
+      <div class="already-member">
+        <div class="icon">🐾✅</div>
+        <h2>คุณเป็นสมาชิกอยู่แล้ว</h2>
+        <p>ยินดีต้อนรับกลับมา, ${name}</p>
+      </div>
+    `;
+  }
+
+  function renderForm(profile) {
+    card.innerHTML = `
+      <div class="profile-preview">
+        <img src="${profile.pictureUrl || ''}" alt="">
+        <div class="info">บัญชี LINE ของคุณ<b>${profile.displayName}</b></div>
+      </div>
+
+      <label class="field-label">ชื่อที่ใช้เรียก</label>
+      <input id="displayName" type="text" value="${profile.displayName}" maxlength="60">
+
+      <label class="field-label">เบอร์โทรศัพท์</label>
+      <input id="phone" type="tel" placeholder="08XXXXXXXX" maxlength="15">
+
+      <label class="field-label">วันเกิด (ไม่บังคับ)</label>
+      <input id="birthday" type="date">
+
+      <button class="btn" id="submitBtn">สมัครสมาชิก</button>
+      <div class="status-msg" id="statusMsg"></div>
+    `;
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('submitBtn');
+      const statusEl = document.getElementById('statusMsg');
+      const displayName = document.getElementById('displayName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const birthday = document.getElementById('birthday').value || null;
+
+      if (!displayName || !phone) {
+        statusEl.textContent = 'กรอกชื่อและเบอร์โทรศัพท์ก่อนนะครับ';
+        statusEl.className = 'status-msg error';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'กำลังบันทึก...';
+      statusEl.textContent = '';
+      statusEl.className = 'status-msg';
+
+      const { error } = await sb.from('members').insert([{
+        line_user_id: profile.userId,
+        display_name: displayName,
+        phone: phone,
+        birthday: birthday
+      }]);
+
+      if (error) {
+        if (error.code === '23505') {
+          renderAlreadyMember(displayName);
+          return;
+        }
+        statusEl.textContent = `บันทึกไม่สำเร็จ: ${error.message}`;
+        statusEl.className = 'status-msg error';
+        btn.disabled = false;
+        btn.textContent = 'สมัครสมาชิก';
+        return;
+      }
+
+      statusEl.textContent = '✅ สมัครสมาชิกสำเร็จ! ยินดีต้อนรับสู่ครอบครัวแมวส้ม';
+      statusEl.className = 'status-msg success';
+      btn.textContent = 'สมัครแล้ว ✓';
+    });
+  }
+
+  init();
+</script>
+
+</body>
+</html>
