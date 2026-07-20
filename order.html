@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- deploy trigger: git-connected build -->
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -174,7 +173,7 @@
   label.field-label {
     font-size: 12px; color: #8a6a4a; margin-bottom: 6px; display: block;
   }
-  textarea, input {
+  textarea, input, select {
     width: 100%;
     border: 2px solid #F0E4D8;
     border-radius: 10px;
@@ -183,6 +182,18 @@
     font-family: inherit;
     resize: none;
     margin-bottom: 14px;
+    background: #fff;
+    color: #4A3428;
+  }
+  textarea:focus, input:focus, select:focus { outline: none; border-color: #E8863A; }
+  .sweetness-row { display: flex; gap: 6px; margin-bottom: 14px; }
+  .sweetness-btn {
+    flex: 1; font-family: inherit; font-size: 12.5px;
+    background: #fff; border: 2px solid #F0E4D8; color: #8a6a4a;
+    border-radius: 999px; padding: 9px 4px; cursor: pointer;
+  }
+  .sweetness-btn.selected {
+    background: #FFF3E8; border-color: #E8863A; color: #E8863A; font-weight: 700;
   }
   textarea:focus, input:focus { outline: none; border-color: #E8863A; }
   .total-row {
@@ -253,6 +264,21 @@
         <span class="empty">ยังไม่ได้เลือกเมนู</span>
       </div>
 
+      <div id="beanRow" style="display:none;">
+        <label class="field-label">เลือกเมล็ดกาแฟ</label>
+        <select id="beanSelect"></select>
+      </div>
+
+      <label class="field-label">วันที่ต้องการรับ</label>
+      <input type="date" id="wantedDate">
+
+      <label class="field-label">ความหวาน</label>
+      <div class="sweetness-row" id="sweetnessRow">
+        <button type="button" class="sweetness-btn" data-val="ไม่หวาน">ไม่หวาน</button>
+        <button type="button" class="sweetness-btn" data-val="หวานน้อย">หวานน้อย</button>
+        <button type="button" class="sweetness-btn selected" data-val="หวานปกติ">หวานปกติ</button>
+      </div>
+
       <label class="field-label">หมายเหตุ (ไม่บังคับ)</label>
       <textarea id="notes" rows="3" maxlength="100" placeholder="เช่น แข้งอะไร / ขอเล็กน้อย ฯลฯ"></textarea>
 
@@ -279,6 +305,15 @@
   let selectedItem = null;
   let quantity = 1;
   let memberId = null; // จะถูกเซ็ตถ้า login ผ่าน LIFF และหา member ที่ผูก LINE user id เจอ (ยังไม่ทำ lookup ตอนนี้)
+  let selectedSweetness = 'หวานปกติ';
+  let availableBeans = [];
+
+  const COFFEE_BEAN_ITEMS = ['Iced Americano', 'Iced Latte', 'Oat Latte', 'Coconut Latte', 'Dirty', 'Orange Americano'];
+
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
 
 const CUP_IMAGES = {
       "Iced Americano": "data:image/jpeg;base64,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",
@@ -301,6 +336,28 @@ const CUP_IMAGES = {
     // fallback เผื่อชื่อเมนูไม่ตรงกับที่มีรูป (เช่น เพิ่มเมนูใหม่ในอนาคต)
     if (name.toLowerCase().includes('matcha')) return '🍵';
     return '☕';
+  }
+
+  async function loadBeans() {
+    const { data, error } = await sb.from('beans').select('id, name').eq('available', true).order('name');
+    availableBeans = (!error && data) ? data : [];
+    const select = document.getElementById('beanSelect');
+    select.innerHTML = availableBeans.length
+      ? availableBeans.map(b => `<option value="${b.name}">${b.name}</option>`).join('')
+      : '<option value="">ไม่มีข้อมูลเมล็ดตอนนี้</option>';
+  }
+
+  function initDateAndSweetness(){
+    const dateEl = document.getElementById('wantedDate');
+    dateEl.value = todayStr();
+    dateEl.min = todayStr();
+
+    document.getElementById('sweetnessRow').addEventListener('click', (e) => {
+      const btn = e.target.closest('.sweetness-btn');
+      if (!btn) return;
+      selectedSweetness = btn.dataset.val;
+      document.querySelectorAll('#sweetnessRow .sweetness-btn').forEach(b => b.classList.toggle('selected', b === btn));
+    });
   }
 
   async function loadMenu() {
@@ -344,6 +401,7 @@ const CUP_IMAGES = {
     el.classList.add('selected');
     selectedItem = item;
     quantity = 1;
+    document.getElementById('beanRow').style.display = COFFEE_BEAN_ITEMS.includes(item.name) ? 'block' : 'none';
     renderSelected();
   }
 
@@ -412,6 +470,9 @@ const CUP_IMAGES = {
     statusEl.className = 'status-msg';
 
     const totalPrice = selectedItem.price * quantity;
+    const wantedDate = document.getElementById('wantedDate').value || todayStr();
+    const beanName = (COFFEE_BEAN_ITEMS.includes(selectedItem.name) && document.getElementById('beanSelect').value)
+      ? document.getElementById('beanSelect').value : null;
 
     const { error } = await sb
       .from('transactions')
@@ -422,7 +483,10 @@ const CUP_IMAGES = {
         total_price: totalPrice,
         channel: 'liff-order',
         address: notes ? `${addr} (หมายเหตุ: ${notes})` : addr,
-        status: 'pending'
+        status: 'pending',
+        wanted_date: wantedDate,
+        sweetness: selectedSweetness,
+        bean_name: beanName
       }]);
 
     if (error) {
@@ -439,6 +503,8 @@ const CUP_IMAGES = {
   });
 
   loadMenu();
+  loadBeans();
+  initDateAndSweetness();
 </script>
 
 </body>
