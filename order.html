@@ -53,24 +53,7 @@
   }
 
   /* Step indicator */
-  .steps {
-    display: flex;
-    justify-content: center;
-    gap: 24px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-  }
-  .step { display: flex; align-items: center; gap: 8px; }
-  .step-num {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: #E8863A; color: #fff; font-size: 13px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .step.inactive .step-num { background: #E0D2C2; }
-  .step-label { font-size: 13px; }
-  .step-label b { display: block; font-size: 12px; color: #4A3428; }
-  .step-label span { font-size: 11px; color: #A8876F; }
+  /* Step indicator removed per feedback */
 
   /* Layout: menu + sidebar */
   .layout {
@@ -104,32 +87,37 @@
   }
   .menu-card {
     border: 2px solid #F0E4D8;
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 14px;
+    padding: 8px 8px 10px;
     text-align: center;
     cursor: pointer;
     transition: all 0.15s;
+    overflow: hidden;
   }
   .menu-card.selected {
     border-color: #E8863A;
     background: #FFF3E8;
   }
   .menu-card .icon {
-    font-size: 30px;
-    margin-bottom: 6px;
+    margin: -8px -8px 8px;
+    font-size: 40px;
+    line-height: 1.4;
   }
   .cup-icon {
-    width: 56px;
-    height: 84px;
+    width: 100%;
+    aspect-ratio: 3/4;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 12px 12px 0 0;
+    display: block;
   }
   .selected-item .cup-icon {
     width: 28px;
     height: 42px;
+    aspect-ratio: unset;
     border-radius: 5px;
     vertical-align: middle;
     margin-right: 4px;
+    display: inline-block;
   }
   .menu-card .name {
     font-size: 12.5px;
@@ -224,18 +212,33 @@
   .status-msg.success { color: #4A9B5C; }
   .loading { text-align: center; color: #A8876F; font-size: 13px; padding: 20px; }
 
-  /* Category tabs */
+  /* Category tabs — folder-tab style with scroll hint */
+  .catbar-wrap {
+    position: relative;
+    margin-bottom: 18px;
+  }
+  .catbar-wrap::after {
+    content: '';
+    position: absolute; top: 0; right: 0; bottom: 0; width: 28px;
+    background: linear-gradient(90deg, rgba(255,248,240,0), #FFF8F0 85%);
+    pointer-events: none;
+  }
   .catbar {
-    display: flex; gap: 8px; overflow-x: auto; margin-bottom: 18px;
-    scrollbar-width: none; padding-bottom: 2px;
+    display: flex; gap: 4px; overflow-x: auto;
+    scrollbar-width: none; border-bottom: 2px solid #F0E4D8;
   }
   .catbar::-webkit-scrollbar { display: none; }
   .cat-pill {
-    flex-shrink: 0; font-size: 12.5px; padding: 8px 14px; border-radius: 999px;
-    border: 2px solid #F0E4D8; color: #8a6a4a; background: #fff; white-space: nowrap;
-    cursor: pointer;
+    flex-shrink: 0; font-size: 12px; padding: 9px 14px 8px;
+    border: 2px solid #F0E4D8; border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    color: #A8876F; background: #FBF3EA; white-space: nowrap;
+    cursor: pointer; margin-bottom: -2px; position: relative;
   }
-  .cat-pill.active { background: #E8863A; border-color: #E8863A; color: #fff; font-weight: 700; }
+  .cat-pill.active {
+    background: #fff; border-color: #E8863A; color: #E8863A; font-weight: 700;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
+  }
   .tabpanel { display: none; }
   .tabpanel.active { display: block; }
   .soon-box {
@@ -267,39 +270,46 @@
     padding: 9px 18px; border-radius: 999px; font-size: 13px;
   }
 
-  /* Image preview sheet */
+  /* Image preview modal — centered */
   .img-sheet-overlay {
     position: fixed; inset: 0; background: rgba(40,25,15,0.55); backdrop-filter: blur(3px);
     z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
   }
   .img-sheet-overlay.open { opacity: 1; pointer-events: auto; }
   .img-sheet {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 101;
-    background: #fff; border-radius: 22px 22px 0 0; padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
-    transform: translateY(100%); transition: transform .32s cubic-bezier(.32,.9,.35,1);
-    max-height: 85vh; overflow-y: auto;
+    position: relative; width: 100%; max-width: 360px;
+    background: #fff; border-radius: 22px; padding: 16px 18px 18px;
+    max-height: 88vh; overflow-y: auto;
+    transform: scale(0.92); opacity: 0; transition: all .22s cubic-bezier(.32,.9,.35,1);
   }
-  .img-sheet.open { transform: translateY(0); }
+  .img-sheet-overlay.open .img-sheet { transform: scale(1); opacity: 1; }
   .img-sheet-close {
-    width: 28px; height: 28px; border-radius: 50%; background: #F0E4D8; border: none;
-    color: #8a6a4a; font-size: 14px; float: right;
+    position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%;
+    background: #F0E4D8; border: none; color: #8a6a4a; font-size: 14px; z-index: 2;
   }
   .img-sheet img {
-    width: 100%; border-radius: 16px; display: block; margin-top: 10px; object-fit: contain;
-    max-height: 50vh; background: #FFF3E8;
+    width: 100%; aspect-ratio: 3/4; border-radius: 16px; display: block;
+    object-fit: cover; background: #FFF3E8;
   }
   .img-sheet .name { font-size: 17px; font-weight: 700; color: #4A3428; margin-top: 12px; }
-  .img-sheet .price { font-size: 14px; font-weight: 700; color: #E8863A; margin-top: 2px; }
+  .img-sheet .price { font-size: 14px; font-weight: 700; color: #E8863A; margin-top: 2px; margin-bottom: 14px; }
+  .img-sheet .img-sheet-btn {
+    width: 100%; padding: 13px; background: #E8863A; color: #fff; border: none;
+    border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
 </style>
 </head>
 <body>
 
-<div class="img-sheet-overlay" id="imgSheetOverlay"></div>
-<div class="img-sheet" id="imgSheet">
-  <button type="button" class="img-sheet-close" id="imgSheetClose">✕</button>
-  <img id="imgSheetImg" src="" alt="">
-  <div class="name" id="imgSheetName"></div>
-  <div class="price" id="imgSheetPrice"></div>
+<div class="img-sheet-overlay" id="imgSheetOverlay">
+  <div class="img-sheet" id="imgSheet">
+    <button type="button" class="img-sheet-close" id="imgSheetClose">✕</button>
+    <img id="imgSheetImg" src="" alt="">
+    <div class="name" id="imgSheetName"></div>
+    <div class="price" id="imgSheetPrice"></div>
+    <button type="button" class="img-sheet-btn" id="imgSheetSelectBtn">เลือกเมนูนี้ ✓</button>
+  </div>
 </div>
 
 
@@ -310,25 +320,12 @@
     <img src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/599CE900-99B0-4FC3-8C3E-33ED2F270ED7.png" alt="Orange Cat Omakase" class="banner-photo">
   </div>
 
-  <div class="catbar" id="catbar">
-    <span class="cat-pill active" data-tab="comfort">Your Comfort Drinks</span>
-    <span class="cat-pill" data-tab="signature">Orange Cat Signature</span>
-    <span class="cat-pill" data-tab="special">Special of the Month</span>
-    <span class="cat-pill" data-tab="omakase">🎴 Orange Cat Omakase</span>
-  </div>
-
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-label"><b>เลือกเมนู</b><span>เลือกเครื่องดื่มที่ชอบ</span></div>
-    </div>
-    <div class="step inactive">
-      <div class="step-num">2</div>
-      <div class="step-label"><b>เพิ่มหมายเหตุ</b><span>บอกความต้องการของคุณ</span></div>
-    </div>
-    <div class="step inactive">
-      <div class="step-num">3</div>
-      <div class="step-label"><b>ยืนยันออเดอร์</b><span>เสร็จแล้ว รอรับได้เลย!</span></div>
+  <div class="catbar-wrap">
+    <div class="catbar" id="catbar">
+      <span class="cat-pill active" data-tab="comfort">Your Comfort Drinks</span>
+      <span class="cat-pill" data-tab="signature">Orange Cat Signature</span>
+      <span class="cat-pill" data-tab="special">Special of the Month</span>
+      <span class="cat-pill" data-tab="omakase">🎴 Orange Cat Omakase</span>
     </div>
   </div>
 
@@ -657,19 +654,25 @@
   });
 
   function openImageSheet(item) {
-    if (!item.image_url) return; // ไม่มีรูป ไม่ต้องเปิดชีท
+    if (!item.image_url) return; // ไม่มีรูป ไม่ต้องเปิด
     document.getElementById('imgSheetImg').src = item.image_url;
     document.getElementById('imgSheetName').textContent = item.name;
     document.getElementById('imgSheetPrice').textContent = item.price + ' บาท';
     document.getElementById('imgSheetOverlay').classList.add('open');
-    document.getElementById('imgSheet').classList.add('open');
   }
   function closeImageSheet() {
     document.getElementById('imgSheetOverlay').classList.remove('open');
-    document.getElementById('imgSheet').classList.remove('open');
   }
-  document.getElementById('imgSheetOverlay').addEventListener('click', closeImageSheet);
+  document.getElementById('imgSheetOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'imgSheetOverlay') closeImageSheet();
+  });
   document.getElementById('imgSheetClose').addEventListener('click', closeImageSheet);
+  document.getElementById('imgSheetSelectBtn').addEventListener('click', () => {
+    closeImageSheet();
+    const nameInput = document.getElementById('customerName');
+    nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    nameInput.focus();
+  });
 
   loadMenu();
   loadBeans();
