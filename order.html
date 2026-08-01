@@ -266,9 +266,42 @@
     background: #fff; color: #E8863A; border: none; font-weight: 700;
     padding: 9px 18px; border-radius: 999px; font-size: 13px;
   }
+
+  /* Image preview sheet */
+  .img-sheet-overlay {
+    position: fixed; inset: 0; background: rgba(40,25,15,0.55); backdrop-filter: blur(3px);
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .img-sheet-overlay.open { opacity: 1; pointer-events: auto; }
+  .img-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 101;
+    background: #fff; border-radius: 22px 22px 0 0; padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+    transform: translateY(100%); transition: transform .32s cubic-bezier(.32,.9,.35,1);
+    max-height: 85vh; overflow-y: auto;
+  }
+  .img-sheet.open { transform: translateY(0); }
+  .img-sheet-close {
+    width: 28px; height: 28px; border-radius: 50%; background: #F0E4D8; border: none;
+    color: #8a6a4a; font-size: 14px; float: right;
+  }
+  .img-sheet img {
+    width: 100%; border-radius: 16px; display: block; margin-top: 10px; object-fit: contain;
+    max-height: 50vh; background: #FFF3E8;
+  }
+  .img-sheet .name { font-size: 17px; font-weight: 700; color: #4A3428; margin-top: 12px; }
+  .img-sheet .price { font-size: 14px; font-weight: 700; color: #E8863A; margin-top: 2px; }
 </style>
 </head>
 <body>
+
+<div class="img-sheet-overlay" id="imgSheetOverlay"></div>
+<div class="img-sheet" id="imgSheet">
+  <button type="button" class="img-sheet-close" id="imgSheetClose">✕</button>
+  <img id="imgSheetImg" src="" alt="">
+  <div class="name" id="imgSheetName"></div>
+  <div class="price" id="imgSheetPrice"></div>
+</div>
+
 
 <div class="wrap">
 
@@ -350,6 +383,9 @@
       <div class="selected-item" id="selectedItemBox">
         <span class="empty">ยังไม่ได้เลือกเมนู</span>
       </div>
+
+      <label class="field-label">ชื่อลูกค้า</label>
+      <input type="text" id="customerName" placeholder="ชื่อที่ให้เรียก เช่น หอนจ้า, ปั้นน">
 
       <div id="beanRow" style="display:none;">
         <label class="field-label">เลือกเมล็ดกาแฟ</label>
@@ -469,7 +505,7 @@
         <div class="name">${item.name}</div>
         <div class="price">${item.price} บาท</div>
       `;
-      div.addEventListener('click', () => selectItem(item, div));
+      div.addEventListener('click', () => { selectItem(item, div); openImageSheet(item); });
       return div;
     }
 
@@ -539,9 +575,13 @@
   function updateSubmitBtn() {
     const btn = document.getElementById('submitBtn');
     const addr = document.getElementById('address').value.trim();
+    const name = document.getElementById('customerName').value.trim();
     if (!selectedItem) {
       btn.disabled = true;
       btn.textContent = 'เลือกเมนูก่อนนะครับ';
+    } else if (!name) {
+      btn.disabled = true;
+      btn.textContent = 'กรอกชื่อลูกค้าก่อนนะครับ';
     } else if (!addr) {
       btn.disabled = true;
       btn.textContent = 'กรอกที่อยู่/จุดรับก่อนนะครับ';
@@ -552,14 +592,16 @@
   }
 
   document.getElementById('address').addEventListener('input', updateSubmitBtn);
+  document.getElementById('customerName').addEventListener('input', updateSubmitBtn);
 
   document.getElementById('submitBtn').addEventListener('click', async () => {
     const btn = document.getElementById('submitBtn');
     const statusEl = document.getElementById('statusMsg');
     const addr = document.getElementById('address').value.trim();
     const notes = document.getElementById('notes').value.trim();
+    const customerName = document.getElementById('customerName').value.trim();
 
-    if (!selectedItem || !addr) return;
+    if (!selectedItem || !addr || !customerName) return;
 
     btn.disabled = true;
     btn.textContent = 'กำลังบันทึกออเดอร์...';
@@ -581,6 +623,7 @@
         channel: 'liff-order',
         address: notes ? `${addr} (หมายเหตุ: ${notes})` : addr,
         status: 'pending',
+        customer_name: customerName,
         wanted_date: wantedDate,
         sweetness: selectedSweetness,
         bean_name: beanName
@@ -612,6 +655,21 @@
   document.getElementById('omakaseBtn').addEventListener('click', () => {
     alert('Omakase กำลังพัฒนาระบบสั่งอัตโนมัติอยู่ครับ 🎴 ตอนนี้ทักแชท LINE เพื่อสั่ง Omakase ได้เลยนะครับ');
   });
+
+  function openImageSheet(item) {
+    if (!item.image_url) return; // ไม่มีรูป ไม่ต้องเปิดชีท
+    document.getElementById('imgSheetImg').src = item.image_url;
+    document.getElementById('imgSheetName').textContent = item.name;
+    document.getElementById('imgSheetPrice').textContent = item.price + ' บาท';
+    document.getElementById('imgSheetOverlay').classList.add('open');
+    document.getElementById('imgSheet').classList.add('open');
+  }
+  function closeImageSheet() {
+    document.getElementById('imgSheetOverlay').classList.remove('open');
+    document.getElementById('imgSheet').classList.remove('open');
+  }
+  document.getElementById('imgSheetOverlay').addEventListener('click', closeImageSheet);
+  document.getElementById('imgSheetClose').addEventListener('click', closeImageSheet);
 
   loadMenu();
   loadBeans();
