@@ -36,6 +36,11 @@
     font-size: 56px;
     margin-bottom: 8px;
   }
+  .banner-img { padding: 20px 20px 14px; }
+  .banner-photo {
+    width: 100%; border-radius: 14px; display: block; object-fit: cover;
+    aspect-ratio: 1/1; margin-top: 4px;
+  }
   .banner h1 {
     font-size: 26px;
     color: #4A3428;
@@ -241,6 +246,7 @@
     background: linear-gradient(135deg, #FFF3E8, #FFE4CC);
     border-radius: 16px; padding: 20px; margin-bottom: 16px;
   }
+  .omk-photo { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 12px; margin-bottom: 14px; display: block; }
   .omk-card .omk-title { font-size: 20px; font-weight: 800; color: #4A3428; margin-bottom: 4px; }
   .omk-card .omk-sub { font-size: 13px; color: #8a6a4a; margin-bottom: 14px; }
   .omk-card .omk-stage {
@@ -266,11 +272,9 @@
 
 <div class="wrap">
 
-  <div class="banner">
+  <div class="banner banner-img">
     <div class="brand">🐾 อัปเดตล่าสุดจากกาแฟแมวส้ม</div>
-    <div class="cat-placeholder">🐱☕</div>
-    <h1>MEET <span>ORANGE.</span></h1>
-    <p>แมวส้มพร้อมแล้วที่จะเสิร์ฟความสดชื่นในทุกเช้าวันอาทิตย์ 🧡</p>
+    <img src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/599CE900-99B0-4FC3-8C3E-33ED2F270ED7.png" alt="Orange Cat Omakase" class="banner-photo">
   </div>
 
   <div class="catbar" id="catbar">
@@ -326,6 +330,7 @@
 
       <div class="tabpanel" id="tab-omakase">
         <div class="omk-card">
+          <img src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/599CE900-99B0-4FC3-8C3E-33ED2F270ED7.png" alt="Orange Cat Omakase" class="omk-photo">
           <div class="omk-title">🎴 Orange Cat Omakase</div>
           <div class="omk-sub">สุ่มเมนูให้ 3 แก้ว ตลอดสัปดาห์นี้ — เซอร์ไพรส์ทุกครั้ง</div>
           <div class="omk-stage"><b class="num">1</b> Americano — เมล็ดประจำสัปดาห์</div>
@@ -426,9 +431,9 @@
     });
   }
 
-  const COFFEE_CATS = ['espresso','dirty'];
+  const COFFEE_CATS = ['espresso','dirty','signature'];
   const MATCHA_CATS = ['matcha'];
-  const SIGNATURE_CATS = ['signature'];
+  const SIGNATURE_CATS = []; // ว่างไว้ตามที่ Fah สั่ง — Orange Americano ย้ายไปกลุ่มกาแฟใน Comfort tab แล้ว
 
   async function loadMenu() {
     const { data, error } = await sb
