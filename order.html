@@ -794,7 +794,19 @@
     // Omakase ต้องเป็นสมาชิกที่ผูก LINE แล้วเท่านั้น (ใช้เก็บเงิน 230 บาท/สัปดาห์ผ่านแชท)
     if (!memberId) {
       statusEl.className = 'status-msg error';
-      statusEl.innerHTML = 'สั่ง Omakase ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><a href="https://liff.line.me/2010600301-1tjt7IdG" style="color:inherit;text-decoration:underline;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</a> แล้วกลับมาสั่งใหม่ได้เลย';
+      statusEl.innerHTML = 'สั่ง Omakase ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" id="goRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button> แล้วกลับมาสั่งใหม่ได้เลย';
+      const goRegisterBtn = document.getElementById('goRegisterBtn');
+      if (goRegisterBtn) {
+        goRegisterBtn.addEventListener('click', () => {
+          // ใช้ liff.openWindow แทน <a href> ธรรมดา — เปิดจากใน LIFF ที่รันอยู่แล้วด้วย <a> ตรงๆ
+          // ทำให้ LINE บางเครื่องขึ้นหน้า "Verification / Already added" ค้าง แทนที่จะพาไปหน้าลงทะเบียนจริง
+          if (window.liff && liff.isInClient && liff.isInClient()) {
+            liff.openWindow({ url: 'https://liff.line.me/2010600301-1tjt7IdG', external: false });
+          } else {
+            window.location.href = 'https://liff.line.me/2010600301-1tjt7IdG';
+          }
+        });
+      }
       return;
     }
     if (!omakasePlaceholderId) {
