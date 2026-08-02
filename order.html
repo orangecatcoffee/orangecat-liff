@@ -310,9 +310,30 @@
     width: 100%; padding: 13px; background: #E8863A; color: #fff; border: none;
     border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
   }
+
+  .collection-fab{
+    position:fixed; top:14px; right:14px; z-index:60;
+    width:44px; height:44px; border-radius:50%;
+    background:linear-gradient(135deg,#E8621A,#F0894A);
+    display:flex; align-items:center; justify-content:center;
+    font-size:19px; text-decoration:none;
+    box-shadow:0 4px 14px rgba(232,98,26,0.4);
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  .collection-fab.pulse{ transform:scale(1.35); }
+
+  .flying-clone{
+    position:fixed; z-index:9999; pointer-events:none;
+    border-radius:8px; box-shadow:0 6px 16px rgba(90,54,27,0.35);
+    transition:top .65s cubic-bezier(.4,0,.2,1), left .65s cubic-bezier(.4,0,.2,1),
+               width .65s cubic-bezier(.4,0,.2,1), height .65s cubic-bezier(.4,0,.2,1),
+               opacity .65s ease, transform .65s cubic-bezier(.4,0,.2,1);
+  }
 </style>
 </head>
 <body>
+
+<a href="https://orangecat-tarot.vercel.app/collection.html" class="collection-fab" id="collectionFab" title="สมุดสะสมของฉัน">📖</a>
 
 <div class="img-sheet-overlay" id="imgSheetOverlay">
   <div class="img-sheet" id="imgSheet">
@@ -443,6 +464,40 @@
   const LIFF_ID = "2010600301-WA7nM057";
 
   let selectedItem = null;
+
+  const collectionFab = document.getElementById('collectionFab');
+  function flyToCollection(sourceEl){
+    if (!sourceEl || !collectionFab) return;
+    const srcRect = sourceEl.getBoundingClientRect();
+    const dstRect = collectionFab.getBoundingClientRect();
+    if (srcRect.width === 0 || srcRect.height === 0) return;
+
+    const clone = document.createElement('img');
+    clone.src = sourceEl.src;
+    clone.className = 'flying-clone';
+    clone.style.top = srcRect.top + 'px';
+    clone.style.left = srcRect.left + 'px';
+    clone.style.width = srcRect.width + 'px';
+    clone.style.height = srcRect.height + 'px';
+    clone.style.opacity = '1';
+    document.body.appendChild(clone);
+    void clone.offsetWidth;
+
+    requestAnimationFrame(() => {
+      clone.style.top = (dstRect.top + dstRect.height/2 - 4) + 'px';
+      clone.style.left = (dstRect.left + dstRect.width/2 - 4) + 'px';
+      clone.style.width = '8px';
+      clone.style.height = '8px';
+      clone.style.opacity = '0.15';
+      clone.style.transform = 'rotate(360deg)';
+    });
+
+    setTimeout(() => {
+      clone.remove();
+      collectionFab.classList.add('pulse');
+      setTimeout(() => collectionFab.classList.remove('pulse'), 350);
+    }, 680);
+  }
   let quantity = 1;
   let memberId = null; // เซ็ตจริงถ้าเจอ member ที่ผูก LINE user id นี้ไว้ใน members
   let lineUserId = null;
@@ -699,6 +754,7 @@
     statusEl.textContent = '✅ สั่งซื้อสำเร็จ! รอแอดมินยืนยันออเดอร์ครับ';
     statusEl.className = 'status-msg success';
     btn.textContent = 'สั่งซื้อแล้ว';
+    flyToCollection(document.querySelector('#selectedItemBox .cup-icon'));
   });
 
   function selectTab(tab) {
