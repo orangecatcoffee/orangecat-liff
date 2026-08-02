@@ -404,6 +404,7 @@
             <span class="p">230.- / สัปดาห์</span>
             <button type="button" id="omakaseBtn">สั่ง Omakase</button>
           </div>
+          <div class="status-msg" id="omakaseStatus" style="margin-top:10px;"></div>
         </div>
       </div>
 
@@ -501,6 +502,7 @@
   let quantity = 1;
   let memberId = null; // เซ็ตจริงถ้าเจอ member ที่ผูก LINE user id นี้ไว้ใน members
   let lineUserId = null;
+  let omakasePlaceholderId = null; // menu_items.id ของแถว placeholder (is_omakase_placeholder=true) — ดึงสดจาก DB ไม่ hardcode
   let customerNameAuto = null; // ชื่อจาก LINE profile — ห้ามให้พิมพ์เอง
   let manualNameFallback = false; // true เฉพาะตอนเปิดนอก LINE (เช่น เทสใน browser ปกติ)
   let selectedSweetness = 'หวานปกติ';
@@ -777,8 +779,58 @@
     document.getElementById('tab-omakase').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  document.getElementById('omakaseBtn').addEventListener('click', () => {
-    alert('Omakase กำลังพัฒนาระบบสั่งอัตโนมัติอยู่ครับ 🎴 ตอนนี้ทักแชท LINE เพื่อสั่ง Omakase ได้เลยนะครับ');
+  async function loadOmakasePlaceholder() {
+    const { data } = await sb.from('menu_items').select('id').eq('is_omakase_placeholder', true).maybeSingle();
+    if (data) omakasePlaceholderId = data.id;
+  }
+  loadOmakasePlaceholder();
+
+  document.getElementById('omakaseBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('omakaseBtn');
+    const statusEl = document.getElementById('omakaseStatus');
+    statusEl.className = 'status-msg';
+    statusEl.textContent = '';
+
+    // Omakase ต้องเป็นสมาชิกที่ผูก LINE แล้วเท่านั้น (ใช้เก็บเงิน 230 บาท/สัปดาห์ผ่านแชท)
+    if (!memberId) {
+      statusEl.className = 'status-msg error';
+      statusEl.innerHTML = 'สั่ง Omakase ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><a href="https://liff.line.me/2010600301-1tjt7IdG" style="color:inherit;text-decoration:underline;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</a> แล้วกลับมาสั่งใหม่ได้เลย';
+      return;
+    }
+    if (!omakasePlaceholderId) {
+      statusEl.className = 'status-msg error';
+      statusEl.textContent = 'ระบบยังโหลดไม่พร้อม ลองรีเฟรชหน้าอีกครั้งนะครับ';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'กำลังบันทึกออเดอร์...';
+
+    const wantedDate = document.getElementById('wantedDate').value || todayStr();
+    const customerName = getCustomerName();
+
+    const { error } = await sb.from('transactions').insert([{
+      member_id: memberId,
+      menu_item_id: omakasePlaceholderId,
+      quantity: 1,
+      total_price: 230,
+      channel: 'liff-omakase',
+      status: 'pending',
+      customer_name: customerName,
+      wanted_date: wantedDate,
+    }]);
+
+    if (error) {
+      statusEl.className = 'status-msg error';
+      statusEl.textContent = `สั่งไม่สำเร็จ: ${error.message}`;
+      btn.disabled = false;
+      btn.textContent = 'สั่ง Omakase';
+      return;
+    }
+
+    statusEl.className = 'status-msg success';
+    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! บาริสต้าจะเลือก 3 เมนูให้คุณ แล้วแจ้งเก็บเงิน 230 บาทผ่านแชทนะครับ';
+    btn.textContent = 'สั่งแล้ว ✅';
   });
 
   function openImageSheet(item) {
