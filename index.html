@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>สั่งเครื่องดื่ม — กาแฟแมวส้ม</title>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F7EDE0; --cream-soft:#FBF5EB;
+    --brown:#5A361B; --brown-dim:rgba(90,54,27,0.6);
+    --orange:#E8621A; --gold:#C9A44A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    background:
+      radial-gradient(ellipse 120% 60% at 50% -10%, rgba(232,98,26,0.08), transparent 60%),
+      radial-gradient(ellipse 90% 50% at 50% 110%, rgba(201,164,74,0.10), transparent 60%),
+      var(--cream);
+    font-family:'Mitr',sans-serif; color:var(--brown);
+    min-height:100vh; padding:0 0 40px;
+  }
+  .top{ text-align:center; padding:36px 20px 8px; }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:10px;letter-spacing:3px;text-transform:uppercase;
+    color:var(--orange);border:1px solid rgba(232,98,26,0.35);
+    padding:5px 16px;border-radius:999px;margin-bottom:14px;
+  }
+  h1{
+    font-family:'Playfair Display',serif; font-weight:700;
+    font-size:clamp(22px,6vw,30px); color:var(--brown);
+  }
+  .sub{ font-size:12.5px;color:var(--brown-dim);margin-top:8px;font-weight:300; line-height:1.6; }
+
+  .choices{ max-width:440px;margin:28px auto 0;padding:0 20px;display:flex;flex-direction:column;gap:16px; }
+  .choice-card{
+    display:block; text-decoration:none; color:var(--brown);
+    background:var(--cream-soft); border:1px solid rgba(90,54,27,0.12);
+    border-radius:20px; padding:22px 22px 20px;
+    box-shadow:0 6px 18px rgba(90,54,27,0.08);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .choice-card:active{ transform:scale(0.97); box-shadow:0 3px 10px rgba(90,54,27,0.1); }
+  .choice-emoji{ font-size:34px;margin-bottom:10px; }
+  .choice-title{ font-family:'Playfair Display',serif; font-weight:700; font-size:19px; color:var(--brown); }
+  .choice-desc{ font-size:12px; color:var(--brown-dim); margin-top:6px; font-weight:300; line-height:1.6; }
+  .choice-arrow{ display:inline-block; margin-top:10px; font-size:11.5px; color:var(--orange); font-weight:500; }
+
+  .card-a{ border-color:rgba(232,98,26,0.3); background:linear-gradient(135deg, var(--cream-soft), rgba(232,98,26,0.06)); }
+  .card-b{ border-color:rgba(201,164,74,0.3); }
+
+  .collection-link{ display:block;text-align:center;margin-top:26px; }
+  .collection-link a{
+    display:inline-block;font-size:11.5px;color:var(--orange);text-decoration:none;
+    border:1px solid rgba(232,98,26,0.35);padding:8px 18px;border-radius:999px;
+  }
+
+  .foot{ text-align:center;font-size:10px;letter-spacing:2px; text-transform:uppercase;color:rgba(90,54,27,0.35); margin-top:28px; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="eyebrow">🐱 กาแฟแมวส้ม</div>
+  <h1>วันนี้อยากดื่มแบบไหน</h1>
+  <div class="sub">เลือกได้เลยว่าจะให้อาบุ้งงงสุ่มให้<br>หรือจะเลือกเมนูที่อยากกินเอง</div>
+</div>
+
+<div class="choices">
+  <a href="https://orangecat-tarot.vercel.app/" class="choice-card card-a">
+    <div class="choice-emoji">🎴</div>
+    <div class="choice-title">สุ่มเมนู (ไพ่ทาโร่)</div>
+    <div class="choice-desc">แตะไพ่ 1 ใบ ให้อาบุ้งงงทำนายเครื่องดื่มของวันนี้ให้คุณ — สนุกแบบไม่รู้ล่วงหน้า</div>
+    <div class="choice-arrow">จั่วไพ่เลย →</div>
+  </a>
+
+  <a href="order.html" class="choice-card card-b">
+    <div class="choice-emoji">📋</div>
+    <div class="choice-title">เลือกเมนูเอง</div>
+    <div class="choice-desc">รู้อยู่แล้วว่าอยากกินอะไร เลือกจากเมนูทั้งหมดของร้านได้ตรงนี้</div>
+    <div class="choice-arrow">ดูเมนู →</div>
+  </a>
+</div>
+
+<div class="collection-link">
+  <a href="https://orangecat-tarot.vercel.app/collection.html">📖 สมุดสะสมของฉัน</a>
+</div>
+
+<div class="foot">กาแฟแมวส้ม · Order Hub · build 2026-08-02-A</div>
+
+</body>
+</html>
