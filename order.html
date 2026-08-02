@@ -578,10 +578,12 @@
   const SIGNATURE_CATS = []; // ว่างไว้ตามที่ Fah สั่ง — Orange Americano ย้ายไปกลุ่มกาแฟใน Comfort tab แล้ว
 
   async function loadMenu() {
-    const { data, error } = await sb
+    const { data: rawData, error } = await sb
       .from('menu_items')
       .select('*')
       .order('id', { ascending: true });
+    // เมนูทดลองรายสัปดาห์ (omakase_only=true) ไม่โผล่ในเมนูปกติ จนกว่าจะโปรโมทเป็น Special of the Month
+    const data = rawData ? rawData.filter(item => !item.omakase_only) : rawData;
 
     const coffeeGrid = document.getElementById('coffeeGrid');
     const matchaGrid = document.getElementById('matchaGrid');
