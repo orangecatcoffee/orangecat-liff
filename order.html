@@ -768,6 +768,13 @@
     document.querySelector('.cat-pill[data-tab="' + tab + '"]').classList.add('active');
   }
 
+  // เปิดตรงแท็บที่ต้องการได้ทันทีผ่าน ?tab=comfort|signature|special|omakase
+  // ใช้โดยหน้า Order Hub 5 กล่องใหม่ (index.html) กดปุ่มไหนก็พาตรงมาแท็บนั้นเลย ไม่ต้องมากดเปลี่ยนเอง
+  const deepLinkTab = new URLSearchParams(location.search).get('tab');
+  if (deepLinkTab && document.getElementById('tab-' + deepLinkTab)) {
+    selectTab(deepLinkTab);
+  }
+
   document.getElementById('catbar').addEventListener('click', (e) => {
     const pill = e.target.closest('.cat-pill');
     if (!pill) return;
