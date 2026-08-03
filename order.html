@@ -463,6 +463,7 @@
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oempudXR2aXJqZ2ljbGtrZmd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMjc3NjEsImV4cCI6MjA5ODcwMzc2MX0.Bv2zsjmo3yd9YpmfxUAmXf-aaFy7SbY77fmM_k4f7eg";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const LIFF_ID = "2010600301-WA7nM057";
+  const BEAN_DOSE_G = 20; // เกณฑ์เดียวกับ brew.html — สต็อกต้องเหลือ >= นี้ถึงจะให้ลูกค้าเลือกเมล็ดนั้นได้
 
   let selectedItem = null;
 
@@ -508,7 +509,7 @@
   let selectedSweetness = 'หวานปกติ';
   let availableBeans = [];
 
-  const COFFEE_BEAN_ITEMS = ['Iced Americano', 'Iced Latte', 'Oat Latte', 'Coconut Latte', 'Dirty', 'Orange Americano'];
+  // needs_bean มาจาก menu_items ตรงๆ อยู่แล้ว ไม่ต้อง hardcode รายชื่อเมนูซ้ำ
 
   async function initLiffProfile() {
     try {
@@ -554,12 +555,30 @@
   }
 
   async function loadBeans() {
-    const { data, error } = await sb.from('beans').select('id, name').eq('available', true).order('name');
+    const { data, error } = await sb
+      .from('ingredients')
+      .select('id, name, customer_bean_surcharge, stock_quantity')
+      .eq('category', 'coffee_bean')
+      .eq('active', true)
+      .gte('stock_quantity', BEAN_DOSE_G)
+      .order('name');
     availableBeans = (!error && data) ? data : [];
     const select = document.getElementById('beanSelect');
     select.innerHTML = availableBeans.length
-      ? availableBeans.map(b => `<option value="${b.name}">${b.name}</option>`).join('')
-      : '<option value="">ไม่มีข้อมูลเมล็ดตอนนี้</option>';
+      ? availableBeans.map(b => {
+          const sur = Number(b.customer_bean_surcharge) || 0;
+          const label = sur > 0 ? `${b.name} (+${sur}฿)` : b.name;
+          return `<option value="${b.name}" data-surcharge="${sur}">${label}</option>`;
+        }).join('')
+      : '<option value="">ไม่มีเมล็ดที่สต็อกพอตอนนี้</option>';
+    updateTotal();
+  }
+
+  function selectedBeanSurcharge() {
+    if (document.getElementById('beanRow').style.display === 'none') return 0;
+    const sel = document.getElementById('beanSelect');
+    const opt = sel && sel.selectedOptions[0];
+    return opt ? Number(opt.dataset.surcharge || 0) : 0;
   }
 
   function initDateAndSweetness(){
@@ -644,7 +663,7 @@
     el.classList.add('selected');
     selectedItem = item;
     quantity = 1;
-    document.getElementById('beanRow').style.display = COFFEE_BEAN_ITEMS.includes(item.name) ? 'block' : 'none';
+    document.getElementById('beanRow').style.display = item.needs_bean ? 'block' : 'none';
     renderSelected();
   }
 
@@ -678,7 +697,8 @@
   }
 
   function updateTotal() {
-    const total = selectedItem ? selectedItem.price * quantity : 0;
+    const surcharge = selectedItem ? selectedBeanSurcharge() : 0;
+    const total = selectedItem ? (selectedItem.price + surcharge) * quantity : 0;
     document.getElementById('totalPrice').textContent = `${total} บาท`;
   }
 
@@ -705,12 +725,13 @@
       btn.textContent = 'กรอกที่อยู่/จุดรับก่อนนะครับ';
     } else {
       btn.disabled = false;
-      btn.textContent = `ยืนยันการสั่งซื้อ · ${selectedItem.price * quantity} บาท`;
+      btn.textContent = `ยืนยันการสั่งซื้อ · ${(selectedItem.price + selectedBeanSurcharge()) * quantity} บาท`;
     }
   }
 
   document.getElementById('address').addEventListener('input', updateSubmitBtn);
   document.getElementById('customerName').addEventListener('input', updateSubmitBtn);
+  document.getElementById('beanSelect').addEventListener('change', () => { updateTotal(); updateSubmitBtn(); });
 
   document.getElementById('submitBtn').addEventListener('click', async () => {
     const btn = document.getElementById('submitBtn');
@@ -726,9 +747,9 @@
     statusEl.textContent = '';
     statusEl.className = 'status-msg';
 
-    const totalPrice = selectedItem.price * quantity;
+    const totalPrice = (selectedItem.price + selectedBeanSurcharge()) * quantity;
     const wantedDate = document.getElementById('wantedDate').value || todayStr();
-    const beanName = (COFFEE_BEAN_ITEMS.includes(selectedItem.name) && document.getElementById('beanSelect').value)
+    const beanName = (selectedItem.needs_bean && document.getElementById('beanSelect').value)
       ? document.getElementById('beanSelect').value : null;
 
     const { error } = await sb
