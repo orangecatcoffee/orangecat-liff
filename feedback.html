@@ -101,8 +101,20 @@
   // (endpoint URL ชี้มาที่ feedback.html) แล้วเอา LIFF ID มาใส่แทนค่านี้
   const LIFF_ID = "2010600301-3VANseP8";
 
-  const params = new URLSearchParams(window.location.search);
-  const feedbackId = params.get('id');
+  function resolveFeedbackId() {
+    const params = new URLSearchParams(window.location.search);
+    let id = params.get('id');
+    if (id) return id;
+    // LIFF บางครั้งย้าย query เดิมไปซ่อนไว้ใน liff.state แทนที่จะอยู่ตรงๆ ใน URL
+    const liffState = params.get('liff.state');
+    if (liffState) {
+      const decoded = decodeURIComponent(liffState);
+      const qsPart = decoded.includes('?') ? decoded.split('?')[1] : decoded.replace(/^\//, '');
+      id = new URLSearchParams(qsPart).get('id');
+    }
+    return id;
+  }
+  const feedbackId = resolveFeedbackId();
 
   let lineUserId = null;
   let selectedRating = null;
