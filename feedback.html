@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฟีดแบค - กาแฟแมวส้ม</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    background: #FFF8F0;
+    color: #4A3428;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 28px 20px 40px; }
+
+  .cat { font-size: 44px; text-align: center; margin-bottom: 10px; }
+  h1 { font-size: 19px; text-align: center; line-height: 1.5; margin-bottom: 26px; font-weight: 600; }
+  h1 span { color: #E8863A; }
+
+  .rating-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+  .rating-opt {
+    display: flex; align-items: center; gap: 12px;
+    background: #fff; border: 2px solid #F0E0CE; border-radius: 14px;
+    padding: 14px 16px; cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .rating-opt.selected { border-color: #E8863A; background: #FFF3E8; }
+  .rating-num {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: #F0E0CE; color: #8a6a4a; font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rating-opt.selected .rating-num { background: #E8863A; color: #fff; }
+  .rating-text { font-size: 14px; line-height: 1.35; }
+
+  label.field-label { display: block; font-size: 13px; color: #8a6a4a; margin-bottom: 8px; }
+  textarea {
+    width: 100%; border: 2px solid #F0E0CE; border-radius: 14px; padding: 12px 14px;
+    font-size: 14px; font-family: inherit; resize: vertical; margin-bottom: 24px;
+    background: #fff;
+  }
+  textarea:focus { outline: none; border-color: #E8863A; }
+
+  .btn {
+    width: 100%; padding: 15px; border: none; border-radius: 999px;
+    background: #E8863A; color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer;
+  }
+  .btn:disabled { background: #E0C8AC; cursor: not-allowed; }
+
+  .status-msg { text-align: center; font-size: 13px; margin-top: 14px; color: #C0392B; }
+
+  .done-wrap { text-align: center; padding: 60px 20px; }
+  .done-wrap .cat { font-size: 56px; margin-bottom: 14px; }
+  .done-wrap h2 { font-size: 18px; margin-bottom: 8px; }
+  .done-wrap p { font-size: 13px; color: #8a6a4a; }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="formWrap">
+  <div class="cat">🐱</div>
+  <h1>ขอ<span>ฟีดแบค</span>เครื่องดื่มแก้วนี้หน่อยค่า<br>ให้คะแนนเท่าไหร่ ชอบหรืออยากให้ปรับตรงไหน พิมพ์บอกได้เลยนะคะ</h1>
+
+  <div class="rating-list" id="ratingList">
+    <div class="rating-opt" data-val="5"><div class="rating-num">5</div><div class="rating-text">อร่อยมากเว่อ</div></div>
+    <div class="rating-opt" data-val="4"><div class="rating-num">4</div><div class="rating-text">อร่อยเลยนะเนี่ย</div></div>
+    <div class="rating-opt" data-val="3"><div class="rating-num">3</div><div class="rating-text">โอเคเลยโอเคมาก</div></div>
+    <div class="rating-opt" data-val="2"><div class="rating-num">2</div><div class="rating-text">อืม อาจจะยังไม่ค่อยใช่แนว</div></div>
+    <div class="rating-opt" data-val="1"><div class="rating-num">1</div><div class="rating-text">โอ้โห กล้าเปิดร้านนะ</div></div>
+  </div>
+
+  <label class="field-label">คอมเมนต์เพิ่มเติม (ไม่บังคับ)</label>
+  <textarea id="comment" rows="3" maxlength="300" placeholder="เช่น หวานไป เปรี้ยวไป กลิ่นแปลกๆ ฯลฯ"></textarea>
+
+  <button class="btn" id="submitBtn" disabled>เลือกคะแนนก่อนนะคะ</button>
+  <div class="status-msg" id="statusMsg" style="display:none;"></div>
+</div>
+
+<div class="done-wrap" id="doneWrap" style="display:none;">
+  <div class="cat">🐱</div>
+  <h2>ขอบคุณนะคะ!</h2>
+  <p>อาบุ้งเอาไปปรับสูตรให้อร่อยขึ้นแน่นอน</p>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://nhzjnutvirjgiclkkfgx.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oempudXR2aXJqZ2ljbGtrZmd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMjc3NjEsImV4cCI6MjA5ODcwMzc2MX0.Bv2zsjmo3yd9YpmfxUAmXf-aaFy7SbY77fmM_k4f7eg";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // TODO(Fah): ต้องสร้าง LIFF App ใหม่ใน LINE Developers Console สำหรับหน้านี้โดยเฉพาะ
+  // (endpoint URL ชี้มาที่ feedback.html) แล้วเอา LIFF ID มาใส่แทนค่านี้
+  const LIFF_ID = "REPLACE_WITH_NEW_LIFF_ID";
+
+  const params = new URLSearchParams(window.location.search);
+  const feedbackId = params.get('id');
+
+  let lineUserId = null;
+  let selectedRating = null;
+
+  function showError(msg) {
+    const el = document.getElementById('statusMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function showDone() {
+    document.getElementById('formWrap').style.display = 'none';
+    document.getElementById('doneWrap').style.display = 'block';
+  }
+
+  function updateSubmitBtn() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = !selectedRating;
+    btn.textContent = selectedRating ? 'ส่งฟีดแบค' : 'เลือกคะแนนก่อนนะคะ';
+  }
+
+  document.querySelectorAll('.rating-opt').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.rating-opt').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedRating = el.dataset.val;
+      updateSubmitBtn();
+    });
+  });
+
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    if (!feedbackId) { showError('ลิงก์ไม่ถูกต้อง — ไม่พบรายการฟีดแบค'); return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'กำลังส่ง...';
+    const comment = document.getElementById('comment').value.trim();
+
+    const { error } = await sb.from('feedback_requests')
+      .update({
+        rating: Number(selectedRating),
+        comment: comment || null,
+        responded_at: new Date().toISOString(),
+      })
+      .eq('id', feedbackId);
+
+    if (error) {
+      showError('ส่งไม่สำเร็จ: ' + error.message);
+      btn.disabled = false;
+      btn.textContent = 'ส่งฟีดแบค';
+      return;
+    }
+    showDone();
+  });
+
+  async function init() {
+    if (!feedbackId) { showError('ลิงก์ไม่ถูกต้อง — ไม่พบรายการฟีดแบค'); return; }
+
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      const profile = await liff.getProfile();
+      lineUserId = profile.userId;
+    } catch (e) {
+      // เปิดนอก LINE (เทสตรงๆ) — ปล่อยให้ทำต่อได้โดยไม่ผูก line user id
+    }
+
+    // เช็คว่าแก้วนี้ตอบไปแล้วหรือยัง กันตอบซ้ำ
+    const { data, error } = await sb.from('feedback_requests')
+      .select('id, responded_at')
+      .eq('id', feedbackId)
+      .maybeSingle();
+
+    if (error || !data) { showError('ไม่พบรายการฟีดแบคนี้'); return; }
+    if (data.responded_at) { showDone(); return; }
+
+    updateSubmitBtn();
+  }
+
+  init();
+</script>
+
+</body>
+</html>
