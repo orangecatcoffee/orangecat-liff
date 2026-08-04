@@ -14,13 +14,13 @@
     color: #4A3428;
     min-height: 100vh;
   }
-  .wrap { max-width: 480px; margin: 0 auto; padding: 28px 20px 40px; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 0 0 40px; }
+  .wrap-inner { padding: 28px 20px 0; }
 
   .cat { font-size: 44px; text-align: center; margin-bottom: 10px; }
   .top-photo {
-    width: 100%; max-width: 220px; aspect-ratio: 1; object-fit: cover;
-    border-radius: 20px; display: block; margin: 0 auto 16px;
-    box-shadow: 0 6px 18px rgba(74,52,40,0.15);
+    width: 100%; aspect-ratio: 2/1; object-fit: cover;
+    display: block; margin: 0 0 20px;
   }
   h1 { font-size: 19px; text-align: center; line-height: 1.5; margin-bottom: 26px; font-weight: 600; }
   h1 span { color: #E8863A; }
@@ -67,6 +67,7 @@
 
 <div class="wrap" id="formWrap">
   <img class="top-photo" src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/IMG_9447.jpeg" alt="บุ้งบุ้ง">
+  <div class="wrap-inner">
   <h1>ขอ<span>ฟีดแบค</span>เครื่องดื่มแก้วนี้หน่อยค่า<br>ให้คะแนนเท่าไหร่ ชอบหรืออยากให้ปรับตรงไหน พิมพ์บอกได้เลยนะคะ</h1>
 
   <div class="rating-list" id="ratingList">
@@ -82,6 +83,7 @@
 
   <button class="btn" id="submitBtn" disabled>เลือกคะแนนก่อนนะคะ</button>
   <div class="status-msg" id="statusMsg" style="display:none;"></div>
+  </div>
 </div>
 
 <div class="done-wrap" id="doneWrap" style="display:none;">
