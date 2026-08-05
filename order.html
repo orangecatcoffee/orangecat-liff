@@ -435,9 +435,9 @@
 
       <label class="field-label">ความหวาน</label>
       <div class="sweetness-row" id="sweetnessRow">
-        <button type="button" class="sweetness-btn" data-val="ไม่หวาน">ไม่หวาน</button>
+        <button type="button" class="sweetness-btn selected" data-val="ไม่หวาน">ไม่หวาน</button>
         <button type="button" class="sweetness-btn" data-val="หวานน้อย">หวานน้อย</button>
-        <button type="button" class="sweetness-btn selected" data-val="หวานปกติ">หวานปกติ</button>
+        <button type="button" class="sweetness-btn" data-val="หวานปกติ">หวานปกติ</button>
       </div>
 
       <label class="field-label">หมายเหตุ (ไม่บังคับ)</label>
@@ -506,7 +506,7 @@
   let omakasePlaceholderId = null; // menu_items.id ของแถว placeholder (is_omakase_placeholder=true) — ดึงสดจาก DB ไม่ hardcode
   let customerNameAuto = null; // ชื่อจาก LINE profile — ห้ามให้พิมพ์เอง
   let manualNameFallback = false; // true เฉพาะตอนเปิดนอก LINE (เช่น เทสใน browser ปกติ)
-  let selectedSweetness = 'หวานปกติ';
+  let selectedSweetness = 'ไม่หวาน';
   let availableBeans = [];
 
   // needs_bean มาจาก menu_items ตรงๆ อยู่แล้ว ไม่ต้อง hardcode รายชื่อเมนูซ้ำ
@@ -564,13 +564,14 @@
       .order('name');
     availableBeans = (!error && data) ? data : [];
     const select = document.getElementById('beanSelect');
-    select.innerHTML = availableBeans.length
+    const defaultOpt = '<option value="" data-surcharge="0">— ไม่เลือก (ให้บาริสต้าเลือกให้) —</option>';
+    select.innerHTML = defaultOpt + (availableBeans.length
       ? availableBeans.map(b => {
           const sur = Number(b.customer_bean_surcharge) || 0;
           const label = sur > 0 ? `${b.name} (+${sur}฿)` : b.name;
           return `<option value="${b.name}" data-surcharge="${sur}">${label}</option>`;
         }).join('')
-      : '<option value="">ไม่มีเมล็ดที่สต็อกพอตอนนี้</option>';
+      : '');
     updateTotal();
   }
 
