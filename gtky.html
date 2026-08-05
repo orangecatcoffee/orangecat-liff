@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รู้จักกันหน่อย - กาแฟแมวส้ม</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    background: #FFF8F0;
+    color: #4A3428;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 28px 20px 40px; }
+
+  .cat { font-size: 44px; text-align: center; margin-bottom: 14px; }
+  h1 { font-size: 19px; text-align: center; line-height: 1.5; margin-bottom: 26px; font-weight: 600; }
+
+  .opt-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+  .opt {
+    background: #fff; border: 2px solid #F0E0CE; border-radius: 14px;
+    padding: 14px 16px; cursor: pointer; transition: border-color .15s, background .15s;
+    font-size: 14px; text-align: center;
+  }
+  .opt.selected { border-color: #E8863A; background: #FFF3E8; font-weight: 600; }
+
+  textarea {
+    width: 100%; border: 2px solid #F0E0CE; border-radius: 14px; padding: 12px 14px;
+    font-size: 14px; font-family: inherit; resize: vertical; margin-bottom: 22px;
+    background: #fff;
+  }
+  textarea:focus { outline: none; border-color: #E8863A; }
+
+  .btn {
+    width: 100%; padding: 15px; border: none; border-radius: 999px;
+    background: #E8863A; color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer;
+  }
+  .btn:disabled { background: #E0C8AC; cursor: not-allowed; }
+
+  .status-msg { text-align: center; font-size: 13px; margin-top: 14px; color: #C0392B; }
+
+  .done-wrap { text-align: center; padding: 60px 20px; }
+  .done-wrap .cat { font-size: 56px; margin-bottom: 14px; }
+  .done-wrap h2 { font-size: 18px; margin-bottom: 8px; }
+  .done-wrap p { font-size: 13px; color: #8a6a4a; }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="formWrap">
+  <div class="cat">🐱</div>
+  <h1 id="questionText">กำลังโหลดคำถาม...</h1>
+
+  <div class="opt-list" id="optList" style="display:none;"></div>
+  <textarea id="freeText" rows="3" maxlength="300" placeholder="พิมพ์คำตอบที่นี่..." style="display:none;"></textarea>
+
+  <button class="btn" id="submitBtn" disabled>กำลังโหลด...</button>
+  <div class="status-msg" id="statusMsg" style="display:none;"></div>
+</div>
+
+<div class="done-wrap" id="doneWrap" style="display:none;">
+  <div class="cat">🐱</div>
+  <h2>ขอบคุณนะคะ!</h2>
+  <p>อาบุ้งจะรู้จักคุณมากขึ้นอีกนิดแล้ว</p>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://nhzjnutvirjgiclkkfgx.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oempudXR2aXJqZ2ljbGtrZmd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMjc3NjEsImV4cCI6MjA5ODcwMzc2MX0.Bv2zsjmo3yd9YpmfxUAmXf-aaFy7SbY77fmM_k4f7eg";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // TODO(Fah): ต้องสร้าง LIFF App ใหม่ใน LINE Developers Console สำหรับหน้านี้โดยเฉพาะ
+  // (endpoint URL ชี้มาที่ gtky.html) แล้วเอา LIFF ID มาใส่แทนค่านี้
+  const LIFF_ID = "REPLACE_WITH_NEW_LIFF_ID";
+
+  function resolveGtkyId() {
+    const params = new URLSearchParams(window.location.search);
+    let id = params.get('gtky');
+    if (id) return id;
+    const liffState = params.get('liff.state');
+    if (liffState) {
+      const decoded = decodeURIComponent(liffState);
+      const qsPart = decoded.includes('?') ? decoded.split('?')[1] : decoded.replace(/^\//, '');
+      id = new URLSearchParams(qsPart).get('gtky');
+    }
+    return id;
+  }
+  const gtkyId = resolveGtkyId();
+
+  let selectedOption = null;
+  let hasOptions = false;
+
+  function showError(msg) {
+    const el = document.getElementById('statusMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function showDone() {
+    document.getElementById('formWrap').style.display = 'none';
+    document.getElementById('doneWrap').style.display = 'block';
+  }
+
+  function updateSubmitBtn() {
+    const btn = document.getElementById('submitBtn');
+    if (hasOptions) {
+      btn.disabled = !selectedOption;
+    } else {
+      btn.disabled = document.getElementById('freeText').value.trim().length === 0;
+    }
+    btn.textContent = 'ส่งคำตอบ';
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    if (!gtkyId) { showError('ลิงก์ไม่ถูกต้อง'); return; }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'กำลังส่ง...';
+
+    const answer = hasOptions ? selectedOption : document.getElementById('freeText').value.trim();
+
+    const { error } = await sb.from('gtky_sends')
+      .update({ answer_text: answer, responded_at: new Date().toISOString() })
+      .eq('id', gtkyId);
+
+    if (error) {
+      showError('ส่งไม่สำเร็จ: ' + error.message);
+      btn.disabled = false;
+      updateSubmitBtn();
+      return;
+    }
+    showDone();
+  });
+
+  async function init() {
+    if (!gtkyId) { showError('ลิงก์ไม่ถูกต้อง'); return; }
+
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+    } catch (e) {
+      // เปิดนอก LINE (เทสตรงๆ) — ปล่อยให้ทำต่อได้
+    }
+
+    const { data, error } = await sb.from('gtky_sends')
+      .select('id, responded_at, gtky_questions(question_text, options)')
+      .eq('id', gtkyId)
+      .maybeSingle();
+
+    if (error || !data) { showError('ไม่พบคำถามนี้'); return; }
+    if (data.responded_at) { showDone(); return; }
+
+    const q = data.gtky_questions;
+    document.getElementById('questionText').textContent = q.question_text;
+
+    if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+      hasOptions = true;
+      const listEl = document.getElementById('optList');
+      listEl.style.display = 'flex';
+      listEl.innerHTML = q.options.map(opt => `<div class="opt" data-val="${opt.replace(/"/g,'&quot;')}">${opt}</div>`).join('');
+      listEl.querySelectorAll('.opt').forEach(el => {
+        el.addEventListener('click', () => {
+          listEl.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+          el.classList.add('selected');
+          selectedOption = el.dataset.val;
+          updateSubmitBtn();
+        });
+      });
+    } else {
+      hasOptions = false;
+      const ta = document.getElementById('freeText');
+      ta.style.display = 'block';
+      ta.addEventListener('input', updateSubmitBtn);
+    }
+
+    updateSubmitBtn();
+  }
+
+  init();
+</script>
+
+</body>
+</html>
