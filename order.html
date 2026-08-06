@@ -432,6 +432,7 @@
         <label class="field-label">เลือกเมล็ดกาแฟ</label>
         <select id="beanSelect"></select>
       </div>
+      <div id="beanLockedNote" class="status-msg" style="display:none;"></div>
 
       <label class="field-label">วันที่ต้องการรับ</label>
       <input type="date" id="wantedDate">
@@ -675,7 +676,30 @@
     el.classList.add('selected');
     selectedItem = item;
     quantity = 1;
-    document.getElementById('beanRow').style.display = item.needs_bean ? 'block' : 'none';
+
+    const beanRow = document.getElementById('beanRow');
+    const lockedNote = document.getElementById('beanLockedNote');
+    const sel = document.getElementById('beanSelect');
+
+    if (item.needs_bean && item.fixed_bean_name) {
+      sel.value = item.fixed_bean_name;
+      if (sel.value === item.fixed_bean_name) {
+        // bean is in stock and available — lock it in, hide the picker
+        beanRow.style.display = 'none';
+        const bean = availableBeans.find(b => b.name === item.fixed_bean_name);
+        const sur = bean ? (Number(bean.customer_bean_surcharge) || 0) : 0;
+        lockedNote.textContent = sur > 0 ? `Iced Americano +${sur} บาท • เปลี่ยนเป็นเมล็ดนี้` : 'Iced Americano • เปลี่ยนเป็นเมล็ดนี้';
+        lockedNote.style.display = 'block';
+      } else {
+        // bean out of stock right now — fall back to the normal picker instead of blocking the order
+        beanRow.style.display = 'block';
+        lockedNote.style.display = 'none';
+      }
+    } else {
+      beanRow.style.display = item.needs_bean ? 'block' : 'none';
+      lockedNote.style.display = 'none';
+    }
+
     renderSelected();
   }
 
