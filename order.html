@@ -397,6 +397,7 @@
         <div class="group">
           <h2>🌟 Special of the Month</h2>
           <div class="menu-grid" id="specialGrid"></div>
+          <div id="specialBaseToggle" style="display:none;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:center;"></div>
         </div>
       </div>
 
@@ -437,7 +438,6 @@
         <label class="field-label">เลือกเมล็ดกาแฟ</label>
         <select id="beanSelect"></select>
       </div>
-      <div id="beanLockedNote" class="status-msg" style="display:none;"></div>
 
       <label class="field-label">วันที่ต้องการรับ</label>
       <input type="date" id="wantedDate">
@@ -684,8 +684,7 @@
       const icon = primary.image_url
         ? `<img src="${primary.image_url}" alt="${title}" class="cup-icon special-cup-icon">`
         : iconFor(primary);
-      const bean = availableBeans.find(b => b.name === primary.fixed_bean_name);
-      const sur = bean ? (Number(bean.customer_bean_surcharge) || 0) : 0;
+      const sur = beanSurcharge(primary.fixed_bean_name);
       const caption = sur > 0 ? `+${sur} บาท เปลี่ยนเป็นเมล็ดนี้` : 'เปลี่ยนเป็นเมล็ดนี้';
       div.innerHTML = `
         <div class="icon">${icon}</div>
@@ -693,10 +692,15 @@
         <div class="price">${caption}</div>
         ${group.length > 1 ? '<div class="base-toggle" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;"></div>' : ''}
       `;
+      const priceEl = div.querySelector('.price');
+      function pick(variant) {
+        selectItem(variant, div);
+        openImageSheet(variant);
+        priceEl.textContent = `${variant.price + beanSurcharge(variant.fixed_bean_name)} บาท`;
+      }
       div.addEventListener('click', (e) => {
         if (e.target.closest('.base-chip')) return;
-        selectItem(primary, div);
-        openImageSheet(primary);
+        pick(primary);
       });
       if (group.length > 1) {
         const toggleRow = div.querySelector('.base-toggle');
@@ -709,8 +713,7 @@
             e.stopPropagation();
             toggleRow.querySelectorAll('.base-chip').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
-            selectItem(variant, div);
-            openImageSheet(variant);
+            pick(variant);
           });
           toggleRow.appendChild(chip);
         });
@@ -731,6 +734,11 @@
   }
 
 
+  function beanSurcharge(fixedBeanName) {
+    const bean = availableBeans.find(b => b.name === fixedBeanName);
+    return bean ? (Number(bean.customer_bean_surcharge) || 0) : 0;
+  }
+
   function selectItem(item, el) {
     document.querySelectorAll('.menu-card').forEach(e => e.classList.remove('selected'));
     el.classList.add('selected');
@@ -738,26 +746,14 @@
     quantity = 1;
 
     const beanRow = document.getElementById('beanRow');
-    const lockedNote = document.getElementById('beanLockedNote');
     const sel = document.getElementById('beanSelect');
 
     if (item.needs_bean && item.fixed_bean_name) {
       sel.value = item.fixed_bean_name;
-      if (sel.value === item.fixed_bean_name) {
-        // bean is in stock and available — lock it in, hide the picker
-        beanRow.style.display = 'none';
-        const bean = availableBeans.find(b => b.name === item.fixed_bean_name);
-        const sur = bean ? (Number(bean.customer_bean_surcharge) || 0) : 0;
-        lockedNote.textContent = sur > 0 ? `Iced Americano +${sur} บาท • เปลี่ยนเป็นเมล็ดนี้` : 'Iced Americano • เปลี่ยนเป็นเมล็ดนี้';
-        lockedNote.style.display = 'block';
-      } else {
-        // bean out of stock right now — fall back to the normal picker instead of blocking the order
-        beanRow.style.display = 'block';
-        lockedNote.style.display = 'none';
-      }
+      // bean in stock -> lock it in, hide the picker; out of stock -> fall back to normal picker
+      beanRow.style.display = (sel.value === item.fixed_bean_name) ? 'none' : 'block';
     } else {
       beanRow.style.display = item.needs_bean ? 'block' : 'none';
-      lockedNote.style.display = 'none';
     }
 
     renderSelected();
@@ -970,7 +966,8 @@
     if (!item.image_url) return; // ไม่มีรูป ไม่ต้องเปิด
     document.getElementById('imgSheetImg').src = item.image_url;
     document.getElementById('imgSheetName').textContent = item.name;
-    document.getElementById('imgSheetPrice').textContent = item.price + ' บาท';
+    const total = item.fixed_bean_name ? item.price + beanSurcharge(item.fixed_bean_name) : item.price;
+    document.getElementById('imgSheetPrice').textContent = total + ' บาท';
     document.getElementById('imgSheetOverlay').classList.add('open');
   }
   function closeImageSheet() {
