@@ -445,7 +445,7 @@
       </div>
 
       <label class="field-label">หมายเหตุ (ไม่บังคับ)</label>
-      <textarea id="notes" rows="3" maxlength="100" placeholder="เช่น แข้งอะไร / ขอเล็กน้อย ฯลฯ"></textarea>
+      <textarea id="notes" rows="2" maxlength="100" placeholder="เช่น แข้งอะไร / ขอเล็กน้อย ฯลฯ"></textarea>
 
       <label class="field-label">ที่อยู่ / จุดรับ</label>
       <textarea id="address" rows="2" placeholder="เช่น ชื่อตึก/ชั้น/แผนก หรือที่อยู่บ้าน"></textarea>
@@ -805,9 +805,6 @@
     } else if (!name) {
       btn.disabled = true;
       btn.textContent = 'กรอกชื่อลูกค้าก่อนนะครับ';
-    } else if (!addr) {
-      btn.disabled = true;
-      btn.textContent = 'กรอกที่อยู่/จุดรับก่อนนะครับ';
     } else {
       btn.disabled = false;
       btn.textContent = `ยืนยันการสั่งซื้อ · ${(selectedItem.price + selectedBeanSurcharge()) * quantity} บาท`;
@@ -825,7 +822,7 @@
     const notes = document.getElementById('notes').value.trim();
     const customerName = getCustomerName();
 
-    if (!selectedItem || !addr || !customerName) return;
+    if (!selectedItem || !customerName) return;
 
     btn.disabled = true;
     btn.textContent = 'กำลังบันทึกออเดอร์...';
