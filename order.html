@@ -589,9 +589,9 @@
   }
 
   function selectedBeanSurcharge() {
-    if (document.getElementById('beanRow').style.display === 'none') return 0;
     const sel = document.getElementById('beanSelect');
-    const opt = sel && sel.selectedOptions[0];
+    if (!sel || !sel.value) return 0;
+    const opt = sel.selectedOptions[0];
     return opt ? Number(opt.dataset.surcharge || 0) : 0;
   }
 
