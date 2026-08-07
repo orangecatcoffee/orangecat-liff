@@ -828,6 +828,7 @@
         menu_item_id: selectedItem.id,
         quantity: quantity,
         total_price: totalPrice,
+        bean_surcharge: selectedBeanSurcharge() * quantity,
         channel: 'liff-order',
         address: notes ? `${addr} (หมายเหตุ: ${notes})` : addr,
         status: 'pending',
