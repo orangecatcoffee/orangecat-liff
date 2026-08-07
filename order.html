@@ -685,12 +685,11 @@
       const icon = primary.image_url
         ? `<img src="${primary.image_url}" alt="${title}" class="cup-icon special-cup-icon">`
         : iconFor(primary);
-      const sur = beanSurcharge(primary.fixed_bean_name);
-      const caption = sur > 0 ? `+${sur} บาท เปลี่ยนเป็นเมล็ดนี้` : 'เปลี่ยนเป็นเมล็ดนี้';
+      const total = primary.price + beanSurcharge(primary.fixed_bean_name);
       div.innerHTML = `
         <div class="icon">${icon}</div>
         <div class="name">${title}</div>
-        <div class="price">${caption}</div>
+        <div class="price">ไอซ์อเมริกาโน่ ${total} บาท</div>
       `;
       div.addEventListener('click', () => {
         selectItem(primary, div);
@@ -755,28 +754,6 @@
     `;
     document.getElementById('qtyMinus').addEventListener('click', () => changeQty(-1));
     document.getElementById('qtyPlus').addEventListener('click', () => changeQty(1));
-
-    // shared base-drink toggle (Iced Americano / Iced Latte) — shown once, after a bean is picked,
-    // applies to whichever bean is currently selected. Purely data-driven off specialGroupsByBean.
-    const group = selectedItem.fixed_bean_name ? specialGroupsByBean[selectedItem.fixed_bean_name] : null;
-    if (group && group.length > 1) {
-      const toggleBox = document.createElement('div');
-      toggleBox.style.cssText = 'display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;';
-      [...group].sort((a, b) => (a.drink_base === 'americano' ? -1 : 1)).forEach(variant => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'cat-pill' + (variant.id === selectedItem.id ? ' active' : '');
-        chip.textContent = variant.drink_base === 'latte' ? 'Iced Latte' : 'Iced Americano (แนะนำ)';
-        chip.addEventListener('click', () => {
-          const primaryId = (group.find(i => i.drink_base === 'americano') || group[0]).id;
-          const cardEl = document.querySelector(`.menu-card[data-id="${primaryId}"]`);
-          selectItem(variant, cardEl || box);
-        });
-        toggleBox.appendChild(chip);
-      });
-      box.appendChild(toggleBox);
-    }
-
     updateTotal();
     updateSubmitBtn();
   }
