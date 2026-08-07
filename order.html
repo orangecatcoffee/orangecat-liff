@@ -648,10 +648,9 @@
 
     data.forEach(item => {
       const cat = item.category;
+      if (SPECIAL_CATS.includes(cat)) return; // handled separately below as grouped cards with a base-drink toggle
       const card = makeCard(item);
-      if (SPECIAL_CATS.includes(cat)) {
-        specialGrid.appendChild(card);
-      } else if (SIGNATURE_CATS.includes(cat)) {
+      if (SIGNATURE_CATS.includes(cat)) {
         signatureGrid.appendChild(card);
       } else if (MATCHA_CATS.includes(cat)) {
         matchaGrid.appendChild(card);
@@ -660,6 +659,56 @@
       } else {
         otherGrid.appendChild(card);
       }
+    });
+
+    // Special of the Month: group by fixed_bean_name so any bean with multiple base-drink
+    // variants (e.g. Americano/Latte) shows as one card with a toggle, not duplicate cards.
+    // Purely data-driven — works for any future bean/pair without code changes.
+    const specialGroups = {};
+    data.filter(item => SPECIAL_CATS.includes(item.category)).forEach(item => {
+      const key = item.fixed_bean_name || item.id;
+      (specialGroups[key] = specialGroups[key] || []).push(item);
+    });
+
+    function makeSpecialCard(group) {
+      const primary = group.find(i => i.drink_base === 'americano') || group[0];
+      const div = document.createElement('div');
+      div.className = 'menu-card';
+      div.dataset.id = primary.id;
+      const title = primary.fixed_bean_name || primary.name;
+      div.innerHTML = `
+        <div class="icon">${iconFor(primary)}</div>
+        <div class="name">${title}</div>
+        <div class="price">${primary.price} บาท</div>
+        ${group.length > 1 ? '<div class="base-toggle" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;"></div>' : ''}
+      `;
+      div.addEventListener('click', (e) => {
+        if (e.target.closest('.base-chip')) return;
+        selectItem(primary, div);
+        openImageSheet(primary);
+      });
+      if (group.length > 1) {
+        const toggleRow = div.querySelector('.base-toggle');
+        [...group].sort((a, b) => (a.drink_base === 'americano' ? -1 : 1)).forEach(variant => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'cat-pill base-chip' + (variant.drink_base === 'americano' ? ' active' : '');
+          chip.textContent = variant.drink_base === 'latte' ? 'Iced Latte' : 'Iced Americano (แนะนำ)';
+          chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleRow.querySelectorAll('.base-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            selectItem(variant, div);
+            openImageSheet(variant);
+          });
+          toggleRow.appendChild(chip);
+        });
+      }
+      return div;
+    }
+
+    Object.values(specialGroups).forEach(group => {
+      specialGrid.appendChild(makeSpecialCard(group));
     });
 
     if (!signatureGrid.children.length) {
