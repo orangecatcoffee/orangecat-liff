@@ -116,6 +116,11 @@
     border-radius: 12px 12px 0 0;
     display: block;
   }
+  .special-cup-icon {
+    aspect-ratio: 4/3;
+    object-fit: contain;
+    background: #fff;
+  }
   .selected-item .cup-icon {
     width: 28px;
     height: 42px;
@@ -676,10 +681,16 @@
       div.className = 'menu-card';
       div.dataset.id = primary.id;
       const title = primary.fixed_bean_name || primary.name;
+      const icon = primary.image_url
+        ? `<img src="${primary.image_url}" alt="${title}" class="cup-icon special-cup-icon">`
+        : iconFor(primary);
+      const bean = availableBeans.find(b => b.name === primary.fixed_bean_name);
+      const sur = bean ? (Number(bean.customer_bean_surcharge) || 0) : 0;
+      const caption = sur > 0 ? `+${sur} บาท เปลี่ยนเป็นเมล็ดนี้` : 'เปลี่ยนเป็นเมล็ดนี้';
       div.innerHTML = `
-        <div class="icon">${iconFor(primary)}</div>
+        <div class="icon">${icon}</div>
         <div class="name">${title}</div>
-        <div class="price">${primary.price} บาท</div>
+        <div class="price">${caption}</div>
         ${group.length > 1 ? '<div class="base-toggle" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;"></div>' : ''}
       `;
       div.addEventListener('click', (e) => {
@@ -974,8 +985,7 @@
     document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  loadMenu();
-  loadBeans();
+  loadBeans().then(loadMenu);
   initDateAndSweetness();
   initLiffProfile();
 </script>
