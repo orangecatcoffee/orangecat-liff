@@ -309,6 +309,9 @@
     width: 100%; aspect-ratio: 3/4; border-radius: 16px; display: block;
     object-fit: cover; background: #FFF3E8;
   }
+  .img-sheet img.contain-img {
+    aspect-ratio: 4/3; object-fit: contain; background: #fff;
+  }
   .img-sheet .name { font-size: 17px; font-weight: 700; color: #4A3428; margin-top: 12px; }
   .img-sheet .price { font-size: 14px; font-weight: 700; color: #E8863A; margin-top: 2px; margin-bottom: 14px; }
   .img-sheet .img-sheet-btn {
@@ -689,7 +692,7 @@
       div.innerHTML = `
         <div class="icon">${icon}</div>
         <div class="name">${title}</div>
-        <div class="price">ไอซ์อเมริกาโน่ ${total} บาท</div>
+        <div class="price">Iced Americano ${total} บาท</div>
       `;
       div.addEventListener('click', () => {
         selectItem(primary, div);
@@ -941,7 +944,9 @@
 
   function openImageSheet(item) {
     if (!item.image_url) return; // ไม่มีรูป ไม่ต้องเปิด
-    document.getElementById('imgSheetImg').src = item.image_url;
+    const imgEl = document.getElementById('imgSheetImg');
+    imgEl.src = item.image_url;
+    imgEl.classList.toggle('contain-img', !!item.fixed_bean_name);
     document.getElementById('imgSheetName').textContent = item.name;
     const total = item.fixed_bean_name ? item.price + beanSurcharge(item.fixed_bean_name) : item.price;
     document.getElementById('imgSheetPrice').textContent = total + ' บาท';
