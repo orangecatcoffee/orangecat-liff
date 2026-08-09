@@ -72,26 +72,46 @@
   }
 
   .group {
+    position: relative;
     background: #fff;
     border-radius: 16px;
     padding: 18px;
     margin-bottom: 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .group::after {
+    content: '';
+    position: absolute; top: 0; right: 0; bottom: 0; width: 24px;
+    background: linear-gradient(90deg, rgba(255,255,255,0), #fff 85%);
+    pointer-events: none;
   }
   .group h2 {
-    font-size: 15px;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
     color: #E8863A;
-    margin-bottom: 14px;
+    background: #FFF3E8;
+    border: 2px solid #F0E4D8;
+    border-radius: 999px;
+    padding: 5px 14px;
+    margin-bottom: 12px;
   }
   .menu-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
     gap: 12px;
+    padding-bottom: 4px;
+    margin: 0 -18px;
+    padding-left: 18px;
+    padding-right: 18px;
+    scrollbar-width: none;
   }
-  @media (min-width: 480px) and (max-width: 720px) {
-    .menu-grid { grid-template-columns: repeat(4, 1fr); }
-  }
+  .menu-grid::-webkit-scrollbar { display: none; }
   .menu-card {
+    flex: 0 0 128px;
+    scroll-snap-align: start;
     border: 2px solid #F0E4D8;
     border-radius: 14px;
     padding: 8px 8px 10px;
