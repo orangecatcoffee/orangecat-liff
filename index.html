@@ -72,9 +72,14 @@
   .bg-tarot{ background-image:linear-gradient(135deg,#2D1A5A,#1A0F3A); }
 
   /* Teaser row */
+  .teaser-group-label{
+    font-size:11px; font-weight:700; color:#E8863A;
+    background:#FFF3E8; border:2px solid #F0E4D8; border-radius:999px;
+    padding:4px 12px; margin:12px 0 0 16px; display:inline-block;
+  }
   .teaser-row{
     display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity;
-    padding:12px 16px 2px; scrollbar-width:none;
+    padding:8px 16px 2px; scrollbar-width:none;
   }
   .teaser-row::-webkit-scrollbar{ display:none; }
   .teaser-card{
@@ -114,11 +119,20 @@
     tarot:     "https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/CB422F0C-A027-4DE1-A708-53502D78A3B7.png",
   };
 
-  // categories ที่ดึงมาโชว์เป็นแถวตัวอย่างเมนู ต่อ section (อิงตรรกะเดียวกับ order.html)
-  const TEASER_CATS = {
-    comfort:   ['espresso','dirty','matcha','cocoa','thai_tea','yogurt','signature'],
-    signature: [], // ยังไม่มีเมนู Signature จริง (item category='signature' ที่มีอยู่คือ Orange Americano ซึ่งอยู่ใน Comfort แล้ว) — โชว์ "เร็วๆ นี้" แทน
-    special:   ['special_of_month'],
+  // กลุ่มย่อยที่ดึงมาโชว์เป็นแถวตัวอย่างเมนู ต่อ section — หนึ่งกลุ่ม = หนึ่งแถวเลื่อนแนวนอน
+  // (อิงตรรกะเดียวกับ COFFEE_CATS/MATCHA_CATS/other ใน order.html)
+  const TEASER_GROUPS = {
+    comfort: [
+      { label: '☕ กลุ่มกาแฟ',    cats: ['espresso','dirty','signature'] },
+      { label: '🍵 กลุ่มชาเขียว', cats: ['matcha'] },
+      { label: '🥤 อื่นๆ',        cats: ['cocoa','thai_tea','yogurt'] },
+    ],
+    signature: [
+      { label: null, cats: [] }, // ยังไม่มีเมนู Signature จริง — โชว์ "เร็วๆ นี้"
+    ],
+    special: [
+      { label: null, cats: ['special_of_month'] },
+    ],
   };
 
   const SECTIONS = [
@@ -150,12 +164,21 @@
     `;
     section.appendChild(banner);
 
-    if (s.teaser) {
-      const row = document.createElement('div');
-      row.className = 'teaser-row';
-      row.innerHTML = `<div class="teaser-loading">กำลังโหลดเมนู...</div>`;
-      row.dataset.key = s.key;
-      section.appendChild(row);
+    if (s.teaser && TEASER_GROUPS[s.key]) {
+      TEASER_GROUPS[s.key].forEach((grp, idx) => {
+        if (grp.label) {
+          const label = document.createElement('div');
+          label.className = 'teaser-group-label';
+          label.textContent = grp.label;
+          section.appendChild(label);
+        }
+        const row = document.createElement('div');
+        row.className = 'teaser-row';
+        row.innerHTML = `<div class="teaser-loading">กำลังโหลดเมนู...</div>`;
+        row.dataset.key = s.key;
+        row.dataset.groupIdx = idx;
+        section.appendChild(row);
+      });
     }
 
     wrap.appendChild(section);
@@ -164,30 +187,31 @@
   async function loadTeasers() {
     const { data, error } = await sb
       .from('menu_items')
-      .select('name, price, category, image_url, sort_order')
+      .select('name, price, category, image_url, sort_order, omakase_only')
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('id', { ascending: true });
 
     if (error || !data) return;
     const items = data.filter(it => !it.omakase_only);
 
-    Object.keys(TEASER_CATS).forEach(key => {
-      const row = document.querySelector(`.teaser-row[data-key="${key}"]`);
-      if (!row) return;
-      const cats = TEASER_CATS[key];
-      const matched = items.filter(it => cats.includes(it.category));
-      if (matched.length === 0) {
-        row.innerHTML = `<div class="teaser-loading">เร็วๆ นี้</div>`;
-        return;
-      }
+    Object.keys(TEASER_GROUPS).forEach(key => {
       const href = SECTIONS.find(s => s.key === key).href;
-      row.innerHTML = matched.map(it => `
-        <a class="teaser-card" href="${href}">
-          <img class="teaser-img" src="${it.image_url || ''}" alt="${it.name}" onerror="this.style.opacity=0">
-          <div class="teaser-name">${it.name}</div>
-          <div class="teaser-price">${it.price} บาท</div>
-        </a>
-      `).join('');
+      TEASER_GROUPS[key].forEach((grp, idx) => {
+        const row = document.querySelector(`.teaser-row[data-key="${key}"][data-group-idx="${idx}"]`);
+        if (!row) return;
+        const matched = items.filter(it => grp.cats.includes(it.category));
+        if (matched.length === 0) {
+          row.innerHTML = `<div class="teaser-loading">เร็วๆ นี้</div>`;
+          return;
+        }
+        row.innerHTML = matched.map(it => `
+          <a class="teaser-card" href="${href}">
+            <img class="teaser-img" src="${it.image_url || ''}" alt="${it.name}" onerror="this.style.opacity=0">
+            <div class="teaser-name">${it.name}</div>
+            <div class="teaser-price">${it.price} บาท</div>
+          </a>
+        `).join('');
+      });
     });
   }
 
