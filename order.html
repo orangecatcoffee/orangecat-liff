@@ -631,6 +631,7 @@
     const { data: rawData, error } = await sb
       .from('menu_items')
       .select('*')
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('id', { ascending: true });
     // เมนูทดลองรายสัปดาห์ (omakase_only=true) ไม่โผล่ในเมนูปกติ จนกว่าจะโปรโมทเป็น Special of the Month
     const data = rawData ? rawData.filter(item => !item.omakase_only) : rawData;
