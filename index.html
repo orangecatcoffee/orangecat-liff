@@ -164,7 +164,8 @@
   async function loadTeasers() {
     const { data, error } = await sb
       .from('menu_items')
-      .select('name, price, category, image_url')
+      .select('name, price, category, image_url, sort_order')
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('id', { ascending: true });
 
     if (error || !data) return;
