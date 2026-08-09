@@ -376,12 +376,6 @@
 
 <div class="wrap">
 
-  <div class="banner banner-img" id="bannerTap" role="button">
-    <div class="brand">🐾 อัปเดตล่าสุดจากกาแฟแมวส้ม</div>
-    <img src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/599CE900-99B0-4FC3-8C3E-33ED2F270ED7.png" alt="Orange Cat Omakase" class="banner-photo">
-    <div class="banner-tap-hint">👆 แตะเพื่อดู Omakase</div>
-  </div>
-
   <div class="catbar-wrap">
     <div class="catbar" id="catbar">
       <span class="cat-pill active" data-tab="comfort">Your Comfort Drinks</span>
@@ -890,11 +884,6 @@
     const pill = e.target.closest('.cat-pill');
     if (!pill) return;
     selectTab(pill.dataset.tab);
-  });
-
-  document.getElementById('bannerTap').addEventListener('click', () => {
-    selectTab('omakase');
-    document.getElementById('tab-omakase').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   async function loadOmakasePlaceholder() {
