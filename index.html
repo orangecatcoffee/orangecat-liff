@@ -45,6 +45,17 @@
     box-shadow:0 4px 14px rgba(0,0,0,0.08);
   }
   .banner.tall{ height:170px; }
+  .banner.framed{
+    border:3px solid var(--orange);
+    box-shadow:0 4px 14px rgba(232,98,26,0.25), 0 0 0 4px rgba(232,98,26,0.08);
+  }
+  .bottom-cta{
+    display:block; text-decoration:none; text-align:center;
+    margin:10px 16px 0; padding:13px 16px; border-radius:14px;
+    background:linear-gradient(135deg,#E8621A,#F0894A);
+    color:#fff; font-weight:700; font-size:14px;
+    box-shadow:0 4px 14px rgba(232,98,26,0.35);
+  }
   .banner::after{
     content:''; position:absolute; inset:0;
     background:linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,0.6) 100%);
@@ -130,17 +141,15 @@
     signature: [
       { label: null, cats: [] }, // ยังไม่มีเมนู Signature จริง — โชว์ "เร็วๆ นี้"
     ],
-    special: [
-      { label: null, cats: ['special_of_month'] },
-    ],
+    // special: เอาลงชั่วคราวตามที่ Fah สั่ง (Special of the Month ไม่มีเมนูตอนนี้) — ถ้ามีเมนูใหม่ค่อยเปิด key นี้กลับมา
   };
 
   const SECTIONS = [
     { key:'comfort',   href:'order.html?tab=comfort',   title:'Your Comfort Drink',   sub:'เมนูประจำร้าน 14 แก้ว',           fallback:'bg-comfort',   cta:'ดูเมนู →',    teaser:true },
     { key:'signature', href:'order.html?tab=signature', title:'Signature',            sub:'ซิกเนเจอร์ประจำร้าน',              fallback:'bg-signature', cta:'ดูเมนู →',    teaser:true },
-    { key:'special',   href:'order.html?tab=special',   title:'Special of the Month', sub:'เมนูพิเศษประจำเดือน',             fallback:'bg-special',   cta:'ดูเมนู →',    teaser:true },
+    // { key:'special', href:'order.html?tab=special', title:'Special of the Month', sub:'เมนูพิเศษประจำเดือน', fallback:'bg-special', cta:'ดูเมนู →', teaser:true }, // ปิดไว้ชั่วคราว — ยังไม่มีเมนู
     { key:'omakase',   href:'order.html?tab=omakase',   title:'Omakase',              sub:'230.-/สัปดาห์ — 3 แก้วเซอร์ไพรส์', fallback:'bg-omakase',   cta:'จองเลย →',    teaser:false, tall:true },
-    { key:'tarot',     href:'https://orangecat-tarot.vercel.app/', title:'กาแฟแมวสุ่ม', sub:'จั่วไพ่ 1 ใบ ให้อาบุ้งงงทำนายให้', fallback:'bg-tarot',    cta:'จั่วไพ่ →',   teaser:false, tall:true },
+    { key:'tarot',     href:'https://orangecat-tarot.vercel.app/', title:'กาแฟแมวสุ่ม', sub:'จั่วไพ่ 1 ใบ ให้อาบุ้งงงทำนายให้', fallback:'bg-tarot',    cta:'จั่วไพ่ →',   teaser:false, tall:true, framed:true, bottomCta:'🔮 เปิดไพ่ทำนายเลย' },
   ];
 
   const wrap = document.getElementById('sections');
@@ -150,7 +159,7 @@
     section.className = 'section';
 
     const banner = document.createElement('a');
-    banner.className = 'banner' + (s.tall ? ' tall' : '') + (TILE_IMAGES[s.key] ? '' : ' ' + s.fallback);
+    banner.className = 'banner' + (s.tall ? ' tall' : '') + (s.framed ? ' framed' : '') + (TILE_IMAGES[s.key] ? '' : ' ' + s.fallback);
     banner.href = s.href;
     if (TILE_IMAGES[s.key]) banner.style.backgroundImage = `url('${TILE_IMAGES[s.key]}')`;
     banner.innerHTML = `
@@ -163,6 +172,14 @@
       </div>
     `;
     section.appendChild(banner);
+
+    if (s.bottomCta) {
+      const btn = document.createElement('a');
+      btn.className = 'bottom-cta';
+      btn.href = s.href;
+      btn.textContent = s.bottomCta;
+      section.appendChild(btn);
+    }
 
     if (s.teaser && TEASER_GROUPS[s.key]) {
       TEASER_GROUPS[s.key].forEach((grp, idx) => {
