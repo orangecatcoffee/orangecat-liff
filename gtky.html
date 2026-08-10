@@ -93,6 +93,8 @@
 
   let selectedOption = null;
   let hasOptions = false;
+  let questionTextCache = '';
+  const NOTIFY_SHOP_URL = "https://nhzjnutvirjgiclkkfgx.supabase.co/functions/v1/notify-shop-gtky";
 
   function showError(msg) {
     const el = document.getElementById('statusMsg');
@@ -133,6 +135,19 @@
       updateSubmitBtn();
       return;
     }
+
+    let customerDisplayName = '';
+    try {
+      const profile = await liff.getProfile();
+      customerDisplayName = profile.displayName || '';
+    } catch (e) { /* เปิดนอก LINE ไม่มีโปรไฟล์ให้ดึง เงียบไว้ */ }
+
+    fetch(NOTIFY_SHOP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question_text: questionTextCache, answer_text: answer, customer_name: customerDisplayName }),
+    }).catch(err => console.error('notify-shop-gtky failed:', err));
+
     showDone();
   });
 
@@ -155,6 +170,7 @@
     if (data.responded_at) { showDone(); return; }
 
     const q = data.gtky_questions;
+    questionTextCache = q.question_text;
     document.getElementById('questionText').textContent = q.question_text;
 
     if (q.options && Array.isArray(q.options) && q.options.length > 0) {
