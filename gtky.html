@@ -47,6 +47,12 @@
   .done-wrap .cat { font-size: 56px; margin-bottom: 14px; }
   .done-wrap h2 { font-size: 18px; margin-bottom: 8px; }
   .done-wrap p { font-size: 13px; color: #8a6a4a; }
+
+  .q-block { margin-bottom: 28px; }
+  .q-block .q-title { font-size: 15px; font-weight: 600; line-height: 1.5; margin-bottom: 12px; }
+  .q-block .opt-list { margin-bottom: 0; }
+  .q-block textarea { margin-bottom: 0; }
+  #batchIntro { font-size: 13px; text-align: center; color: #8a6a4a; margin-bottom: 22px; }
 </style>
 </head>
 <body>
@@ -54,9 +60,12 @@
 <div class="wrap" id="formWrap">
   <div class="cat">🐱</div>
   <h1 id="questionText">กำลังโหลดคำถาม...</h1>
+  <div id="batchIntro" style="display:none;"></div>
 
   <div class="opt-list" id="optList" style="display:none;"></div>
   <textarea id="freeText" rows="3" maxlength="300" placeholder="พิมพ์คำตอบที่นี่..." style="display:none;"></textarea>
+
+  <div id="batchWrap" style="display:none;"></div>
 
   <button class="btn" id="submitBtn" disabled>กำลังโหลด...</button>
   <div class="status-msg" id="statusMsg" style="display:none;"></div>
@@ -77,23 +86,30 @@
   // (endpoint URL ชี้มาที่ gtky.html) แล้วเอา LIFF ID มาใส่แทนค่านี้
   const LIFF_ID = "2010600301-LuXVMYwg";
 
-  function resolveGtkyId() {
+  function resolveParams() {
     const params = new URLSearchParams(window.location.search);
-    let id = params.get('gtky');
-    if (id) return id;
-    const liffState = params.get('liff.state');
-    if (liffState) {
-      const decoded = decodeURIComponent(liffState);
-      const qsPart = decoded.includes('?') ? decoded.split('?')[1] : decoded.replace(/^\//, '');
-      id = new URLSearchParams(qsPart).get('gtky');
+    let gtky = params.get('gtky');
+    let batch = params.get('batch');
+    if (!gtky && !batch) {
+      const liffState = params.get('liff.state');
+      if (liffState) {
+        const decoded = decodeURIComponent(liffState);
+        const qsPart = decoded.includes('?') ? decoded.split('?')[1] : decoded.replace(/^\//, '');
+        const qs = new URLSearchParams(qsPart);
+        gtky = qs.get('gtky');
+        batch = qs.get('batch');
+      }
     }
-    return id;
+    if (batch) return { mode: 'batch', id: batch };
+    if (gtky) return { mode: 'single', id: gtky };
+    return { mode: null, id: null };
   }
-  const gtkyId = resolveGtkyId();
+  const { mode, id: targetId } = resolveParams();
 
   let selectedOption = null;
   let hasOptions = false;
   let questionTextCache = '';
+  let batchRows = [];
   const NOTIFY_SHOP_URL = "https://nhzjnutvirjgiclkkfgx.supabase.co/functions/v1/notify-shop-gtky";
 
   function showError(msg) {
@@ -109,6 +125,14 @@
 
   function updateSubmitBtn() {
     const btn = document.getElementById('submitBtn');
+    if (mode === 'batch') {
+      const allAnswered = batchRows.length > 0 && batchRows.every(r =>
+        r.hasOptions ? !!r.selected : document.getElementById('bt_' + r.id).value.trim().length > 0
+      );
+      btn.disabled = !allAnswered;
+      btn.textContent = 'ส่งคำตอบทั้งหมด';
+      return;
+    }
     if (hasOptions) {
       btn.disabled = !selectedOption;
     } else {
@@ -118,16 +142,54 @@
   }
 
   document.getElementById('submitBtn').addEventListener('click', async () => {
-    if (!gtkyId) { showError('ลิงก์ไม่ถูกต้อง'); return; }
+    if (!targetId) { showError('ลิงก์ไม่ถูกต้อง'); return; }
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.textContent = 'กำลังส่ง...';
+
+    if (mode === 'batch') {
+      try {
+        const answered = batchRows.map(r => ({
+          id: r.id,
+          question_text: r.question_text,
+          answer: r.hasOptions ? r.selected : document.getElementById('bt_' + r.id).value.trim(),
+        }));
+
+        for (const a of answered) {
+          const { error } = await sb.from('gtky_sends')
+            .update({ answer_text: a.answer, responded_at: new Date().toISOString() })
+            .eq('id', a.id);
+          if (error) throw error;
+        }
+
+        let customerDisplayName = '';
+        try {
+          const profile = await liff.getProfile();
+          customerDisplayName = profile.displayName || '';
+        } catch (e) { /* เปิดนอก LINE ไม่มีโปรไฟล์ให้ดึง เงียบไว้ */ }
+
+        answered.forEach(a => {
+          fetch(NOTIFY_SHOP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question_text: a.question_text, answer_text: a.answer, customer_name: customerDisplayName }),
+          }).catch(err => console.error('notify-shop-gtky failed:', err));
+        });
+
+        showDone();
+      } catch (e) {
+        showError('ส่งไม่สำเร็จ: ' + e.message);
+        btn.disabled = false;
+        updateSubmitBtn();
+      }
+      return;
+    }
 
     const answer = hasOptions ? selectedOption : document.getElementById('freeText').value.trim();
 
     const { error } = await sb.from('gtky_sends')
       .update({ answer_text: answer, responded_at: new Date().toISOString() })
-      .eq('id', gtkyId);
+      .eq('id', targetId);
 
     if (error) {
       showError('ส่งไม่สำเร็จ: ' + error.message);
@@ -151,19 +213,65 @@
     showDone();
   });
 
-  async function init() {
-    if (!gtkyId) { showError('ลิงก์ไม่ถูกต้อง'); return; }
+  async function initBatch() {
+    const { data, error } = await sb.from('gtky_sends')
+      .select('id, responded_at, sent_at, gtky_questions(question_text, options)')
+      .eq('batch_id', targetId)
+      .order('sent_at', { ascending: true });
 
-    try {
-      await liff.init({ liffId: LIFF_ID });
-      if (!liff.isLoggedIn()) { liff.login(); return; }
-    } catch (e) {
-      // เปิดนอก LINE (เทสตรงๆ) — ปล่อยให้ทำต่อได้
-    }
+    if (error || !data || !data.length) { showError('ไม่พบชุดคำถามนี้'); return; }
 
+    const unanswered = data.filter(r => !r.responded_at);
+    if (!unanswered.length) { showDone(); return; }
+
+    document.getElementById('questionText').style.display = 'none';
+    const intro = document.getElementById('batchIntro');
+    intro.style.display = 'block';
+    intro.textContent = `อยากรู้จักคุณเพิ่มอีกนิด (${unanswered.length} คำถาม)`;
+
+    batchRows = unanswered.map(r => ({
+      id: r.id,
+      question_text: r.gtky_questions.question_text,
+      options: r.gtky_questions.options,
+      hasOptions: !!(r.gtky_questions.options && Array.isArray(r.gtky_questions.options) && r.gtky_questions.options.length > 0),
+      selected: null,
+    }));
+
+    const wrap = document.getElementById('batchWrap');
+    wrap.style.display = 'block';
+    wrap.innerHTML = batchRows.map(r => `
+      <div class="q-block">
+        <div class="q-title">${r.question_text}</div>
+        ${r.hasOptions
+          ? `<div class="opt-list" id="bo_${r.id}">${r.options.map(opt => `<div class="opt" data-val="${opt.replace(/"/g,'&quot;')}">${opt}</div>`).join('')}</div>`
+          : `<textarea id="bt_${r.id}" rows="2" maxlength="300" placeholder="พิมพ์คำตอบที่นี่..."></textarea>`
+        }
+      </div>
+    `).join('');
+
+    batchRows.forEach(r => {
+      if (r.hasOptions) {
+        const listEl = document.getElementById('bo_' + r.id);
+        listEl.querySelectorAll('.opt').forEach(el => {
+          el.addEventListener('click', () => {
+            listEl.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            r.selected = el.dataset.val;
+            updateSubmitBtn();
+          });
+        });
+      } else {
+        document.getElementById('bt_' + r.id).addEventListener('input', updateSubmitBtn);
+      }
+    });
+
+    updateSubmitBtn();
+  }
+
+  async function initSingle() {
     const { data, error } = await sb.from('gtky_sends')
       .select('id, responded_at, gtky_questions(question_text, options)')
-      .eq('id', gtkyId)
+      .eq('id', targetId)
       .maybeSingle();
 
     if (error || !data) { showError('ไม่พบคำถามนี้'); return; }
@@ -194,6 +302,23 @@
     }
 
     updateSubmitBtn();
+  }
+
+  async function init() {
+    if (!targetId || !mode) { showError('ลิงก์ไม่ถูกต้อง'); return; }
+
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+    } catch (e) {
+      // เปิดนอก LINE (เทสตรงๆ) — ปล่อยให้ทำต่อได้
+    }
+
+    if (mode === 'batch') {
+      await initBatch();
+    } else {
+      await initSingle();
+    }
   }
 
   init();
