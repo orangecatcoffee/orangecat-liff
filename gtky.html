@@ -49,9 +49,18 @@
 
   .status-msg { text-align: center; font-size: 13px; margin-top: 14px; color: #C0392B; }
 
+  .note-label { font-size: 12px; color: #8a6a4a; margin: 10px 0 6px; }
+  .note-field {
+    width: 100%; border: 2px solid #F0E0CE; border-radius: 12px; padding: 10px 12px;
+    font-size: 14px; font-family: inherit; resize: vertical; background: #fff;
+    margin-bottom: 0;
+  }
+  .note-field:focus { outline: none; border-color: #E8863A; }
+  .note-field::placeholder { color: #C9B49A; }
+
   .done-wrap { text-align: center; padding: 0 0 60px; }
   .done-wrap .top-photo { margin: 0; }
-  .done-wrap h2 { font-size: 20px; margin-top: 24px; padding: 0 20px; }
+  .done-wrap h2 { font-size: 24px; font-weight: 800; color: #E8863A; margin-top: 24px; padding: 0 20px; }
   .done-wrap p { font-size: 13px; color: #8a6a4a; padding: 0 20px; margin-top: 8px; }
 
   .q-block { margin-bottom: 28px; }
@@ -73,6 +82,11 @@
 
   <div class="opt-list" id="optList" style="display:none;"></div>
   <textarea id="freeText" rows="3" maxlength="300" placeholder="พิมพ์คำตอบที่นี่..." style="display:none;"></textarea>
+
+  <div id="noteWrap" style="display:none;">
+    <div class="note-label">หมายเหตุ (ไม่บังคับ)</div>
+    <textarea class="note-field" id="noteField" rows="2" maxlength="200" placeholder="จะเขียนก็เขียนนะ เป็นคนง่ายก็ว่างไว้"></textarea>
+  </div>
 
   <div id="batchWrap" style="display:none;"></div>
 
@@ -163,11 +177,12 @@
           id: r.id,
           question_text: r.question_text,
           answer: r.hasOptions ? r.selected : document.getElementById('bt_' + r.id).value.trim(),
+          note: document.getElementById('bnote_' + r.id).value.trim(),
         }));
 
         for (const a of answered) {
           const { error } = await sb.from('gtky_sends')
-            .update({ answer_text: a.answer, responded_at: new Date().toISOString() })
+            .update({ answer_text: a.answer, note: a.note || null, responded_at: new Date().toISOString() })
             .eq('id', a.id);
           if (error) throw error;
         }
@@ -182,7 +197,7 @@
           fetch(NOTIFY_SHOP_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question_text: a.question_text, answer_text: a.answer, customer_name: customerDisplayName }),
+            body: JSON.stringify({ question_text: a.question_text, answer_text: a.answer, note: a.note, customer_name: customerDisplayName }),
           }).catch(err => console.error('notify-shop-gtky failed:', err));
         });
 
@@ -196,9 +211,10 @@
     }
 
     const answer = hasOptions ? selectedOption : document.getElementById('freeText').value.trim();
+    const note = document.getElementById('noteField').value.trim();
 
     const { error } = await sb.from('gtky_sends')
-      .update({ answer_text: answer, responded_at: new Date().toISOString() })
+      .update({ answer_text: answer, note: note || null, responded_at: new Date().toISOString() })
       .eq('id', targetId);
 
     if (error) {
@@ -217,7 +233,7 @@
     fetch(NOTIFY_SHOP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question_text: questionTextCache, answer_text: answer, customer_name: customerDisplayName }),
+      body: JSON.stringify({ question_text: questionTextCache, answer_text: answer, note: note, customer_name: customerDisplayName }),
     }).catch(err => console.error('notify-shop-gtky failed:', err));
 
     showDone();
@@ -225,7 +241,7 @@
 
   async function initBatch() {
     const { data, error } = await sb.from('gtky_sends')
-      .select('id, responded_at, batch_order, gtky_questions(question_text, options)')
+      .select('id, responded_at, batch_order, gtky_questions(question_text, options, placeholder_hint)')
       .eq('batch_id', targetId)
       .order('batch_order', { ascending: true, nullsFirst: false });
 
@@ -238,6 +254,7 @@
       id: r.id,
       question_text: r.gtky_questions.question_text,
       options: r.gtky_questions.options,
+      placeholderHint: r.gtky_questions.placeholder_hint,
       hasOptions: !!(r.gtky_questions.options && Array.isArray(r.gtky_questions.options) && r.gtky_questions.options.length > 0),
       selected: null,
     }));
@@ -249,8 +266,10 @@
         <div class="q-title">${i + 1}. ${r.question_text}</div>
         ${r.hasOptions
           ? `<div class="opt-list" id="bo_${r.id}">${r.options.map(opt => `<div class="opt" data-val="${opt.replace(/"/g,'&quot;')}">${opt}</div>`).join('')}</div>`
-          : `<textarea id="bt_${r.id}" rows="2" maxlength="300" placeholder="พิมพ์คำตอบที่นี่..."></textarea>`
+          : `<textarea id="bt_${r.id}" rows="2" maxlength="300" placeholder="${(r.placeholderHint || 'พิมพ์คำตอบที่นี่...').replace(/"/g,'&quot;')}"></textarea>`
         }
+        <div class="note-label">หมายเหตุ (ไม่บังคับ)</div>
+        <textarea class="note-field" id="bnote_${r.id}" rows="2" maxlength="200" placeholder="จะเขียนก็เขียนนะ เป็นคนง่ายก็ว่างไว้"></textarea>
       </div>
     `).join('');
 
@@ -275,7 +294,7 @@
 
   async function initSingle() {
     const { data, error } = await sb.from('gtky_sends')
-      .select('id, responded_at, gtky_questions(question_text, options)')
+      .select('id, responded_at, gtky_questions(question_text, options, placeholder_hint)')
       .eq('id', targetId)
       .maybeSingle();
 
@@ -287,6 +306,8 @@
     const qEl = document.getElementById('questionText');
     qEl.style.display = 'block';
     qEl.textContent = q.question_text;
+
+    document.getElementById('noteWrap').style.display = 'block';
 
     if (q.options && Array.isArray(q.options) && q.options.length > 0) {
       hasOptions = true;
@@ -305,6 +326,7 @@
       hasOptions = false;
       const ta = document.getElementById('freeText');
       ta.style.display = 'block';
+      if (q.placeholder_hint) ta.placeholder = q.placeholder_hint;
       ta.addEventListener('input', updateSubmitBtn);
     }
 
