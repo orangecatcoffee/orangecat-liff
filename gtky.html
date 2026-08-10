@@ -16,7 +16,10 @@
   }
   .wrap { max-width: 480px; margin: 0 auto; padding: 28px 20px 40px; }
 
-  .cat { font-size: 44px; text-align: center; margin-bottom: 14px; }
+  .cat { text-align: center; margin-bottom: 14px; }
+  .cat img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; }
+  .gtky-title { font-size: 24px; text-align: center; font-weight: 800; margin-bottom: 6px; color: #E8863A; }
+  .gtky-subtitle { font-size: 13px; text-align: center; color: #8a6a4a; line-height: 1.5; margin-bottom: 24px; }
   h1 { font-size: 19px; text-align: center; line-height: 1.5; margin-bottom: 26px; font-weight: 600; }
 
   .opt-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
@@ -44,7 +47,7 @@
   .status-msg { text-align: center; font-size: 13px; margin-top: 14px; color: #C0392B; }
 
   .done-wrap { text-align: center; padding: 60px 20px; }
-  .done-wrap .cat { font-size: 56px; margin-bottom: 14px; }
+  .done-wrap .cat img { width: 100px; height: 100px; }
   .done-wrap h2 { font-size: 18px; margin-bottom: 8px; }
   .done-wrap p { font-size: 13px; color: #8a6a4a; }
 
@@ -58,8 +61,10 @@
 <body>
 
 <div class="wrap" id="formWrap">
-  <div class="cat">🐱</div>
-  <h1 id="questionText">กำลังโหลดคำถาม...</h1>
+  <div class="cat"><img src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/IMG_9447.jpeg" alt="อาบุ้งงง"></div>
+  <div class="gtky-title">Let's get to know you!</div>
+  <div class="gtky-subtitle">ทำความรู้จักกันสักนิด แต่คงทำตามบ้างไม่ทำตามบ้าง แค่อยากรู้เฉยๆ</div>
+  <h1 id="questionText" style="display:none;">กำลังโหลดคำถาม...</h1>
   <div id="batchIntro" style="display:none;"></div>
 
   <div class="opt-list" id="optList" style="display:none;"></div>
@@ -72,7 +77,7 @@
 </div>
 
 <div class="done-wrap" id="doneWrap" style="display:none;">
-  <div class="cat">🐱</div>
+  <div class="cat"><img src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/IMG_9447.jpeg" alt="อาบุ้งงง"></div>
   <h2>ขอบคุณนะคะ!</h2>
   <p>อาบุ้งจะรู้จักคุณมากขึ้นอีกนิดแล้ว</p>
 </div>
@@ -215,19 +220,14 @@
 
   async function initBatch() {
     const { data, error } = await sb.from('gtky_sends')
-      .select('id, responded_at, sent_at, gtky_questions(question_text, options)')
+      .select('id, responded_at, batch_order, gtky_questions(question_text, options)')
       .eq('batch_id', targetId)
-      .order('sent_at', { ascending: true });
+      .order('batch_order', { ascending: true, nullsFirst: false });
 
     if (error || !data || !data.length) { showError('ไม่พบชุดคำถามนี้'); return; }
 
     const unanswered = data.filter(r => !r.responded_at);
     if (!unanswered.length) { showDone(); return; }
-
-    document.getElementById('questionText').style.display = 'none';
-    const intro = document.getElementById('batchIntro');
-    intro.style.display = 'block';
-    intro.textContent = `อยากรู้จักคุณเพิ่มอีกนิด (${unanswered.length} คำถาม)`;
 
     batchRows = unanswered.map(r => ({
       id: r.id,
@@ -239,9 +239,9 @@
 
     const wrap = document.getElementById('batchWrap');
     wrap.style.display = 'block';
-    wrap.innerHTML = batchRows.map(r => `
+    wrap.innerHTML = batchRows.map((r, i) => `
       <div class="q-block">
-        <div class="q-title">${r.question_text}</div>
+        <div class="q-title">${i + 1}. ${r.question_text}</div>
         ${r.hasOptions
           ? `<div class="opt-list" id="bo_${r.id}">${r.options.map(opt => `<div class="opt" data-val="${opt.replace(/"/g,'&quot;')}">${opt}</div>`).join('')}</div>`
           : `<textarea id="bt_${r.id}" rows="2" maxlength="300" placeholder="พิมพ์คำตอบที่นี่..."></textarea>`
@@ -279,7 +279,9 @@
 
     const q = data.gtky_questions;
     questionTextCache = q.question_text;
-    document.getElementById('questionText').textContent = q.question_text;
+    const qEl = document.getElementById('questionText');
+    qEl.style.display = 'block';
+    qEl.textContent = q.question_text;
 
     if (q.options && Array.isArray(q.options) && q.options.length > 0) {
       hasOptions = true;
