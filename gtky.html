@@ -193,13 +193,11 @@
           customerDisplayName = profile.displayName || '';
         } catch (e) { /* เปิดนอก LINE ไม่มีโปรไฟล์ให้ดึง เงียบไว้ */ }
 
-        answered.forEach(a => {
-          fetch(NOTIFY_SHOP_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question_text: a.question_text, answer_text: a.answer, note: a.note, customer_name: customerDisplayName }),
-          }).catch(err => console.error('notify-shop-gtky failed:', err));
-        });
+        fetch(NOTIFY_SHOP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: answered.map(a => ({ question_text: a.question_text, answer_text: a.answer, note: a.note })), customer_name: customerDisplayName }),
+        }).catch(err => console.error('notify-shop-gtky failed:', err));
 
         showDone();
       } catch (e) {
