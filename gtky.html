@@ -14,10 +14,13 @@
     color: #4A3428;
     min-height: 100vh;
   }
-  .wrap { max-width: 480px; margin: 0 auto; padding: 28px 20px 40px; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 0 0 40px; }
+  .wrap-inner { padding: 28px 20px 0; }
 
-  .cat { text-align: center; margin-bottom: 14px; }
-  .cat img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; }
+  .top-photo {
+    width: 100%; aspect-ratio: 2/1; object-fit: cover;
+    display: block; margin: 0 0 20px;
+  }
   .gtky-title { font-size: 24px; text-align: center; font-weight: 800; margin-bottom: 6px; color: #E8863A; }
   .gtky-subtitle { font-size: 13px; text-align: center; color: #8a6a4a; line-height: 1.5; margin-bottom: 24px; }
   h1 { font-size: 19px; text-align: center; line-height: 1.5; margin-bottom: 26px; font-weight: 600; }
@@ -46,10 +49,10 @@
 
   .status-msg { text-align: center; font-size: 13px; margin-top: 14px; color: #C0392B; }
 
-  .done-wrap { text-align: center; padding: 60px 20px; }
-  .done-wrap .cat img { width: 100px; height: 100px; }
-  .done-wrap h2 { font-size: 18px; margin-bottom: 8px; }
-  .done-wrap p { font-size: 13px; color: #8a6a4a; }
+  .done-wrap { text-align: center; padding: 0 0 60px; }
+  .done-wrap .top-photo { margin: 0; }
+  .done-wrap h2 { font-size: 20px; margin-top: 24px; padding: 0 20px; }
+  .done-wrap p { font-size: 13px; color: #8a6a4a; padding: 0 20px; margin-top: 8px; }
 
   .q-block { margin-bottom: 28px; }
   .q-block .q-title { font-size: 15px; font-weight: 600; line-height: 1.5; margin-bottom: 12px; }
@@ -61,7 +64,8 @@
 <body>
 
 <div class="wrap" id="formWrap">
-  <div class="cat"><img src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/IMG_9447.jpeg" alt="อาบุ้งงง"></div>
+  <img class="top-photo" src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/IMG_9447.jpeg" alt="อาบุ้งงง">
+  <div class="wrap-inner">
   <div class="gtky-title">Let's get to know you!</div>
   <div class="gtky-subtitle">ทำความรู้จักกันสักนิด แต่คงทำตามบ้างไม่ทำตามบ้าง แค่อยากรู้เฉยๆ</div>
   <h1 id="questionText" style="display:none;">กำลังโหลดคำถาม...</h1>
@@ -74,10 +78,11 @@
 
   <button class="btn" id="submitBtn" disabled>กำลังโหลด...</button>
   <div class="status-msg" id="statusMsg" style="display:none;"></div>
+  </div>
 </div>
 
 <div class="done-wrap" id="doneWrap" style="display:none;">
-  <div class="cat"><img src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/IMG_9447.jpeg" alt="อาบุ้งงง"></div>
+  <img class="top-photo" src="https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/IMG_9447.jpeg" alt="อาบุ้งงง">
   <h2>ขอบคุณนะคะ!</h2>
   <p>อาบุ้งจะรู้จักคุณมากขึ้นอีกนิดแล้ว</p>
 </div>
