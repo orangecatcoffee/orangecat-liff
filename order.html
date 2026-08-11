@@ -22,10 +22,11 @@
   /* Top header banner (welcome image, replaces the old landing page) */
   .header-banner {
     position: relative; overflow: hidden;
-    margin: 14px 16px 16px; border-radius: 18px;
+    margin: 0 16px 16px; border-radius: 0 0 18px 18px;
     height: 140px;
     background-size: cover; background-position: center;
     box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    transition: background-image 0.2s;
   }
   .header-banner::after {
     content: ''; position: absolute; inset: 0;
@@ -233,36 +234,34 @@
   .status-msg.success { color: #4A9B5C; }
   .loading { text-align: center; color: #A8876F; font-size: 13px; padding: 20px; }
 
-  /* Category tabs — folder-tab style with scroll hint */
+  /* Category tabs — literal file-folder tab style, sits flush above the banner */
   .catbar-wrap {
     position: relative;
-    margin-bottom: 18px;
     background: #F0E4D8;
-    border-radius: 999px;
-    padding: 4px;
+    padding: 8px 12px 0;
   }
   .catbar-wrap::after {
     content: '';
-    position: absolute; top: 4px; right: 4px; bottom: 4px; width: 32px;
-    border-radius: 0 999px 999px 0;
-    background: linear-gradient(90deg, rgba(240,228,216,0), #F0E4D8 75%);
+    position: absolute; top: 8px; right: 0; bottom: 0; width: 36px;
+    background: linear-gradient(90deg, rgba(240,228,216,0), #F0E4D8 70%);
     pointer-events: none;
   }
   .catbar {
     display: flex; gap: 4px; overflow-x: auto;
-    scrollbar-width: none;
+    scrollbar-width: none; align-items: flex-end;
   }
   .catbar::-webkit-scrollbar { display: none; }
   .cat-pill {
-    flex-shrink: 0; font-size: 12px; padding: 8px 13px;
-    border: none; border-radius: 999px;
-    color: #A8876F; background: transparent; white-space: nowrap;
+    flex-shrink: 0; font-size: 12px; padding: 10px 14px 9px;
+    border: none; border-radius: 12px 12px 0 0;
+    color: #A8876F; background: #E4D4C2; white-space: nowrap;
     cursor: pointer; position: relative; font-weight: 500;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.15s, color 0.15s, padding 0.15s;
   }
   .cat-pill.active {
     background: #E8863A; color: #fff; font-weight: 700;
-    box-shadow: 0 2px 8px rgba(232,134,58,0.4);
+    padding-top: 12px; padding-bottom: 11px;
+    box-shadow: 0 -2px 8px rgba(232,134,58,0.3);
   }
   .tabpanel { display: none; }
   .tabpanel.active { display: block; }
@@ -362,23 +361,23 @@
 </div>
 
 
-<div class="header-banner" style="background-image:url('https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/CA309633-E509-4943-8030-DC692B0291AE.png')">
+<div class="catbar-wrap">
+  <div class="catbar" id="catbar">
+    <span class="cat-pill active" data-tab="comfort">Your Comfort Drinks</span>
+    <span class="cat-pill" data-tab="signature">Orange Cat Signature</span>
+    <span class="cat-pill" data-tab="special">Special of the Month</span>
+    <span class="cat-pill" data-tab="omakase">🎴 Orange Cat Omakase</span>
+  </div>
+</div>
+
+<div class="header-banner" id="headerBanner" style="background-image:url('https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/CA309633-E509-4943-8030-DC692B0291AE.png')">
   <div class="header-banner-label">
-    <div class="header-banner-title">🐱 กาแฟแมวส้ม</div>
-    <div class="header-banner-sub">เลือกเมนูที่ใช่สำหรับวันนี้</div>
+    <div class="header-banner-title" id="headerBannerTitle">Your Comfort Drink</div>
+    <div class="header-banner-sub" id="headerBannerSub">เมนูประจำร้าน 14 แก้ว</div>
   </div>
 </div>
 
 <div class="wrap">
-
-  <div class="catbar-wrap">
-    <div class="catbar" id="catbar">
-      <span class="cat-pill active" data-tab="comfort">Your Comfort Drinks</span>
-      <span class="cat-pill" data-tab="signature">Orange Cat Signature</span>
-      <span class="cat-pill" data-tab="special">Special of the Month</span>
-      <span class="cat-pill" data-tab="omakase">🎴 Orange Cat Omakase</span>
-    </div>
-  </div>
 
   <div class="layout">
     <div class="menu-col">
@@ -885,11 +884,26 @@
     flyToCollection(document.querySelector('#selectedItemBox .cup-icon'));
   });
 
+  // รูป banner + ข้อความ เปลี่ยนตามแท็บที่เลือก — แก้ URL ตรงนี้ทีเดียวเมื่อ Fah ส่งรูปใหม่มาแทน
+  const TAB_BANNERS = {
+    comfort:   { img: 'https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/CA309633-E509-4943-8030-DC692B0291AE.png', title: 'Your Comfort Drink',   sub: 'เมนูประจำร้าน 14 แก้ว' },
+    signature: { img: 'https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/6FBCF571-2ED5-49A0-A747-917064EA46E8.png', title: 'Signature',            sub: 'ซิกเนเจอร์ประจำร้าน' },
+    special:   { img: 'https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/86972194-5706-42D8-8762-DF76806D5B96.png', title: 'Special of the Month', sub: 'เมนูพิเศษประจำเดือน' },
+    omakase:   { img: 'https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/1312691B-D90E-4889-92A3-9E5E0C1F303D.png', title: 'Omakase',             sub: '230.-/สัปดาห์ — 3 แก้วเซอร์ไพรส์' },
+  };
+
   function selectTab(tab) {
     document.querySelectorAll('.tabpanel').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
     document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
     document.querySelector('.cat-pill[data-tab="' + tab + '"]').classList.add('active');
+
+    const b = TAB_BANNERS[tab];
+    if (b) {
+      document.getElementById('headerBanner').style.backgroundImage = `url('${b.img}')`;
+      document.getElementById('headerBannerTitle').textContent = b.title;
+      document.getElementById('headerBannerSub').textContent = b.sub;
+    }
   }
 
   // เปิดตรงแท็บที่ต้องการได้ทันทีผ่าน ?tab=comfort|signature|special|omakase
