@@ -147,6 +147,12 @@
     color: #E8863A;
     font-weight: 700;
   }
+  .menu-card .caption {
+    font-size: 10px;
+    color: #A8876F;
+    margin-top: 3px;
+    line-height: 1.3;
+  }
 
   /* Sidebar */
   .sidebar {
@@ -664,14 +670,32 @@
       div.className = 'menu-card';
       div.dataset.id = item.id;
       const priceLabel = SURPRISE_CATS.includes(item.category) ? '65-75 บาท' : `${item.price} บาท`;
+      const captionHtml = SURPRISE_CATS.includes(item.category) ? `<div class="caption">กดมาเดี๋ยวบาริสต้าเลือกให้เอง</div>` : '';
       div.innerHTML = `
         <div class="icon">${iconFor(item)}</div>
         <div class="name">${item.name}</div>
         <div class="price">${priceLabel}</div>
+        ${captionHtml}
       `;
       div.addEventListener('click', () => { selectItem(item, div); openImageSheet(item); });
       return div;
     }
+
+    // 🎴 กาแฟแมวสุ่ม (ไพ่ทาโร่) — ไม่ใช่เมนูจาก DB เป็นการ์ดลิงก์ออกไปหน้าจั่วไพ่แยกต่างหาก วางคู่กับ "แมวส้มเลือกหน่อย" เสมอ
+    const TAROT_CARD_IMAGE_URL = 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/tarot-card.png';
+    const tarotCard = document.createElement('div');
+    tarotCard.className = 'menu-card';
+    tarotCard.innerHTML = `
+      <div class="icon">${TAROT_CARD_IMAGE_URL ? `<img src="${TAROT_CARD_IMAGE_URL}" alt="กาแฟแมวสุ่ม" class="cup-icon">` : '🎴'}</div>
+      <div class="name">กาแฟแมวสุ่ม</div>
+      <div class="price">65-75 บาท</div>
+      <div class="caption">ไม่มีใครได้เลือก</div>
+    `;
+    tarotCard.addEventListener('click', () => {
+      window.location.href = 'https://orangecat-tarot.vercel.app/';
+    });
+    surpriseGrid.appendChild(tarotCard);
+
 
     data.forEach(item => {
       const cat = item.category;
