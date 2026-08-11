@@ -391,7 +391,7 @@
 
       <div class="tabpanel active" id="tab-comfort">
         <div class="group">
-          <h2>🐱 แมวส้มเลือกหน่อย</h2>
+          <h2>🐱 วันนี้ไม่อยากเลือก</h2>
           <div class="menu-grid" id="surpriseGrid"></div>
         </div>
         <div class="group">
@@ -472,7 +472,7 @@
       </div>
 
       <label class="field-label">หมายเหตุ (ไม่บังคับ)</label>
-      <textarea id="notes" rows="2" maxlength="100" placeholder="เช่น แข้งอะไร / ขอเล็กน้อย ฯลฯ"></textarea>
+      <textarea id="notes" rows="2" maxlength="100" placeholder="เช่น แพ้นมวัว / ขอน้ำแข็งน้อย"></textarea>
 
       <label class="field-label">ที่อยู่ / จุดรับ</label>
       <textarea id="address" rows="2" placeholder="เช่น ชื่อตึก/ชั้น/แผนก หรือที่อยู่บ้าน"></textarea>
@@ -681,7 +681,7 @@
       return div;
     }
 
-    // 🎴 กาแฟแมวสุ่ม (ไพ่ทาโร่) — ไม่ใช่เมนูจาก DB เป็นการ์ดลิงก์ออกไปหน้าจั่วไพ่แยกต่างหาก วางคู่กับ "แมวส้มเลือกหน่อย" เสมอ
+    // 🎴 กาแฟแมวสุ่ม (ไพ่ทาโร่) — ไม่ใช่เมนูจาก DB เป็นการ์ดลิงก์ออกไปหน้าจั่วไพ่แยกต่างหาก วางคู่กับ "แมวส้มเลือกหน่อย" เสมอ (อยู่ขวา)
     const TAROT_CARD_IMAGE_URL = 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/tarot-card.png';
     const tarotCard = document.createElement('div');
     tarotCard.className = 'menu-card';
@@ -694,8 +694,6 @@
     tarotCard.addEventListener('click', () => {
       window.location.href = 'https://orangecat-tarot.vercel.app/';
     });
-    surpriseGrid.appendChild(tarotCard);
-
 
     data.forEach(item => {
       const cat = item.category;
@@ -713,6 +711,8 @@
         otherGrid.appendChild(card);
       }
     });
+
+    surpriseGrid.appendChild(tarotCard); // ต่อท้าย แมวส้มเลือกหน่อย เสมอ (อยู่ขวา)
 
     // Special of the Month: group by fixed_bean_name so any bean with multiple base-drink
     // variants (e.g. Americano/Latte) shows as one card with a toggle, not duplicate cards.
