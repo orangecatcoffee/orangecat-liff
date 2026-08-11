@@ -899,6 +899,9 @@
     document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
     document.querySelector('.cat-pill[data-tab="' + tab + '"]').classList.add('active');
 
+    // Omakase มีปุ่มสั่งของตัวเองแยกต่างหาก ไม่เกี่ยวกับ sidebar เลือกเมนูเดี่ยว — ซ่อน sidebar กันสับสนว่าต้องสั่ง 2 รอบ
+    document.querySelector('.sidebar').style.display = (tab === 'omakase') ? 'none' : '';
+
     const b = TAB_BANNERS[tab];
     if (b) {
       document.getElementById('headerBanner').style.backgroundImage = `url('${b.img}')`;
