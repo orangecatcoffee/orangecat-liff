@@ -371,7 +371,7 @@
   </div>
 </div>
 
-<div class="header-banner" id="headerBanner" style="background-image:url('https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/CA309633-E509-4943-8030-DC692B0291AE.png')">
+<div class="header-banner" id="headerBanner" style="background-image:url('https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png')">
   <div class="header-banner-label">
     <div class="header-banner-title" id="headerBannerTitle">Your Comfort Drink</div>
     <div class="header-banner-sub" id="headerBannerSub">เมนูประจำร้าน 14 แก้ว</div>
@@ -887,10 +887,10 @@
 
   // รูป banner + ข้อความ เปลี่ยนตามแท็บที่เลือก — แก้ URL ตรงนี้ทีเดียวเมื่อ Fah ส่งรูปใหม่มาแทน
   const TAB_BANNERS = {
-    comfort:   { img: 'https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/CA309633-E509-4943-8030-DC692B0291AE.png', title: 'Your Comfort Drink',   sub: 'เมนูประจำร้าน 14 แก้ว' },
-    signature: { img: 'https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/6FBCF571-2ED5-49A0-A747-917064EA46E8.png', title: 'Signature',            sub: 'ซิกเนเจอร์ประจำร้าน' },
-    special:   { img: 'https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/86972194-5706-42D8-8762-DF76806D5B96.png', title: 'Special of the Month', sub: 'เมนูพิเศษประจำเดือน' },
-    omakase:   { img: 'https://nhzjnutvirjgiclkkfgx.supabase.co/storage/v1/object/public/menu-images/1312691B-D90E-4889-92A3-9E5E0C1F303D.png', title: 'Omakase',             sub: '230.-/สัปดาห์ — 3 แก้วเซอร์ไพรส์' },
+    comfort:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png', title: 'Your Comfort Drink',   sub: 'เมนูประจำร้าน 14 แก้ว' },
+    signature: { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-signature.png', title: 'Signature',            sub: 'ซิกเนเจอร์ประจำร้าน' },
+    special:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-special.png', title: 'Special of the Month', sub: 'เมนูพิเศษประจำเดือน' },
+    omakase:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-omakase.png', title: 'Omakase',             sub: '230.-/สัปดาห์ — 3 แก้วเซอร์ไพรส์' },
   };
 
   function selectTab(tab) {
@@ -1008,7 +1008,12 @@
     document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  loadBeans().then(loadMenu);
+  function resetMenuGridScroll() {
+    document.querySelectorAll('.menu-grid').forEach(g => { g.scrollLeft = 0; });
+  }
+
+  loadBeans().then(loadMenu).then(resetMenuGridScroll);
+  window.addEventListener('load', resetMenuGridScroll); // เผื่อรูปโหลดช้าแล้วดัน scroll-snap เพี้ยนทีหลัง
   initDateAndSweetness();
   initLiffProfile();
 </script>
