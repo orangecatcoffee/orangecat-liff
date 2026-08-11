@@ -349,7 +349,6 @@
 </head>
 <body>
 
-<a href="https://orangecat-tarot.vercel.app/collection.html" class="collection-fab" id="collectionFab" title="สมุดสะสมของฉัน">📖</a>
 
 <div class="img-sheet-overlay" id="imgSheetOverlay">
   <div class="img-sheet" id="imgSheet">
@@ -993,7 +992,7 @@
     imgEl.classList.toggle('contain-img', !!item.fixed_bean_name);
     document.getElementById('imgSheetName').textContent = item.name;
     const total = item.fixed_bean_name ? item.price + beanSurcharge(item.fixed_bean_name) : item.price;
-    document.getElementById('imgSheetPrice').textContent = total + ' บาท';
+    document.getElementById('imgSheetPrice').textContent = SURPRISE_CATS.includes(item.category) ? '65-75 บาท' : (total + ' บาท');
     document.getElementById('imgSheetOverlay').classList.add('open');
   }
   function closeImageSheet() {
