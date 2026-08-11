@@ -390,6 +390,10 @@
 
       <div class="tabpanel active" id="tab-comfort">
         <div class="group">
+          <h2>🐱 แมวส้มเลือกหน่อย</h2>
+          <div class="menu-grid" id="surpriseGrid"></div>
+        </div>
+        <div class="group">
           <h2>☕ กลุ่มกาแฟ</h2>
           <div class="menu-grid" id="coffeeGrid"></div>
         </div>
@@ -622,6 +626,7 @@
     });
   }
 
+  const SURPRISE_CATS = ['surprise']; // 🐱 แมวส้มเลือกหน่อย — บาริสต้าเลือกเมนูจริงตอนชง ราคาจริง 65-75 ขึ้นกับเมนูที่เลือก
   const COFFEE_CATS = ['espresso','dirty','signature'];
   const MATCHA_CATS = ['matcha'];
   const SIGNATURE_CATS = []; // ว่างไว้ตามที่ Fah สั่ง — Orange Americano ย้ายไปกลุ่มกาแฟใน Comfort tab แล้ว
@@ -636,6 +641,7 @@
     // เมนูทดลองรายสัปดาห์ (omakase_only=true) ไม่โผล่ในเมนูปกติ จนกว่าจะโปรโมทเป็น Special of the Month
     const data = rawData ? rawData.filter(item => !item.omakase_only) : rawData;
 
+    const surpriseGrid = document.getElementById('surpriseGrid');
     const coffeeGrid = document.getElementById('coffeeGrid');
     const matchaGrid = document.getElementById('matchaGrid');
     const otherGrid = document.getElementById('otherGrid');
@@ -651,6 +657,7 @@
       return;
     }
 
+    surpriseGrid.innerHTML = '';
     coffeeGrid.innerHTML = '';
     matchaGrid.innerHTML = '';
     otherGrid.innerHTML = '';
@@ -661,10 +668,11 @@
       const div = document.createElement('div');
       div.className = 'menu-card';
       div.dataset.id = item.id;
+      const priceLabel = SURPRISE_CATS.includes(item.category) ? '65-75 บาท' : `${item.price} บาท`;
       div.innerHTML = `
         <div class="icon">${iconFor(item)}</div>
         <div class="name">${item.name}</div>
-        <div class="price">${item.price} บาท</div>
+        <div class="price">${priceLabel}</div>
       `;
       div.addEventListener('click', () => { selectItem(item, div); openImageSheet(item); });
       return div;
@@ -674,7 +682,9 @@
       const cat = item.category;
       if (SPECIAL_CATS.includes(cat)) return; // handled separately below as grouped cards with a base-drink toggle
       const card = makeCard(item);
-      if (SIGNATURE_CATS.includes(cat)) {
+      if (SURPRISE_CATS.includes(cat)) {
+        surpriseGrid.appendChild(card);
+      } else if (SIGNATURE_CATS.includes(cat)) {
         signatureGrid.appendChild(card);
       } else if (MATCHA_CATS.includes(cat)) {
         matchaGrid.appendChild(card);
@@ -762,7 +772,10 @@
       updateSubmitBtn();
       return;
     }
-    box.innerHTML = `
+    const isSurprise = SURPRISE_CATS.includes(selectedItem.category);
+    box.innerHTML = isSurprise
+      ? `<span>${iconFor(selectedItem)} ${selectedItem.name}</span><div class="qty-control"><span id="qtyVal">1 แก้ว (บาริสต้าเลือกให้ตอนชง)</span></div>`
+      : `
       <span>${iconFor(selectedItem)} ${selectedItem.name}</span>
       <div class="qty-control">
         <button class="qty-btn" id="qtyMinus" type="button">−</button>
@@ -770,8 +783,12 @@
         <button class="qty-btn" id="qtyPlus" type="button">+</button>
       </div>
     `;
-    document.getElementById('qtyMinus').addEventListener('click', () => changeQty(-1));
-    document.getElementById('qtyPlus').addEventListener('click', () => changeQty(1));
+    if (!isSurprise) {
+      document.getElementById('qtyMinus').addEventListener('click', () => changeQty(-1));
+      document.getElementById('qtyPlus').addEventListener('click', () => changeQty(1));
+    } else {
+      quantity = 1; // แมวส้มเลือกหน่อย ผูก 1 แก้ว = 1 surprise_actual_item_id เสมอ ไม่รองรับหลายแก้วในแถวเดียว
+    }
     updateTotal();
     updateSubmitBtn();
   }
@@ -784,6 +801,10 @@
   }
 
   function updateTotal() {
+    if (selectedItem && SURPRISE_CATS.includes(selectedItem.category)) {
+      document.getElementById('totalPrice').textContent = '65-75 บาท (ราคาจริงตามเมนูที่บาริสต้าเลือก)';
+      return;
+    }
     const surcharge = selectedItem ? selectedBeanSurcharge() : 0;
     const total = selectedItem ? (selectedItem.price + surcharge) * quantity : 0;
     document.getElementById('totalPrice').textContent = `${total} บาท`;
@@ -809,7 +830,9 @@
       btn.textContent = 'กรอกชื่อลูกค้าก่อนนะครับ';
     } else {
       btn.disabled = false;
-      btn.textContent = `ยืนยันการสั่งซื้อ · ${(selectedItem.price + selectedBeanSurcharge()) * quantity} บาท`;
+      btn.textContent = SURPRISE_CATS.includes(selectedItem.category)
+        ? 'ยืนยันการสั่งซื้อ · 65-75 บาท'
+        : `ยืนยันการสั่งซื้อ · ${(selectedItem.price + selectedBeanSurcharge()) * quantity} บาท`;
     }
   }
 
