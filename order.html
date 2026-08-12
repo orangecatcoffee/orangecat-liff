@@ -308,6 +308,40 @@
     z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s;
     display: flex; align-items: center; justify-content: center; padding: 24px;
   }
+
+  /* Omakase badge — full-screen 3D flip/rotate modal, like Apple Watch achievement badges */
+  .badge-modal-overlay {
+    position: fixed; inset: 0; background: rgba(15,9,4,0.94);
+    z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center;
+    touch-action: none;
+  }
+  .badge-modal-overlay.open { display: flex; }
+  .badge-modal-close {
+    position: absolute; top: max(20px, env(safe-area-inset-top)); right: 20px;
+    width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.12);
+    border: none; color: #fff; font-size: 17px; line-height: 1;
+  }
+  .badge-modal-stage {
+    perspective: 1100px; width: min(78vw, 300px); aspect-ratio: 1/1;
+  }
+  .badge-modal-card {
+    width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
+    cursor: grab;
+  }
+  .badge-face {
+    position: absolute; inset: 0; backface-visibility: hidden; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .badge-face-front img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5)); }
+  .badge-face-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #FFF3E8, #FFE4CC);
+    flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .badge-back-title { font-size: 26px; font-weight: 800; color: #4A3428; letter-spacing: 1px; }
+  .badge-back-sub { font-size: 13px; color: #E8863A; font-weight: 700; margin-top: 6px; }
+  .badge-back-paw { font-size: 22px; margin-top: 10px; opacity: .7; }
+  .badge-modal-hint { color: rgba(255,255,255,0.45); font-size: 12px; margin-top: 22px; }
   .img-sheet-overlay.open { opacity: 1; pointer-events: auto; }
   .img-sheet {
     position: relative; width: 100%; max-width: 360px;
@@ -377,9 +411,26 @@
   </div>
 </div>
 
-<div id="omakaseBadgeStrip" style="display:none;align-items:center;gap:8px;padding:10px 16px 0;">
+<div id="omakaseBadgeStrip" style="display:none;align-items:center;gap:8px;padding:10px 16px 0;cursor:pointer;">
   <img src="https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase-shield.png" alt="" style="height:32px;">
   <span style="font-weight:700;font-size:13px;letter-spacing:0.3px;color:#4A3428;">Omakase Subscription: ON</span>
+</div>
+
+<div id="badgeModalOverlay" class="badge-modal-overlay">
+  <button type="button" id="badgeModalClose" class="badge-modal-close">✕</button>
+  <div id="badgeModalStage" class="badge-modal-stage">
+    <div id="badgeModalCard" class="badge-modal-card">
+      <div class="badge-face badge-face-front">
+        <img src="https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase-shield.png" alt="Omakase">
+      </div>
+      <div class="badge-face badge-face-back">
+        <div class="badge-back-title">OMAKASE</div>
+        <div class="badge-back-sub">Subscription Active</div>
+        <div class="badge-back-paw">🐾</div>
+      </div>
+    </div>
+  </div>
+  <div class="badge-modal-hint">ปัดซ้าย-ขวาเพื่อหมุนดูรอบด้าน</div>
 </div>
 
 <div class="header-banner" id="headerBanner" style="background-image:url('https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png')">
@@ -1042,6 +1093,63 @@
     closeImageSheet();
     document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+
+  // ===== Omakase badge — full-screen 3D rotate modal =====
+  (function () {
+    const strip = document.getElementById('omakaseBadgeStrip');
+    const overlay = document.getElementById('badgeModalOverlay');
+    const closeBtn = document.getElementById('badgeModalClose');
+    const stage = document.getElementById('badgeModalStage');
+    const card = document.getElementById('badgeModalCard');
+
+    let rotation = 0;
+    let dragging = false;
+    let startX = 0;
+    let startRotation = 0;
+
+    function openModal() {
+      overlay.classList.add('open');
+      rotation = 0;
+      card.style.transition = 'none';
+      card.style.transform = 'rotateY(0deg)';
+    }
+    function closeModal() {
+      overlay.classList.remove('open');
+    }
+
+    strip.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+    function dragStart(clientX) {
+      dragging = true;
+      startX = clientX;
+      startRotation = rotation;
+      card.style.transition = 'none';
+      card.style.cursor = 'grabbing';
+    }
+    function dragMove(clientX) {
+      if (!dragging) return;
+      rotation = startRotation + (clientX - startX) * 0.5;
+      card.style.transform = `rotateY(${rotation}deg)`;
+    }
+    function dragEnd() {
+      if (!dragging) return;
+      dragging = false;
+      card.style.cursor = 'grab';
+      card.style.transition = 'transform 0.4s cubic-bezier(.2,.8,.2,1)';
+      const base = Math.round(rotation / 360) * 360;
+      const normalized = ((rotation % 360) + 360) % 360;
+      const snap = (normalized > 90 && normalized < 270) ? 180 : 0;
+      rotation = base + snap;
+      card.style.transform = `rotateY(${rotation}deg)`;
+    }
+
+    stage.addEventListener('pointerdown', (e) => { dragStart(e.clientX); stage.setPointerCapture(e.pointerId); });
+    stage.addEventListener('pointermove', (e) => dragMove(e.clientX));
+    stage.addEventListener('pointerup', dragEnd);
+    stage.addEventListener('pointercancel', dragEnd);
+  })();
 
   function resetMenuGridScroll() {
     document.querySelectorAll('.menu-grid').forEach(g => { g.scrollLeft = 0; });
