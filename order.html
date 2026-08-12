@@ -329,18 +329,28 @@
     cursor: grab;
   }
   .badge-face {
-    position: absolute; inset: 0; backface-visibility: hidden; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    position: absolute; inset: 0; backface-visibility: hidden;
+    display: flex; align-items: center; justify-content: center;
   }
   .badge-face-front img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5)); }
   .badge-face-back {
     transform: rotateY(180deg);
-    background: linear-gradient(135deg, #FFF3E8, #FFE4CC);
-    flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
-  .badge-back-title { font-size: 26px; font-weight: 800; color: #4A3428; letter-spacing: 1px; }
-  .badge-back-sub { font-size: 13px; color: #E8863A; font-weight: 700; margin-top: 6px; }
-  .badge-back-paw { font-size: 22px; margin-top: 10px; opacity: .7; }
+  .badge-face-back .shield-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #FFF3E8, #FFE4CC);
+    -webkit-mask-image: url('https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase-shield.png');
+    mask-image: url('https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase-shield.png');
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-position: center; mask-position: center;
+    -webkit-mask-size: contain; mask-size: contain;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
+  }
+  .badge-back-text {
+    position: relative; z-index: 2; text-align: center; padding: 0 26px;
+  }
+  .badge-back-line1, .badge-back-line2 { font-size: 15px; font-weight: 800; color: #4A3428; line-height: 1.5; }
+  .badge-back-line3 { font-size: 18px; margin-top: 6px; letter-spacing: 3px; }
   .badge-modal-hint { color: rgba(255,255,255,0.45); font-size: 12px; margin-top: 22px; }
   .img-sheet-overlay.open { opacity: 1; pointer-events: auto; }
   .img-sheet {
@@ -424,9 +434,12 @@
         <img src="https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase-shield.png" alt="Omakase">
       </div>
       <div class="badge-face badge-face-back">
-        <div class="badge-back-title">OMAKASE</div>
-        <div class="badge-back-sub">Subscription Active</div>
-        <div class="badge-back-paw">🐾</div>
+        <div class="shield-bg"></div>
+        <div class="badge-back-text">
+          <div class="badge-back-line1">ยินดีด้วยงับ</div>
+          <div class="badge-back-line2">คุณคือสลิ่มแมวส้มงับ</div>
+          <div class="badge-back-line3">🧡🧡🧡</div>
+        </div>
       </div>
     </div>
   </div>
