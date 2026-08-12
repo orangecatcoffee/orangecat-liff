@@ -339,8 +339,6 @@
   .badge-face-back .shield-bg {
     position: absolute; inset: 0;
     background: linear-gradient(135deg, #FFF3E8, #FFE4CC);
-    -webkit-mask-image: url('https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase-shield.png');
-    mask-image: url('https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase-shield.png');
     -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
     -webkit-mask-position: center; mask-position: center;
     -webkit-mask-size: contain; mask-size: contain;
@@ -421,24 +419,21 @@
   </div>
 </div>
 
-<div id="omakaseBadgeStrip" style="display:none;align-items:center;gap:8px;padding:10px 16px 0;cursor:pointer;">
-  <img src="https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase-shield.png" alt="" style="height:32px;">
-  <span style="font-weight:700;font-size:13px;letter-spacing:0.3px;color:#4A3428;">Omakase Subscription: ON</span>
-</div>
+<div id="badgeStripContainer" style="display:flex;flex-direction:column;gap:6px;padding:10px 16px 0;"></div>
 
 <div id="badgeModalOverlay" class="badge-modal-overlay">
   <button type="button" id="badgeModalClose" class="badge-modal-close">✕</button>
   <div id="badgeModalStage" class="badge-modal-stage">
     <div id="badgeModalCard" class="badge-modal-card">
       <div class="badge-face badge-face-front">
-        <img src="https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase-shield.png" alt="Omakase">
+        <img id="badgeModalFrontImg" src="" alt="">
       </div>
       <div class="badge-face badge-face-back">
-        <div class="shield-bg"></div>
+        <div class="shield-bg" id="badgeModalShieldBg"></div>
         <div class="badge-back-text">
-          <div class="badge-back-line1">ยินดีด้วยงับ</div>
-          <div class="badge-back-line2">คุณคือสลิ่มแมวส้มงับ</div>
-          <div class="badge-back-line3">🧡🧡🧡</div>
+          <div class="badge-back-line1" id="badgeBackLine1"></div>
+          <div class="badge-back-line2" id="badgeBackLine2"></div>
+          <div class="badge-back-line3" id="badgeBackLine3"></div>
         </div>
       </div>
     </div>
@@ -626,12 +621,12 @@
       // เช็คว่าเป็นสมาชิกที่ลงทะเบียนไว้ไหม (เอาไว้ผูก member_id สำหรับประวัติออเดอร์)
       const { data: memberRow } = await sb
         .from('members')
-        .select('id, omakase_sub_active')
+        .select('id')
         .eq('line_user_id', lineUserId)
         .maybeSingle();
       if (memberRow) {
         memberId = memberRow.id;
-        document.getElementById('omakaseBadgeStrip').style.display = memberRow.omakase_sub_active ? 'flex' : 'none';
+        renderProgramBadges();
       }
 
       document.getElementById('customerNameLoading').style.display = 'none';
@@ -1107,9 +1102,29 @@
     document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  // ===== Omakase badge — full-screen 3D rotate modal =====
+  // ===== Subscription program badges — full-screen 3D rotate modal =====
+  async function renderProgramBadges() {
+    const container = document.getElementById('badgeStripContainer');
+    container.innerHTML = '';
+    if (!memberId) return;
+    const { data } = await sb
+      .from('member_program_status')
+      .select('subscription_programs(id, name, badge_image_url, badge_label, back_line1, back_line2, back_line3)')
+      .eq('line_user_id', lineUserId)
+      .eq('active', true);
+    const programs = (data || []).map(r => r.subscription_programs).filter(Boolean);
+    programs.forEach(p => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;';
+      row.innerHTML = `<img src="${p.badge_image_url}" alt="" style="height:32px;"><span style="font-weight:700;font-size:13px;letter-spacing:0.3px;color:#4A3428;">${p.badge_label || p.name}</span>`;
+      row.addEventListener('click', () => openBadgeModal(p));
+      container.appendChild(row);
+    });
+  }
+
+  let openBadgeModal = function () {}; // ถูกแทนที่ด้วยตัวจริงข้างล่าง หลัง DOM พร้อม
+
   (function () {
-    const strip = document.getElementById('omakaseBadgeStrip');
     const overlay = document.getElementById('badgeModalOverlay');
     const closeBtn = document.getElementById('badgeModalClose');
     const stage = document.getElementById('badgeModalStage');
@@ -1120,17 +1135,24 @@
     let startX = 0;
     let startRotation = 0;
 
-    function openModal() {
+    openBadgeModal = function (program) {
+      document.getElementById('badgeModalFrontImg').src = program.badge_image_url;
+      const shieldBg = document.getElementById('badgeModalShieldBg');
+      shieldBg.style.webkitMaskImage = `url('${program.badge_image_url}')`;
+      shieldBg.style.maskImage = `url('${program.badge_image_url}')`;
+      document.getElementById('badgeBackLine1').textContent = program.back_line1 || '';
+      document.getElementById('badgeBackLine2').textContent = program.back_line2 || '';
+      document.getElementById('badgeBackLine3').textContent = program.back_line3 || '';
+
       overlay.classList.add('open');
       rotation = 0;
       card.style.transition = 'none';
       card.style.transform = 'rotateY(0deg)';
-    }
+    };
     function closeModal() {
       overlay.classList.remove('open');
     }
 
-    strip.addEventListener('click', openModal);
     closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
 
