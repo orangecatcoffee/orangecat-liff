@@ -301,15 +301,6 @@
     background: #fff; color: #E8863A; border: none; font-weight: 700;
     padding: 9px 18px; border-radius: 999px; font-size: 13px;
   }
-  .badge-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(90,54,27,0.1); border: 1px solid rgba(90,54,27,0.2);
-    color: #5A361B; font-weight: 700; font-size: 13px;
-    padding: 8px 16px; border-radius: 999px;
-  }
-  .badge-pill::before {
-    content: ''; width: 6px; height: 6px; border-radius: 50%; background: #5A361B;
-  }
 
   /* Image preview modal — centered */
   .img-sheet-overlay {
@@ -383,8 +374,11 @@
     <span class="cat-pill" data-tab="signature">Orange Cat Signature</span>
     <span class="cat-pill" data-tab="special">Special of the Month</span>
     <span class="cat-pill" data-tab="omakase">🎴 Orange Cat Omakase</span>
-    <span class="cat-pill" data-tab="subscription">🎫 Subscription</span>
   </div>
+</div>
+
+<div id="omakaseBadgeStrip" style="display:none;text-align:center;padding:10px 16px 0;">
+  <img src="https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/badge-omakase.png" alt="Omakase" style="height:34px;">
 </div>
 
 <div class="header-banner" id="headerBanner" style="background-image:url('https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png')">
@@ -446,35 +440,6 @@
             <button type="button" id="omakaseBtn">สั่ง Omakase</button>
           </div>
           <div class="status-msg" id="omakaseStatus" style="margin-top:10px;"></div>
-        </div>
-      </div>
-
-      <div class="tabpanel" id="tab-subscription">
-        <div class="omk-card">
-          <div class="omk-title">🎫 Comfort Sub</div>
-          <div class="omk-sub">สมัครครั้งเดียว ไม่ต้องกดสั่งซ้ำทุกสัปดาห์ — มาเจอกันเมื่อไหร่ก็รับสิทธิ์ได้เลย บาริสต้าเลือกเมนูให้ทุกแก้ว</div>
-
-          <div id="subLoggedOutMsg" class="status-msg" style="display:none;">สมัคร Sub ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" id="subGoRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button></div>
-
-          <div id="subActiveBox" style="display:none;margin-top:14px;">
-            <div class="badge-pill" id="subActiveBadge"></div>
-            <button type="button" id="subCancelBtn" style="margin-top:12px;background:none;border:1px solid rgba(90,54,27,0.25);color:#5A361B;border-radius:999px;padding:8px 16px;font:inherit;font-size:13px;cursor:pointer;">ยกเลิก Sub</button>
-          </div>
-
-          <div id="subChooseBox" style="display:none;margin-top:14px;">
-            <div class="omk-stage"><b class="num">🍃</b> Full Week Comfort — รับได้ทุกวันที่เจอกันในสัปดาห์นี้</div>
-            <div class="omk-order">
-              <span class="p">คิดราคาตามจริงตอนจบ</span>
-              <button type="button" id="subFullWeekBtn">สมัคร Full Week</button>
-            </div>
-            <div class="omk-stage" style="margin-top:16px;"><b class="num">3️⃣</b> 3 Days Comfort — 3 สิทธิ์/สัปดาห์ มาวันไหนก็ได้</div>
-            <div class="omk-order">
-              <span class="p">คิดราคาตามจริงตอนจบ</span>
-              <button type="button" id="sub3DayBtn">สมัคร 3 Days</button>
-            </div>
-          </div>
-
-          <div class="status-msg" id="subStatusMsg" style="margin-top:10px;"></div>
         </div>
       </div>
 
@@ -604,7 +569,7 @@
       document.getElementById('customerNameLoading').style.display = 'none';
       document.getElementById('customerNameAutoText').textContent = customerNameAuto;
       document.getElementById('customerNameAuto').style.display = 'block';
-      if (document.getElementById('tab-subscription').classList.contains('active')) renderSubTab();
+      checkOmakaseBadge();
     } catch (e) {
       // เปิดนอก LINE (เช่นเทสใน Safari ตรงๆ) — fallback ให้พิมพ์ชื่อเองได้ชั่วคราว
       manualNameFallback = true;
@@ -617,6 +582,30 @@
   function todayStr(){
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  // สัปดาห์นับ จ.-อา. — หา 00:00 ของวันจันทร์สัปดาห์นี้
+  function mondayOfThisWeekISO() {
+    const d = new Date();
+    const day = d.getDay(); // 0=อาทิตย์, 1=จันทร์ ... 6=เสาร์
+    const diffToMonday = (day === 0) ? -6 : 1 - day;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+    return monday.toISOString();
+  }
+
+  // Omakase badge โชว์ตลอดเวลาที่มี Omakase active อยู่ในสัปดาห์นี้ (จ.-อา.)
+  async function checkOmakaseBadge() {
+    if (!memberId) return;
+    const { data } = await sb
+      .from('transactions')
+      .select('id')
+      .eq('member_id', memberId)
+      .eq('channel', 'liff-omakase')
+      .gte('created_at', mondayOfThisWeekISO())
+      .limit(1);
+    document.getElementById('omakaseBadgeStrip').style.display = (data && data.length > 0) ? 'block' : 'none';
   }
 
 
@@ -955,7 +944,6 @@
     signature: { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-signature.png', title: 'Signature',            sub: 'ซิกเนเจอร์ประจำร้าน' },
     special:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-special.png', title: 'Special of the Month', sub: 'เมนูพิเศษประจำเดือน' },
     omakase:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-omakase.png', title: 'Omakase',             sub: '230.-/สัปดาห์ — 3 แก้วเซอร์ไพรส์' },
-    subscription: { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png', title: 'Subscription',      sub: 'สมัครครั้งเดียว ไม่ต้องกดซ้ำทุกสัปดาห์' },
   };
 
   function selectTab(tab) {
@@ -964,10 +952,8 @@
     document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
     document.querySelector('.cat-pill[data-tab="' + tab + '"]').classList.add('active');
 
-    // Omakase และ Subscription มีปุ่มของตัวเองแยกต่างหาก ไม่เกี่ยวกับ sidebar เลือกเมนูเดี่ยว — ซ่อน sidebar กันสับสนว่าต้องสั่ง 2 รอบ
-    document.querySelector('.sidebar').style.display = (tab === 'omakase' || tab === 'subscription') ? 'none' : '';
-
-    if (tab === 'subscription') renderSubTab();
+    // Omakase มีปุ่มสั่งของตัวเองแยกต่างหาก ไม่เกี่ยวกับ sidebar เลือกเมนูเดี่ยว — ซ่อน sidebar กันสับสนว่าต้องสั่ง 2 รอบ
+    document.querySelector('.sidebar').style.display = (tab === 'omakase') ? 'none' : '';
 
     const b = TAB_BANNERS[tab];
     if (b) {
@@ -1054,107 +1040,7 @@
     statusEl.className = 'status-msg success';
     statusEl.textContent = '✅ สั่งซื้อสำเร็จ! บาริสต้าจะเลือก 3 เมนูให้คุณ แล้วแจ้งเก็บเงิน 230 บาทผ่านแชทนะครับ';
     btn.textContent = 'สั่งแล้ว ✅';
-  });
-
-  // ===== Comfort Sub (Subscription tab) =====
-  const SUB_LABELS = { full_week_comfort: 'Full Week Comfort', '3day_comfort': '3 Days Comfort' };
-  let activeSub = null; // { id, sub_type } หรือ null — ดึงสดทุกครั้งที่เปิดแท็บ กันข้อมูลเก่าค้าง
-
-  async function fetchActiveSub() {
-    if (!memberId) { activeSub = null; return; }
-    const { data } = await sb
-      .from('customer_subscriptions')
-      .select('id, sub_type')
-      .eq('line_user_id', lineUserId)
-      .eq('status', 'active')
-      .maybeSingle();
-    activeSub = data || null;
-  }
-
-  async function renderSubTab() {
-    const loggedOutMsg = document.getElementById('subLoggedOutMsg');
-    const activeBox = document.getElementById('subActiveBox');
-    const chooseBox = document.getElementById('subChooseBox');
-    const statusEl = document.getElementById('subStatusMsg');
-    statusEl.textContent = '';
-    statusEl.className = 'status-msg';
-
-    if (!memberId) {
-      loggedOutMsg.style.display = 'block';
-      activeBox.style.display = 'none';
-      chooseBox.style.display = 'none';
-      return;
-    }
-    loggedOutMsg.style.display = 'none';
-
-    await fetchActiveSub();
-
-    if (activeSub) {
-      chooseBox.style.display = 'none';
-      activeBox.style.display = 'block';
-      document.getElementById('subActiveBadge').textContent = SUB_LABELS[activeSub.sub_type] + ' Sub · ON';
-    } else {
-      activeBox.style.display = 'none';
-      chooseBox.style.display = 'block';
-    }
-  }
-
-  async function subscribeTo(subType, btn) {
-    const statusEl = document.getElementById('subStatusMsg');
-    statusEl.className = 'status-msg';
-    statusEl.textContent = '';
-    btn.disabled = true;
-    const originalText = btn.textContent;
-    btn.textContent = 'กำลังสมัคร...';
-
-    const { error } = await sb.from('customer_subscriptions').insert([{
-      line_user_id: lineUserId,
-      sub_type: subType,
-      status: 'active',
-    }]);
-
-    if (error) {
-      statusEl.className = 'status-msg error';
-      statusEl.textContent = `สมัครไม่สำเร็จ: ${error.message}`;
-      btn.disabled = false;
-      btn.textContent = originalText;
-      return;
-    }
-
-    statusEl.className = 'status-msg success';
-    statusEl.textContent = `✅ สมัคร ${SUB_LABELS[subType]} แล้ว! คิดราคาตามจริงตอนบาริสต้าเสิร์ฟแต่ละแก้วนะครับ`;
-    await renderSubTab();
-  }
-
-  document.getElementById('subFullWeekBtn').addEventListener('click', (e) => subscribeTo('full_week_comfort', e.target));
-  document.getElementById('sub3DayBtn').addEventListener('click', (e) => subscribeTo('3day_comfort', e.target));
-
-  document.getElementById('subCancelBtn').addEventListener('click', async () => {
-    if (!activeSub) return;
-    const btn = document.getElementById('subCancelBtn');
-    btn.disabled = true;
-    const { error } = await sb
-      .from('customer_subscriptions')
-      .update({ status: 'ended', ended_at: new Date().toISOString() })
-      .eq('id', activeSub.id);
-    btn.disabled = false;
-    const statusEl = document.getElementById('subStatusMsg');
-    if (error) {
-      statusEl.className = 'status-msg error';
-      statusEl.textContent = `ยกเลิกไม่สำเร็จ: ${error.message}`;
-      return;
-    }
-    statusEl.className = 'status-msg success';
-    statusEl.textContent = 'ยกเลิก Sub แล้วครับ';
-    await renderSubTab();
-  });
-
-  document.getElementById('subGoRegisterBtn').addEventListener('click', () => {
-    if (window.liff && liff.isInClient && liff.isInClient()) {
-      liff.openWindow({ url: 'https://liff.line.me/2010600301-1tjt7IdG', external: false });
-    } else {
-      window.location.href = 'https://liff.line.me/2010600301-1tjt7IdG';
-    }
+    checkOmakaseBadge();
   });
 
   function openImageSheet(item) {
