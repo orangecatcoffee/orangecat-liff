@@ -562,15 +562,17 @@
       // เช็คว่าเป็นสมาชิกที่ลงทะเบียนไว้ไหม (เอาไว้ผูก member_id สำหรับประวัติออเดอร์)
       const { data: memberRow } = await sb
         .from('members')
-        .select('id')
+        .select('id, omakase_sub_active')
         .eq('line_user_id', lineUserId)
         .maybeSingle();
-      if (memberRow) memberId = memberRow.id;
+      if (memberRow) {
+        memberId = memberRow.id;
+        document.getElementById('omakaseBadgeStrip').style.display = memberRow.omakase_sub_active ? 'flex' : 'none';
+      }
 
       document.getElementById('customerNameLoading').style.display = 'none';
       document.getElementById('customerNameAutoText').textContent = customerNameAuto;
       document.getElementById('customerNameAuto').style.display = 'block';
-      checkOmakaseBadge();
     } catch (e) {
       // เปิดนอก LINE (เช่นเทสใน Safari ตรงๆ) — fallback ให้พิมพ์ชื่อเองได้ชั่วคราว
       manualNameFallback = true;
@@ -583,30 +585,6 @@
   function todayStr(){
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-  }
-
-  // สัปดาห์นับ จ.-อา. — หา 00:00 ของวันจันทร์สัปดาห์นี้
-  function mondayOfThisWeekISO() {
-    const d = new Date();
-    const day = d.getDay(); // 0=อาทิตย์, 1=จันทร์ ... 6=เสาร์
-    const diffToMonday = (day === 0) ? -6 : 1 - day;
-    const monday = new Date(d);
-    monday.setDate(d.getDate() + diffToMonday);
-    monday.setHours(0, 0, 0, 0);
-    return monday.toISOString();
-  }
-
-  // Omakase badge โชว์ตลอดเวลาที่มี Omakase active อยู่ในสัปดาห์นี้ (จ.-อา.)
-  async function checkOmakaseBadge() {
-    if (!memberId) return;
-    const { data } = await sb
-      .from('transactions')
-      .select('id')
-      .eq('member_id', memberId)
-      .eq('channel', 'liff-omakase')
-      .gte('created_at', mondayOfThisWeekISO())
-      .limit(1);
-    document.getElementById('omakaseBadgeStrip').style.display = (data && data.length > 0) ? 'flex' : 'none';
   }
 
 
@@ -1041,7 +1019,6 @@
     statusEl.className = 'status-msg success';
     statusEl.textContent = '✅ สั่งซื้อสำเร็จ! บาริสต้าจะเลือก 3 เมนูให้คุณ แล้วแจ้งเก็บเงิน 230 บาทผ่านแชทนะครับ';
     btn.textContent = 'สั่งแล้ว ✅';
-    checkOmakaseBadge();
   });
 
   function openImageSheet(item) {
