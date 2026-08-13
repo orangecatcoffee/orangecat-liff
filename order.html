@@ -404,49 +404,47 @@
     padding: 9px 18px; border-radius: 999px; font-size: 13px;
   }
   .omk-tier-row {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    gap: 12px;
-    padding-bottom: 4px;
-    margin: 0 -18px;
-    padding-left: 18px;
-    padding-right: 18px;
-    scrollbar-width: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
-  .omk-tier-row::-webkit-scrollbar { display: none; }
   .omk-tier {
-    flex: 0 0 200px;
-    scroll-snap-align: start;
-    background: #fff; border-radius: 14px; padding: 14px 14px 16px;
+    background: #fff; border-radius: 14px; padding: 12px 8px 12px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
   }
-  .omk-tier-head { display: flex; flex-direction: column; gap: 2px; }
-  .omk-tier-name { font-weight: 800; font-size: 15px; color: #4A3428; }
-  .omk-tier-price { font-weight: 800; font-size: 15px; color: #E8863A; }
-  .omk-tier-desc { font-size: 11.5px; color: #8a6a4a; margin-top: 6px; line-height: 1.5; min-height: 68px; }
+  .omk-tier-price-badge {
+    width: 42px; height: 42px; border-radius: 50%; background: #FFF3E8;
+    color: #E8863A; font-weight: 800; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 8px; flex-shrink: 0;
+  }
+  .omk-tier-head { display: flex; flex-direction: column; }
+  .omk-tier-name { font-weight: 800; font-size: 12.5px; color: #4A3428; line-height: 1.35; }
+  .omk-tier-name .line2 { display: block; }
+  .omk-tier-desc { font-size: 10px; color: #8a6a4a; margin-top: 6px; line-height: 1.45; flex-grow: 1; }
   .omk-tier-btn {
     margin-top: 8px; width: 100%; background: #E8863A; color: #fff; border: none;
-    padding: 10px; border-radius: 999px; font-weight: 700; font-size: 13px; font-family: inherit;
+    padding: 9px 4px; border-radius: 999px; font-weight: 700; font-size: 11.5px; font-family: inherit;
   }
   .omk-tier-btn.selected { background: #4A9B5C; }
   .omk-switch-row {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: 10px; padding-top: 10px; border-top: 1px solid #F0E4D8;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid #F0E4D8; width: 100%;
   }
-  .omk-switch-label { font-size: 12.5px; font-weight: 700; color: #4A3428; }
+  .omk-switch-label { font-size: 10px; font-weight: 700; color: #4A3428; }
   .omk-switch {
-    position: relative; width: 46px; height: 26px; border-radius: 999px;
+    position: relative; width: 38px; height: 22px; border-radius: 999px;
     background: #E0D2C2; border: none; flex-shrink: 0; cursor: pointer;
     transition: background .2s;
   }
   .omk-switch::after {
     content: ''; position: absolute; top: 3px; left: 3px;
-    width: 20px; height: 20px; border-radius: 50%; background: #fff;
+    width: 16px; height: 16px; border-radius: 50%; background: #fff;
     box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     transition: transform .2s;
   }
   .omk-switch.on { background: #4A9B5C; }
-  .omk-switch.on::after { transform: translateX(20px); }
+  .omk-switch.on::after { transform: translateX(16px); }
 
   /* Image preview modal — centered */
   .img-sheet-overlay {
@@ -634,15 +632,15 @@
       <div class="tabpanel" id="tab-omakase">
         <div class="omk-card">
           <div class="omk-title">🎴 Orange Cat Omakase</div>
-          <div class="omk-sub">ซีรีส์ประจำสัปดาห์ของกาแฟแมวส้ม — ทุกสัปดาห์มี 1 Discovery ใหม่ ที่แมวส้มคิด ทดลอง และตั้งใจทำเป็นพิเศษ</div>
+          <div class="omk-sub">ซีรีส์ประจำสัปดาห์ของกาแฟแมวส้ม — ทุกสัปดาห์มี 1 Secret ใหม่ ที่แมวส้มคิด ทดลอง และตั้งใจทำเป็นพิเศษ</div>
 
           <div class="omk-tier-row">
           <div class="omk-tier">
+            <div class="omk-tier-price-badge">135</div>
             <div class="omk-tier-head">
-              <span class="omk-tier-name">Omakase Solo</span>
-              <span class="omk-tier-price">135.-</span>
+              <span class="omk-tier-name">Omakase<span class="line2">Solo</span></span>
             </div>
-            <div class="omk-tier-desc">1 แก้ว — สำหรับคนที่อยากลอง Discovery ประจำสัปดาห์นี้โดยตรง</div>
+            <div class="omk-tier-desc">1 แก้ว — สำหรับคนที่อยากลอง Secret ประจำสัปดาห์นี้โดยตรง</div>
             <button type="button" class="omk-tier-btn" id="omakaseSoloBtn">สั่ง Solo</button>
             <div class="omk-switch-row">
               <span class="omk-switch-label">Always On</span>
@@ -652,11 +650,11 @@
           </div>
 
           <div class="omk-tier">
+            <div class="omk-tier-price-badge">230</div>
             <div class="omk-tier-head">
-              <span class="omk-tier-name">Omakase Classic</span>
-              <span class="omk-tier-price">230.-</span>
+              <span class="omk-tier-name">Omakase<span class="line2">Classic</span></span>
             </div>
-            <div class="omk-tier-desc">3 แก้ว — Discovery 1 แก้ว + อีก 2 แก้วที่แมวส้มเลือกให้</div>
+            <div class="omk-tier-desc">3 แก้ว — Secret 1 แก้ว + อีก 2 แก้วที่แมวส้มเลือกให้</div>
             <button type="button" class="omk-tier-btn" id="omakaseBtn">สั่ง Classic</button>
             <div class="status-msg" id="omakaseStatus" style="margin-top:10px;"></div>
             <div class="omk-switch-row">
@@ -667,11 +665,11 @@
           </div>
 
           <div class="omk-tier">
+            <div class="omk-tier-price-badge">370</div>
             <div class="omk-tier-head">
-              <span class="omk-tier-name">Omakase Full Week</span>
-              <span class="omk-tier-price">370.-</span>
+              <span class="omk-tier-name">Omakase<span class="line2">Full Week</span></span>
             </div>
-            <div class="omk-tier-desc">ทุกวันที่เราเจอกัน — เริ่มสัปดาห์ด้วย Discovery แล้ววันอื่นๆ แมวส้มดูแลให้ทั้งหมด</div>
+            <div class="omk-tier-desc">5 แก้ว — Secret 1 แก้ว และกาแฟที่คุณคุ้นเคยทุกวัน</div>
             <button type="button" class="omk-tier-btn" id="omakaseFullWeekBtn">สั่ง Full Week</button>
             <div class="status-msg" id="omakaseFullWeekStatus" style="margin-top:10px;"></div>
             <div class="omk-switch-row">
@@ -1320,7 +1318,7 @@
     btn.textContent = 'สั่งแล้ว ✅';
   });
 
-  // Omakase Solo = สั่งเมนู Discovery (Signature) ตรงๆ — ไม่ต้องมี flow แยก แค่พาไปแท็บ Signature
+  // Omakase Solo = สั่งเมนู Secret (Signature) ตรงๆ — ไม่ต้องมี flow แยก แค่พาไปแท็บ Signature
   document.getElementById('omakaseSoloBtn').addEventListener('click', () => {
     selectTab('signature');
   });
@@ -1379,7 +1377,7 @@
     }
 
     statusEl.className = 'status-msg success';
-    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! เริ่มสัปดาห์ด้วย Discovery แล้วแมวส้มดูแลให้ทุกวันที่เจอกัน แล้วแจ้งเก็บเงิน 370 บาทผ่านแชทนะครับ';
+    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! 5 แก้ว — เริ่มด้วย Secret 1 แก้ว แล้วแมวส้มดูแลกาแฟที่คุณคุ้นเคยให้ แล้วแจ้งเก็บเงิน 370 บาทผ่านแชทนะครับ';
     btn.textContent = 'สั่งแล้ว ✅';
   });
 
@@ -1387,7 +1385,7 @@
   const OMK_SWITCH_CONFIG = [
     { switchId: 'omakaseSoloSwitch',    statusId: 'omakaseSoloSwitchStatus',    programName: 'Omakase Solo',      successMsg: '✅ เปิด Always On (Solo) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 135 บาท/สัปดาห์ผ่านแชทนะครับ' },
     { switchId: 'omakaseClassicSwitch', statusId: 'omakaseClassicSwitchStatus', programName: 'Omakase Classic',   successMsg: '✅ เปิด Always On (Classic) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 230 บาท/สัปดาห์ผ่านแชทนะครับ' },
-    { switchId: 'omakaseAlwaysOnSwitch', statusId: 'omakaseAlwaysOnStatus',     programName: 'Omakase Full Week', successMsg: '✅ เปิด Always On แล้ว! บาริสต้าจะดูแลกาแฟให้ทุกวันที่เจอกัน แล้วแจ้งเก็บเงิน 370 บาท/สัปดาห์ผ่านแชทนะครับ' },
+    { switchId: 'omakaseAlwaysOnSwitch', statusId: 'omakaseAlwaysOnStatus',     programName: 'Omakase Full Week', successMsg: '✅ เปิด Always On แล้ว! 5 แก้ว/สัปดาห์ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 370 บาท/สัปดาห์ผ่านแชทนะครับ' },
   ];
 
   async function initOmkSwitch(cfg) {
