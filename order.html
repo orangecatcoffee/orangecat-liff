@@ -154,27 +154,61 @@
     line-height: 1.3;
   }
 
-  /* Signature carousel — story-led, full-bleed slide with auto-visible copy below the photo */
-  .sig-carousel {
+  /* Signature — folder-tab strip (active tab wide, others tiny) + single content panel below */
+  .sig-tabstrip {
     display: flex;
+    align-items: flex-end;
+    gap: 3px;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    margin: 0 -18px;
   }
-  .sig-carousel::-webkit-scrollbar { display: none; }
-  .sig-slide {
-    flex: 0 0 100%;
-    scroll-snap-align: start;
-    padding: 0 18px;
+  .sig-tabstrip::-webkit-scrollbar { display: none; }
+  .sig-tab {
+    flex: 0 0 auto;
+    max-width: 44px;
+    padding: 9px 8px;
+    border: none;
+    border-radius: 10px 10px 0 0;
+    background: #F0E4D8;
+    color: #A8876F;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: max-width .2s, background .2s;
+  }
+  .sig-tab.active {
+    max-width: 220px;
+    flex: 1 1 auto;
+    background: #fff;
+    color: #4A3428;
+  }
+  .sig-tab.ghost {
+    opacity: .45;
+    cursor: default;
+    flex: 0 0 auto;
+    max-width: 32px;
+    text-align: center;
+  }
+  .sig-panel {
+    background: #fff;
+    border-radius: 0 16px 16px 16px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   }
   .sig-photo-wrap {
-    border-radius: 18px;
+    border-radius: 14px;
     overflow: hidden;
-    aspect-ratio: 4/3;
+    height: 220px;
     background: #F0E4D8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .sig-photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sig-photo-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .sig-eyebrow {
     font-size: 10.5px;
     letter-spacing: 2px;
@@ -221,19 +255,6 @@
     color: #6B5445;
     white-space: pre-line;
   }
-  .sig-dots {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    margin-top: 16px;
-  }
-  .sig-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #E0D2C2;
-  }
-  .sig-dot.active { background: #E8863A; width: 16px; border-radius: 4px; }
 
   /* Sidebar */
   .sidebar {
@@ -554,8 +575,8 @@
       </div>
 
       <div class="tabpanel" id="tab-signature">
-        <div class="sig-carousel" id="sigCarousel"></div>
-        <div class="sig-dots" id="sigDots"></div>
+        <div class="sig-tabstrip" id="sigTabstrip"></div>
+        <div class="sig-panel" id="sigPanel"></div>
       </div>
 
       <div class="tabpanel" id="tab-special">
@@ -894,65 +915,77 @@
       specialGrid.appendChild(makeSpecialCard(group));
     });
 
-    renderSignatureCarousel(signatureItems);
+    renderSignatureTabs(signatureItems);
 
     if (!specialGrid.children.length) {
       specialGrid.innerHTML = '<div class="status-msg">เดือนนี้ยังไม่มีเมนูพิเศษ รอติดตามนะ</div>';
     }
   }
 
-  function renderSignatureCarousel(items) {
-    const track = document.getElementById('sigCarousel');
-    const dotsEl = document.getElementById('sigDots');
-    track.innerHTML = '';
-    dotsEl.innerHTML = '';
+  function renderSignatureTabs(items) {
+    const stripEl = document.getElementById('sigTabstrip');
+    const panelEl = document.getElementById('sigPanel');
+    stripEl.innerHTML = '';
+    panelEl.innerHTML = '';
 
     if (!items.length) {
-      track.innerHTML = '<div class="sig-slide"><div class="status-msg">กำลังทดลองอยู่ ถ้าได้แล้วจะมาบอกนะ</div></div>';
+      panelEl.innerHTML = '<div class="status-msg">กำลังทดลองอยู่ ถ้าได้แล้วจะมาบอกนะ</div>';
       return;
     }
 
-    items.forEach((item, i) => {
-      const slide = document.createElement('div');
-      slide.className = 'sig-slide';
+    let activeIndex = 0;
+
+    function renderPanel() {
+      const item = items[activeIndex];
       const photo = item.image_url
         ? `<img src="${item.image_url}" alt="${item.name}">`
-        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:60px;">${iconFor(item)}</div>`;
-      slide.innerHTML = `
+        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:50px;">${iconFor(item)}</div>`;
+      panelEl.innerHTML = `
         <div class="sig-photo-wrap">${photo}</div>
         <div class="sig-eyebrow">SIGNATURE</div>
         <div class="sig-name">${item.name}</div>
         ${item.story_ingredients ? `<div class="sig-ingredients">${item.story_ingredients}</div>` : ''}
         <div class="sig-price-row">
           <span class="sig-price">${item.price} บาท</span>
-          <button type="button" class="sig-order-btn">สั่งเมนูนี้</button>
+          <button type="button" class="sig-order-btn" id="sigOrderBtn">สั่งเมนูนี้</button>
         </div>
         ${item.story_body ? `<div class="sig-story">${item.story_body}</div>` : ''}
       `;
-      const btn = slide.querySelector('.sig-order-btn');
+      const btn = document.getElementById('sigOrderBtn');
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.sig-order-btn').forEach(b => { b.classList.remove('selected'); b.textContent = 'สั่งเมนูนี้'; });
         btn.classList.add('selected');
         btn.textContent = 'เลือกแล้ว ✓';
         selectItem(item, btn);
         document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
-      track.appendChild(slide);
-
-      const dot = document.createElement('span');
-      dot.className = 'sig-dot' + (i === 0 ? ' active' : '');
-      dotsEl.appendChild(dot);
-    });
-
-    if (items.length > 1) {
-      track.addEventListener('scroll', () => {
-        const idx = Math.round(track.scrollLeft / track.clientWidth);
-        dotsEl.querySelectorAll('.sig-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
-      });
-    } else {
-      dotsEl.style.display = 'none';
     }
+
+    function renderTabs() {
+      stripEl.innerHTML = '';
+      items.forEach((item, i) => {
+        const tab = document.createElement('button');
+        tab.type = 'button';
+        tab.className = 'sig-tab' + (i === activeIndex ? ' active' : '');
+        tab.textContent = item.name;
+        tab.addEventListener('click', () => {
+          if (activeIndex === i) return;
+          activeIndex = i;
+          renderTabs();
+          renderPanel();
+        });
+        stripEl.appendChild(tab);
+      });
+      // แท็บโครงเปล่า — สื่อว่ามีเมนู signature อื่นตามมาอีก แม้ตอนนี้จะมีแค่ตัวเดียว
+      const ghost = document.createElement('div');
+      ghost.className = 'sig-tab ghost';
+      ghost.textContent = '···';
+      stripEl.appendChild(ghost);
+    }
+
+    renderTabs();
+    renderPanel();
   }
+
 
 
   function beanSurcharge(fixedBeanName) {
