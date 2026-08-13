@@ -629,6 +629,11 @@
             </div>
             <div class="omk-tier-desc">1 แก้ว — สำหรับคนที่อยากลอง Discovery ประจำสัปดาห์นี้โดยตรง</div>
             <button type="button" class="omk-tier-btn" id="omakaseSoloBtn">สั่ง Solo</button>
+            <div class="omk-switch-row">
+              <span class="omk-switch-label">Always On</span>
+              <button type="button" class="omk-switch" id="omakaseSoloSwitch"></button>
+            </div>
+            <div class="status-msg" id="omakaseSoloSwitchStatus" style="margin-top:10px;"></div>
           </div>
 
           <div class="omk-tier">
@@ -639,6 +644,11 @@
             <div class="omk-tier-desc">3 แก้ว — Discovery 1 แก้ว + อีก 2 แก้วที่แมวส้มเลือกให้</div>
             <button type="button" class="omk-tier-btn" id="omakaseBtn">สั่ง Classic</button>
             <div class="status-msg" id="omakaseStatus" style="margin-top:10px;"></div>
+            <div class="omk-switch-row">
+              <span class="omk-switch-label">Always On</span>
+              <button type="button" class="omk-switch" id="omakaseClassicSwitch"></button>
+            </div>
+            <div class="status-msg" id="omakaseClassicSwitchStatus" style="margin-top:10px;"></div>
           </div>
 
           <div class="omk-tier">
@@ -782,7 +792,7 @@
       if (memberRow) {
         memberId = memberRow.id;
         renderProgramBadges();
-        initAlwaysOnSwitch();
+        initAllOmkSwitches();
       }
 
       document.getElementById('customerNameLoading').style.display = 'none';
@@ -1357,13 +1367,19 @@
     btn.textContent = 'สั่งแล้ว ✅';
   });
 
-  // Omakase Full Week — สวิตช์ "Always On" ผูกกับ subscription program "Omakase" ตัวเดียวกับที่ badge ใช้อยู่แล้ว
-  async function initAlwaysOnSwitch() {
-    const sw = document.getElementById('omakaseAlwaysOnSwitch');
-    const statusEl = document.getElementById('omakaseAlwaysOnStatus');
+  // สวิตช์ "Always On" ต่อแพ็คเกจ — ผูกกับ subscription program แยกกันของแต่ละ tier (Solo/Classic/Full Week) ตัวเดียวกับที่ badge ใช้อยู่แล้ว
+  const OMK_SWITCH_CONFIG = [
+    { switchId: 'omakaseSoloSwitch',    statusId: 'omakaseSoloSwitchStatus',    programName: 'Omakase Solo',      successMsg: '✅ เปิด Always On (Solo) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 135 บาท/สัปดาห์ผ่านแชทนะครับ' },
+    { switchId: 'omakaseClassicSwitch', statusId: 'omakaseClassicSwitchStatus', programName: 'Omakase Classic',   successMsg: '✅ เปิด Always On (Classic) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 230 บาท/สัปดาห์ผ่านแชทนะครับ' },
+    { switchId: 'omakaseAlwaysOnSwitch', statusId: 'omakaseAlwaysOnStatus',     programName: 'Omakase Full Week', successMsg: '✅ เปิด Always On แล้ว! บาริสต้าจะดูแลกาแฟให้ทุกวันที่เจอกัน แล้วแจ้งเก็บเงิน 370 บาท/สัปดาห์ผ่านแชทนะครับ' },
+  ];
+
+  async function initOmkSwitch(cfg) {
+    const sw = document.getElementById(cfg.switchId);
+    const statusEl = document.getElementById(cfg.statusId);
     if (!memberId) { sw.classList.remove('on'); return; }
 
-    const { data: program } = await sb.from('subscription_programs').select('id').eq('name', 'Omakase').maybeSingle();
+    const { data: program } = await sb.from('subscription_programs').select('id').eq('name', cfg.programName).maybeSingle();
     if (!program) return;
 
     const { data: status } = await sb
@@ -1380,8 +1396,8 @@
 
       if (!memberId) {
         statusEl.className = 'status-msg error';
-        statusEl.innerHTML = 'เปิด Always On ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" id="alwaysOnGoRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button>';
-        const goRegisterBtn = document.getElementById('alwaysOnGoRegisterBtn');
+        statusEl.innerHTML = 'เปิด Always On ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" class="omkSwitchGoRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button>';
+        const goRegisterBtn = statusEl.querySelector('.omkSwitchGoRegisterBtn');
         if (goRegisterBtn) {
           goRegisterBtn.addEventListener('click', () => {
             if (window.liff && liff.isInClient && liff.isInClient()) {
@@ -1408,15 +1424,15 @@
       } else {
         sw.classList.toggle('on', turningOn);
         statusEl.className = 'status-msg success';
-        if (turningOn) {
-          statusEl.textContent = '✅ เปิด Always On แล้ว! บาริสต้าจะดูแลกาแฟให้ทุกวันที่เจอกัน แล้วแจ้งเก็บเงิน 370 บาท/สัปดาห์ผ่านแชทนะครับ';
-        } else {
-          statusEl.textContent = 'ปิด Always On แล้วครับ';
-        }
+        statusEl.textContent = turningOn ? cfg.successMsg : 'ปิด Always On แล้วครับ';
         renderProgramBadges();
       }
-      initAlwaysOnSwitch(); // ผูก onclick ใหม่
+      initOmkSwitch(cfg); // ผูก onclick ใหม่
     };
+  }
+
+  function initAllOmkSwitches() {
+    OMK_SWITCH_CONFIG.forEach(initOmkSwitch);
   }
 
   function openImageSheet(item) {
