@@ -433,15 +433,6 @@
   }
   .omk-switch.on { background: #4A9B5C; }
   .omk-switch.on::after { transform: translateX(20px); }
-  .omk-chapters { background: #fff; border-radius: 14px; padding: 16px; margin-top: 6px; }
-  .omk-chapters-title { font-weight: 800; font-size: 14px; color: #4A3428; margin-bottom: 4px; }
-  .omk-chapters-desc { font-size: 11.5px; color: #8a6a4a; margin-bottom: 12px; line-height: 1.65; }
-  .omk-chapter-row {
-    display: flex; align-items: center; gap: 8px; padding: 8px 0;
-    border-top: 1px solid #F0E4D8; font-size: 12.5px; color: #4A3428;
-  }
-  .omk-chapter-row:first-of-type { border-top: none; padding-top: 0; }
-  .omk-chapter-num { font-weight: 800; color: #E8863A; width: 26px; flex-shrink: 0; }
 
   /* Image preview modal — centered */
   .img-sheet-overlay {
@@ -656,20 +647,13 @@
               <span class="omk-tier-price">370.-</span>
             </div>
             <div class="omk-tier-desc">ทุกวันที่เราเจอกัน — เริ่มสัปดาห์ด้วย Discovery แล้ววันอื่นๆ แมวส้มดูแลให้ทั้งหมด</div>
+            <button type="button" class="omk-tier-btn" id="omakaseFullWeekBtn">สั่ง Full Week</button>
+            <div class="status-msg" id="omakaseFullWeekStatus" style="margin-top:10px;"></div>
             <div class="omk-switch-row">
               <span class="omk-switch-label">Always On</span>
               <button type="button" class="omk-switch" id="omakaseAlwaysOnSwitch"></button>
             </div>
             <div class="status-msg" id="omakaseAlwaysOnStatus" style="margin-top:10px;"></div>
-          </div>
-
-          <div class="omk-chapters">
-            <div class="omk-chapters-title">📖 The Discovery Chapters</div>
-            <div class="omk-chapters-desc">ทุก Discovery จะถูกบันทึกเป็น Chapter ต่อเนื่อง เพื่อให้กลายเป็นเรื่องราวของกาแฟแมวส้ม — ยิ่งกินต่อเนื่อง ก็ยิ่งเหมือนกำลังสะสมเรื่องราวไปทีละ Chapter และถ้าข้ามสัปดาห์ ก็เท่ากับมี Chapter หนึ่งที่ยังไม่เคยได้ลอง 🐈🧡</div>
-            <div class="omk-chapter-row"><span class="omk-chapter-num">01</span> Steamed Yuba Kek-Huay Latte 🌼</div>
-            <div class="omk-chapter-row"><span class="omk-chapter-num">02</span> —</div>
-            <div class="omk-chapter-row"><span class="omk-chapter-num">03</span> ???</div>
-            <div class="omk-chapter-row"><span class="omk-chapter-num">04</span> ???</div>
           </div>
         </div>
       </div>
@@ -1313,6 +1297,64 @@
   // Omakase Solo = สั่งเมนู Discovery (Signature) ตรงๆ — ไม่ต้องมี flow แยก แค่พาไปแท็บ Signature
   document.getElementById('omakaseSoloBtn').addEventListener('click', () => {
     selectTab('signature');
+  });
+
+  // Omakase Full Week (สั่ง) — ออเดอร์ครั้งเดียวสำหรับสัปดาห์นี้ คนละส่วนกับสวิตช์ Always On (ที่ทำให้เกิดซ้ำทุกสัปดาห์อัตโนมัติ)
+  document.getElementById('omakaseFullWeekBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('omakaseFullWeekBtn');
+    const statusEl = document.getElementById('omakaseFullWeekStatus');
+    statusEl.className = 'status-msg';
+    statusEl.textContent = '';
+
+    if (!memberId) {
+      statusEl.className = 'status-msg error';
+      statusEl.innerHTML = 'สั่ง Full Week ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" id="fullWeekGoRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button> แล้วกลับมาสั่งใหม่ได้เลย';
+      const goRegisterBtn = document.getElementById('fullWeekGoRegisterBtn');
+      if (goRegisterBtn) {
+        goRegisterBtn.addEventListener('click', () => {
+          if (window.liff && liff.isInClient && liff.isInClient()) {
+            liff.openWindow({ url: 'https://liff.line.me/2010600301-1tjt7IdG', external: false });
+          } else {
+            window.location.href = 'https://liff.line.me/2010600301-1tjt7IdG';
+          }
+        });
+      }
+      return;
+    }
+    if (!omakasePlaceholderId) {
+      statusEl.className = 'status-msg error';
+      statusEl.textContent = 'ระบบยังโหลดไม่พร้อม ลองรีเฟรชหน้าอีกครั้งนะครับ';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'กำลังบันทึกออเดอร์...';
+
+    const wantedDate = document.getElementById('wantedDate').value || todayStr();
+    const customerName = getCustomerName();
+
+    const { error } = await sb.from('transactions').insert([{
+      member_id: memberId,
+      menu_item_id: omakasePlaceholderId,
+      quantity: 1,
+      total_price: 370,
+      channel: 'liff-omakase-fullweek',
+      status: 'pending',
+      customer_name: customerName,
+      wanted_date: wantedDate,
+    }]);
+
+    if (error) {
+      statusEl.className = 'status-msg error';
+      statusEl.textContent = `สั่งไม่สำเร็จ: ${error.message}`;
+      btn.disabled = false;
+      btn.textContent = 'สั่ง Full Week';
+      return;
+    }
+
+    statusEl.className = 'status-msg success';
+    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! เริ่มสัปดาห์ด้วย Discovery แล้วแมวส้มดูแลให้ทุกวันที่เจอกัน แล้วแจ้งเก็บเงิน 370 บาทผ่านแชทนะครับ';
+    btn.textContent = 'สั่งแล้ว ✅';
   });
 
   // Omakase Full Week — สวิตช์ "Always On" ผูกกับ subscription program "Omakase" ตัวเดียวกับที่ badge ใช้อยู่แล้ว
