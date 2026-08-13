@@ -154,6 +154,87 @@
     line-height: 1.3;
   }
 
+  /* Signature carousel — story-led, full-bleed slide with auto-visible copy below the photo */
+  .sig-carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin: 0 -18px;
+  }
+  .sig-carousel::-webkit-scrollbar { display: none; }
+  .sig-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    padding: 0 18px;
+  }
+  .sig-photo-wrap {
+    border-radius: 18px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    background: #F0E4D8;
+  }
+  .sig-photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sig-eyebrow {
+    font-size: 10.5px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: #E8863A;
+    margin-top: 16px;
+  }
+  .sig-name {
+    font-size: 19px;
+    font-weight: 700;
+    color: #4A3428;
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+  .sig-ingredients {
+    font-size: 12px;
+    color: #A8876F;
+    margin-top: 3px;
+  }
+  .sig-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+    gap: 10px;
+  }
+  .sig-price { font-size: 15px; font-weight: 700; color: #E8863A; }
+  .sig-order-btn {
+    background: #E8863A;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .sig-order-btn.selected { background: #4A9B5C; }
+  .sig-story {
+    margin-top: 16px;
+    font-size: 13.5px;
+    line-height: 1.85;
+    color: #6B5445;
+    white-space: pre-line;
+  }
+  .sig-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .sig-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #E0D2C2;
+  }
+  .sig-dot.active { background: #E8863A; width: 16px; border-radius: 4px; }
+
   /* Sidebar */
   .sidebar {
     background: #fff;
@@ -473,10 +554,8 @@
       </div>
 
       <div class="tabpanel" id="tab-signature">
-        <div class="group">
-          <h2>🌟 Orange Cat Signature</h2>
-          <div class="menu-grid" id="signatureGrid"></div>
-        </div>
+        <div class="sig-carousel" id="sigCarousel"></div>
+        <div class="sig-dots" id="sigDots"></div>
       </div>
 
       <div class="tabpanel" id="tab-special">
@@ -697,7 +776,7 @@
   const SURPRISE_CATS = ['surprise']; // 🐱 แมวส้มเลือกหน่อย — บาริสต้าเลือกเมนูจริงตอนชง ราคาจริง 65-75 ขึ้นกับเมนูที่เลือก
   const COFFEE_CATS = ['espresso','dirty','signature'];
   const MATCHA_CATS = ['matcha'];
-  const SIGNATURE_CATS = ['signature_item']; // เก๊กฮวยลาเต้ และเมนู Signature ใหม่ๆ จะโชว์ที่แท็บนี้จริง — 'signature' เดิม (Orange Americano) ยังอยู่กลุ่มกาแฟ Comfort เหมือนเดิม ไม่กระทบ
+  const SIGNATURE_CATS = ['signature_item']; // Signature items (เช่น Steamed Yuba Kek-Huay Latte) โชว์ที่แท็บนี้ — 'signature' เดิม (Orange Americano) ยังอยู่กลุ่มกาแฟ Comfort เหมือนเดิม ไม่กระทบ
   const SPECIAL_CATS = ['special_of_month']; // เมนูพิเศษประจำเดือน — ไม่ผูกกับเมล็ด/ชื่อเมนูใดเมนูหนึ่ง อ่านสดจาก menu_items.category เสมอ
 
   async function loadMenu() {
@@ -713,8 +792,8 @@
     const coffeeGrid = document.getElementById('coffeeGrid');
     const matchaGrid = document.getElementById('matchaGrid');
     const otherGrid = document.getElementById('otherGrid');
-    const signatureGrid = document.getElementById('signatureGrid');
     const specialGrid = document.getElementById('specialGrid');
+    const signatureItems = [];
 
     if (error) {
       coffeeGrid.innerHTML = `<div class="status-msg error">โหลดเมนูไม่สำเร็จ: ${error.message}</div>`;
@@ -729,7 +808,6 @@
     coffeeGrid.innerHTML = '';
     matchaGrid.innerHTML = '';
     otherGrid.innerHTML = '';
-    signatureGrid.innerHTML = '';
     specialGrid.innerHTML = '';
 
     function makeCard(item) {
@@ -769,7 +847,7 @@
       if (SURPRISE_CATS.includes(cat)) {
         surpriseGrid.appendChild(card);
       } else if (SIGNATURE_CATS.includes(cat)) {
-        signatureGrid.appendChild(card);
+        signatureItems.push(item);
       } else if (MATCHA_CATS.includes(cat)) {
         matchaGrid.appendChild(card);
       } else if (COFFEE_CATS.includes(cat)) {
@@ -816,11 +894,63 @@
       specialGrid.appendChild(makeSpecialCard(group));
     });
 
-    if (!signatureGrid.children.length) {
-      signatureGrid.innerHTML = '<div class="status-msg">กำลังทดลองอยู่ ถ้าได้แล้วจะมาบอกนะ</div>';
-    }
+    renderSignatureCarousel(signatureItems);
+
     if (!specialGrid.children.length) {
       specialGrid.innerHTML = '<div class="status-msg">เดือนนี้ยังไม่มีเมนูพิเศษ รอติดตามนะ</div>';
+    }
+  }
+
+  function renderSignatureCarousel(items) {
+    const track = document.getElementById('sigCarousel');
+    const dotsEl = document.getElementById('sigDots');
+    track.innerHTML = '';
+    dotsEl.innerHTML = '';
+
+    if (!items.length) {
+      track.innerHTML = '<div class="sig-slide"><div class="status-msg">กำลังทดลองอยู่ ถ้าได้แล้วจะมาบอกนะ</div></div>';
+      return;
+    }
+
+    items.forEach((item, i) => {
+      const slide = document.createElement('div');
+      slide.className = 'sig-slide';
+      const photo = item.image_url
+        ? `<img src="${item.image_url}" alt="${item.name}">`
+        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:60px;">${iconFor(item)}</div>`;
+      slide.innerHTML = `
+        <div class="sig-photo-wrap">${photo}</div>
+        <div class="sig-eyebrow">SIGNATURE</div>
+        <div class="sig-name">${item.name}</div>
+        ${item.story_ingredients ? `<div class="sig-ingredients">${item.story_ingredients}</div>` : ''}
+        <div class="sig-price-row">
+          <span class="sig-price">${item.price} บาท</span>
+          <button type="button" class="sig-order-btn">สั่งเมนูนี้</button>
+        </div>
+        ${item.story_body ? `<div class="sig-story">${item.story_body}</div>` : ''}
+      `;
+      const btn = slide.querySelector('.sig-order-btn');
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sig-order-btn').forEach(b => { b.classList.remove('selected'); b.textContent = 'สั่งเมนูนี้'; });
+        btn.classList.add('selected');
+        btn.textContent = 'เลือกแล้ว ✓';
+        selectItem(item, btn);
+        document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      track.appendChild(slide);
+
+      const dot = document.createElement('span');
+      dot.className = 'sig-dot' + (i === 0 ? ' active' : '');
+      dotsEl.appendChild(dot);
+    });
+
+    if (items.length > 1) {
+      track.addEventListener('scroll', () => {
+        const idx = Math.round(track.scrollLeft / track.clientWidth);
+        dotsEl.querySelectorAll('.sig-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+      });
+    } else {
+      dotsEl.style.display = 'none';
     }
   }
 
