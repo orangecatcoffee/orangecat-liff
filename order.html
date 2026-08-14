@@ -797,6 +797,7 @@
   let memberId = null; // เซ็ตจริงถ้าเจอ member ที่ผูก LINE user id นี้ไว้ใน members
   let lineUserId = null;
   let omakasePlaceholderId = null; // menu_items.id ของแถว placeholder (is_omakase_placeholder=true) — ดึงสดจาก DB ไม่ hardcode
+  let currentSecretItem = null; // เมนู Signature/Secret ตัวปัจจุบัน (Chapter ล่าสุด) — ใช้ตอนสั่ง Omakase Solo
   let customerNameAuto = null; // ชื่อจาก LINE profile — ห้ามให้พิมพ์เอง
   let manualNameFallback = false; // true เฉพาะตอนเปิดนอก LINE (เช่น เทสใน browser ปกติ)
   let selectedSweetness = 'ไม่หวาน';
@@ -1013,6 +1014,7 @@
       specialGrid.appendChild(makeSpecialCard(group));
     });
 
+    currentSecretItem = signatureItems.length ? signatureItems[0] : null;
     renderSignatureTabs(signatureItems);
     renderOmakaseChapters(signatureItems);
 
@@ -1307,6 +1309,35 @@
   }
   loadOmakasePlaceholder();
 
+  // แจ้งเตือนร้านทุกครั้งที่ลูกค้าสั่ง Omakase หรือกด Always On — fire-and-forget ไม่บล็อก UI
+  function notifyShop(eventType, customerName, detail) {
+    fetch('https://nhzjnutvirjgiclkkfgx.supabase.co/functions/v1/notify-shop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: eventType, customer_name: customerName, detail }),
+    }).catch(err => console.error('notify-shop failed:', err));
+  }
+
+  // เลือกได้แค่ 1 แพ็คเกจต่อครั้ง — สั่งแพ็คไหนแล้ว เอากรอบเขียว "สั่งแล้ว" ของแพ็คอื่นออก กันขึ้นติ๊กถูกพร้อมกันหลายใบ
+  const OMK_TIER_BTN_MAP = {
+    omkTierSolo: 'omakaseSoloBtn',
+    omkTierClassic: 'omakaseBtn',
+    omkTierFullWeek: 'omakaseFullWeekBtn',
+  };
+  function markTierOrdered(tierId) {
+    Object.keys(OMK_TIER_BTN_MAP).forEach(id => {
+      const el = document.getElementById(id);
+      const btn = document.getElementById(OMK_TIER_BTN_MAP[id]);
+      if (!el) return;
+      if (id === tierId) {
+        el.classList.add('ordered');
+      } else {
+        el.classList.remove('ordered');
+        if (btn) btn.textContent = 'สั่งเลย';
+      }
+    });
+  }
+
   document.getElementById('omakaseBtn').addEventListener('click', async () => {
     const btn = document.getElementById('omakaseBtn');
     const statusEl = document.getElementById('omakaseStatus');
@@ -1365,13 +1396,69 @@
     statusEl.className = 'status-msg success';
     statusEl.textContent = '✅ สั่งซื้อสำเร็จ! บาริสต้าจะเลือก 3 เมนูให้คุณ แล้วแจ้งเก็บเงิน 230 บาทผ่านแชทนะครับ';
     btn.textContent = 'สั่งแล้ว ✅';
-    document.getElementById('omkTierClassic').classList.add('ordered');
+    markTierOrdered('omkTierClassic');
+    notifyShop('omakase_classic', customerName, 'สั่ง Omakase Classic (230.-)');
   });
 
-  // Omakase Solo = สั่งเมนู Secret (Signature) ตรงๆ — ไม่ต้องมี flow แยก แค่พาไปแท็บ Signature
-  document.getElementById('omakaseSoloBtn').addEventListener('click', () => {
-    document.getElementById('omkTierSolo').classList.add('ordered');
-    selectTab('signature');
+  // Omakase Solo = สั่งเมนู Secret (Signature) ปัจจุบันจริง — insert ออเดอร์จริงเหมือน Classic/Full Week ไม่ใช่แค่พาไปแท็บ Signature เฉยๆ
+  document.getElementById('omakaseSoloBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('omakaseSoloBtn');
+    const statusEl = document.getElementById('omakaseSoloSwitchStatus');
+    statusEl.className = 'status-msg';
+    statusEl.textContent = '';
+
+    if (!memberId) {
+      statusEl.className = 'status-msg error';
+      statusEl.innerHTML = 'สั่ง Solo ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" id="soloGoRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button>';
+      const goRegisterBtn = document.getElementById('soloGoRegisterBtn');
+      if (goRegisterBtn) {
+        goRegisterBtn.addEventListener('click', () => {
+          if (window.liff && liff.isInClient && liff.isInClient()) {
+            liff.openWindow({ url: 'https://liff.line.me/2010600301-1tjt7IdG', external: false });
+          } else {
+            window.location.href = 'https://liff.line.me/2010600301-1tjt7IdG';
+          }
+        });
+      }
+      return;
+    }
+    if (!currentSecretItem) {
+      statusEl.className = 'status-msg error';
+      statusEl.textContent = 'ยังไม่มีเมนู Secret ประจำสัปดาห์นี้ในระบบครับ';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'กำลังบันทึกออเดอร์...';
+
+    const wantedDate = document.getElementById('wantedDate').value || todayStr();
+    const customerName = getCustomerName();
+
+    const { error } = await sb.from('preorders').insert([{
+      customer_name: customerName,
+      menu_item_name: currentSecretItem.name,
+      price: currentSecretItem.price,
+      wanted_date: wantedDate,
+      line_user_id: lineUserId,
+      order_type: 'customer',
+      paid: false,
+      sweetness: selectedSweetness || 'ปกติ',
+      channel: 'liff-omakase-solo',
+    }]);
+
+    if (error) {
+      statusEl.className = 'status-msg error';
+      statusEl.textContent = `สั่งไม่สำเร็จ: ${error.message}`;
+      btn.disabled = false;
+      btn.textContent = 'สั่งเลย';
+      return;
+    }
+
+    statusEl.className = 'status-msg success';
+    statusEl.textContent = `✅ สั่งซื้อสำเร็จ! ${currentSecretItem.name} แล้วแจ้งเก็บเงิน ${currentSecretItem.price} บาทผ่านแชทนะครับ`;
+    btn.textContent = 'สั่งแล้ว ✅';
+    markTierOrdered('omkTierSolo');
+    notifyShop('omakase_solo', customerName, `สั่ง Omakase Solo — ${currentSecretItem.name} (${currentSecretItem.price}.-)`);
   });
 
   // Omakase Full Week (สั่ง) — ออเดอร์ครั้งเดียวสำหรับสัปดาห์นี้ คนละส่วนกับสวิตช์ Always On (ที่ทำให้เกิดซ้ำทุกสัปดาห์อัตโนมัติ)
@@ -1430,7 +1517,8 @@
     statusEl.className = 'status-msg success';
     statusEl.textContent = '✅ สั่งซื้อสำเร็จ! 5 แก้ว — เริ่มด้วย Secret 1 แก้ว แล้วแมวส้มดูแลกาแฟที่คุณคุ้นเคยให้ แล้วแจ้งเก็บเงิน 370 บาทผ่านแชทนะครับ';
     btn.textContent = 'สั่งแล้ว ✅';
-    document.getElementById('omkTierFullWeek').classList.add('ordered');
+    markTierOrdered('omkTierFullWeek');
+    notifyShop('omakase_fullweek', customerName, 'สั่ง Omakase Full Week (370.-, 5 แก้ว)');
   });
 
   // สวิตช์ "Always On" ต่อแพ็คเกจ — ผูกกับ subscription program แยกกันของแต่ละ tier (Solo/Classic/Full Week) ตัวเดียวกับที่ badge ใช้อยู่แล้ว
@@ -1491,6 +1579,7 @@
         sw.classList.toggle('on', turningOn);
         statusEl.className = 'status-msg success';
         statusEl.textContent = turningOn ? cfg.successMsg : 'ปิด Always On แล้วครับ';
+        if (turningOn) notifyShop('always_on', getCustomerName(), `เปิด Always On — ${cfg.programName}`);
 
         // เลือกได้แค่โปรแกรมเดียว — เปิดอันนี้แล้วต้องปิดอันอื่นอัตโนมัติ ไม่ใช่เปิดซ้อนกัน
         if (turningOn) {
