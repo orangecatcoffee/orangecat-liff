@@ -116,6 +116,7 @@
 
   let lineUserId = null;
   let selectedRating = null;
+  let feedbackMenuName = null;
 
   function showError(msg) {
     const el = document.getElementById('statusMsg');
@@ -164,6 +165,24 @@
       btn.textContent = 'ส่งฟีดแบค';
       return;
     }
+
+    // แจ้งร้านทันทีว่ามีลูกค้าตอบฟีดแบคกลับมา — best-effort หาชื่อลูกค้าจาก line_user_id ถ้ามี ไม่เจอก็ส่งแบบไม่มีชื่อ
+    let feedbackCustomerName = null;
+    if (lineUserId) {
+      const { data: memberRow } = await sb.from('members').select('display_name').eq('line_user_id', lineUserId).maybeSingle();
+      if (memberRow) feedbackCustomerName = memberRow.display_name;
+    }
+    const stars = '⭐'.repeat(Number(selectedRating));
+    fetch('https://nhzjnutvirjgiclkkfgx.supabase.co/functions/v1/notify-shop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'feedback',
+        customer_name: feedbackCustomerName,
+        detail: `${stars} (${selectedRating}/5)${feedbackMenuName ? ` — ${feedbackMenuName}` : ''}${comment ? `\n"${comment}"` : ''}`,
+      }),
+    }).catch(err => console.error('notify-shop failed:', err));
+
     showDone();
   });
 
@@ -181,12 +200,13 @@
 
     // เช็คว่าแก้วนี้ตอบไปแล้วหรือยัง กันตอบซ้ำ
     const { data, error } = await sb.from('feedback_requests')
-      .select('id, responded_at')
+      .select('id, responded_at, menu_item_name')
       .eq('id', feedbackId)
       .maybeSingle();
 
     if (error || !data) { showError('ไม่พบรายการฟีดแบคนี้'); return; }
     if (data.responded_at) { showDone(); return; }
+    feedbackMenuName = data.menu_item_name;
 
     updateSubmitBtn();
   }
