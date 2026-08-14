@@ -668,7 +668,7 @@
           <div class="omk-tier" id="omkTierClassic">
             <div class="omk-tier-top">
               <div class="omk-tier-name">CLASSIC</div>
-              <div class="omk-tier-price-text">230 บาท</div>
+              <div class="omk-tier-price-text">270 บาท</div>
               <div class="omk-tier-desc">3 แก้ว — Secret 1 แก้ว บวกอีก 2 แก้วให้เลือก</div>
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseBtn">สั่งเลย</button>
@@ -683,7 +683,7 @@
           <div class="omk-tier" id="omkTierFullWeek">
             <div class="omk-tier-top">
               <div class="omk-tier-name">MAX</div>
-              <div class="omk-tier-price-text">370 บาท</div>
+              <div class="omk-tier-price-text">420 บาท</div>
               <div class="omk-tier-desc">5 แก้ว — Secret 1 แก้ว บวกกาแฟคุ้นเคยทุกวัน</div>
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseFullWeekBtn">สั่งเลย</button>
@@ -1344,7 +1344,7 @@
     statusEl.className = 'status-msg';
     statusEl.textContent = '';
 
-    // Omakase ต้องเป็นสมาชิกที่ผูก LINE แล้วเท่านั้น (ใช้เก็บเงิน 230 บาท/สัปดาห์ผ่านแชท)
+    // Omakase ต้องเป็นสมาชิกที่ผูก LINE แล้วเท่านั้น (ใช้เก็บเงิน 270 บาท/สัปดาห์ผ่านแชท)
     if (!memberId) {
       statusEl.className = 'status-msg error';
       statusEl.innerHTML = 'สั่ง Omakase ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" id="goRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button> แล้วกลับมาสั่งใหม่ได้เลย';
@@ -1378,7 +1378,7 @@
       member_id: memberId,
       menu_item_id: omakasePlaceholderId,
       quantity: 1,
-      total_price: 230,
+      total_price: 270,
       channel: 'liff-omakase',
       status: 'pending',
       customer_name: customerName,
@@ -1394,10 +1394,10 @@
     }
 
     statusEl.className = 'status-msg success';
-    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! บาริสต้าจะเลือก 3 เมนูให้คุณ แล้วแจ้งเก็บเงิน 230 บาทผ่านแชทนะครับ';
+    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! บาริสต้าจะเลือก 3 เมนูให้คุณ แล้วแจ้งเก็บเงิน 270 บาทผ่านแชทนะครับ';
     btn.textContent = 'สั่งแล้ว ✅';
     markTierOrdered('omkTierClassic');
-    notifyShop('omakase_classic', customerName, 'สั่ง Omakase Classic (230.-)');
+    notifyShop('omakase_classic', customerName, 'สั่ง Omakase Classic (270.-)');
   });
 
   // Omakase Solo = สั่งเมนู Secret (Signature) ปัจจุบันจริง — insert ออเดอร์จริงเหมือน Classic/Full Week ไม่ใช่แค่พาไปแท็บ Signature เฉยๆ
@@ -1499,7 +1499,7 @@
       member_id: memberId,
       menu_item_id: omakasePlaceholderId,
       quantity: 1,
-      total_price: 370,
+      total_price: 420,
       channel: 'liff-omakase-fullweek',
       status: 'pending',
       customer_name: customerName,
@@ -1515,17 +1515,17 @@
     }
 
     statusEl.className = 'status-msg success';
-    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! 5 แก้ว — เริ่มด้วย Secret 1 แก้ว แล้วแมวส้มดูแลกาแฟที่คุณคุ้นเคยให้ แล้วแจ้งเก็บเงิน 370 บาทผ่านแชทนะครับ';
+    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! 5 แก้ว — เริ่มด้วย Secret 1 แก้ว แล้วแมวส้มดูแลกาแฟที่คุณคุ้นเคยให้ แล้วแจ้งเก็บเงิน 420 บาทผ่านแชทนะครับ';
     btn.textContent = 'สั่งแล้ว ✅';
     markTierOrdered('omkTierFullWeek');
-    notifyShop('omakase_fullweek', customerName, 'สั่ง Omakase Full Week (370.-, 5 แก้ว)');
+    notifyShop('omakase_fullweek', customerName, 'สั่ง Omakase Full Week (420.-, 5 แก้ว)');
   });
 
   // สวิตช์ "Always On" ต่อแพ็คเกจ — ผูกกับ subscription program แยกกันของแต่ละ tier (Solo/Classic/Full Week) ตัวเดียวกับที่ badge ใช้อยู่แล้ว
   const OMK_SWITCH_CONFIG = [
     { switchId: 'omakaseSoloSwitch',    statusId: 'omakaseSoloSwitchStatus',    programName: 'Omakase Solo',      successMsg: '✅ เปิด Always On (Solo) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 135 บาท/สัปดาห์ผ่านแชทนะครับ' },
-    { switchId: 'omakaseClassicSwitch', statusId: 'omakaseClassicSwitchStatus', programName: 'Omakase Classic',   successMsg: '✅ เปิด Always On (Classic) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 230 บาท/สัปดาห์ผ่านแชทนะครับ' },
-    { switchId: 'omakaseAlwaysOnSwitch', statusId: 'omakaseAlwaysOnStatus',     programName: 'Omakase Max', successMsg: '✅ เปิด Always On แล้ว! 5 แก้ว/สัปดาห์ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 370 บาท/สัปดาห์ผ่านแชทนะครับ' },
+    { switchId: 'omakaseClassicSwitch', statusId: 'omakaseClassicSwitchStatus', programName: 'Omakase Classic',   successMsg: '✅ เปิด Always On (Classic) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 270 บาท/สัปดาห์ผ่านแชทนะครับ' },
+    { switchId: 'omakaseAlwaysOnSwitch', statusId: 'omakaseAlwaysOnStatus',     programName: 'Omakase Max', successMsg: '✅ เปิด Always On แล้ว! 5 แก้ว/สัปดาห์ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 420 บาท/สัปดาห์ผ่านแชทนะครับ' },
   ];
 
   async function initOmkSwitch(cfg) {
