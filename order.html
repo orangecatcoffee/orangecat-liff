@@ -447,6 +447,20 @@
   .omk-switch.on { background: #4A9B5C; }
   .omk-switch.on::after { transform: translateX(16px); }
 
+  .omk-chapters { background: #fff; border-radius: 14px; padding: 16px; margin-top: 12px; }
+  .omk-chapters-title { font-weight: 800; font-size: 14px; color: #4A3428; margin-bottom: 10px; }
+  .omk-chapter-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0;
+    border-top: 1px solid #F0E4D8;
+  }
+  .omk-chapter-row:first-of-type { border-top: none; padding-top: 0; }
+  .omk-chapter-num { font-weight: 800; color: #E8863A; font-size: 12px; flex-shrink: 0; width: 22px; }
+  .omk-chapter-text { flex: 1; font-size: 12.5px; color: #4A3428; line-height: 1.4; }
+  .omk-chapter-link {
+    flex-shrink: 0; background: #FFF3E8; color: #E8863A; border: none;
+    padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; font-family: inherit;
+  }
+
   /* Image preview modal — centered */
   .img-sheet-overlay {
     position: fixed; inset: 0; background: rgba(40,25,15,0.55); backdrop-filter: blur(3px);
@@ -681,6 +695,8 @@
             <div class="status-msg" id="omakaseFullWeekStatus" style="margin-top:10px;"></div>
           </div>
           </div>
+
+          <div id="omkChapters"></div>
         </div>
       </div>
 
@@ -998,6 +1014,7 @@
     });
 
     renderSignatureTabs(signatureItems);
+    renderOmakaseChapters(signatureItems);
 
     if (!specialGrid.children.length) {
       specialGrid.innerHTML = '<div class="status-msg">เดือนนี้ยังไม่มีเมนูพิเศษ รอติดตามนะ</div>';
@@ -1061,6 +1078,36 @@
 
     renderTabs();
     renderPanel();
+  }
+
+  // Chapters ใต้ Omakase — จำนวน = เมนู Signature จริงที่มีอยู่ + 1 (ตัวทีเซอร์ชวนติดตามตอนต่อไป)
+  function renderOmakaseChapters(items) {
+    const el = document.getElementById('omkChapters');
+    if (!el) return;
+    const rows = items.map((item, i) => {
+      const num = String(i + 1).padStart(2, '0');
+      return `
+        <div class="omk-chapter-row">
+          <span class="omk-chapter-num">#${num}</span>
+          <span class="omk-chapter-text">${item.name}</span>
+          <button type="button" class="omk-chapter-link">Signature</button>
+        </div>
+      `;
+    }).join('');
+    const teaserNum = String(items.length + 1).padStart(2, '0');
+    el.innerHTML = `
+      <div class="omk-chapters">
+        <div class="omk-chapters-title">📖 Omakase Chapters</div>
+        ${rows}
+        <div class="omk-chapter-row">
+          <span class="omk-chapter-num">#${teaserNum}</span>
+          <span class="omk-chapter-text">Order Omakase to discover together</span>
+        </div>
+      </div>
+    `;
+    el.querySelectorAll('.omk-chapter-link').forEach(btn => {
+      btn.addEventListener('click', () => selectTab('signature'));
+    });
   }
 
 
