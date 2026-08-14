@@ -644,7 +644,7 @@
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseSoloBtn">สั่งเลย</button>
             <div class="omk-switch-row">
-              <span class="omk-switch-label">Always On<span class="omk-switch-sub">Subscription รับทุกวีค<br>ไม่ต้องมากดสั่งใหม่ทุกวี</span></span>
+              <span class="omk-switch-label">Always On<span class="omk-switch-sub">Subscription<br>ไม่ต้องกดสั่งทุกวีค</span></span>
               <button type="button" class="omk-switch" id="omakaseSoloSwitch"></button>
             </div>
             <div class="status-msg" id="omakaseSoloSwitchStatus" style="margin-top:10px;"></div>
@@ -659,7 +659,7 @@
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseBtn">สั่งเลย</button>
             <div class="omk-switch-row">
-              <span class="omk-switch-label">Always On<span class="omk-switch-sub">Subscription รับทุกวีค<br>ไม่ต้องมากดสั่งใหม่ทุกวี</span></span>
+              <span class="omk-switch-label">Always On<span class="omk-switch-sub">Subscription<br>ไม่ต้องกดสั่งทุกวีค</span></span>
               <button type="button" class="omk-switch" id="omakaseClassicSwitch"></button>
             </div>
             <div class="status-msg" id="omakaseClassicSwitchStatus" style="margin-top:10px;"></div>
@@ -674,7 +674,7 @@
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseFullWeekBtn">สั่งเลย</button>
             <div class="omk-switch-row">
-              <span class="omk-switch-label">Always On<span class="omk-switch-sub">Subscription รับทุกวีค<br>ไม่ต้องมากดสั่งใหม่ทุกวี</span></span>
+              <span class="omk-switch-label">Always On<span class="omk-switch-sub">Subscription<br>ไม่ต้องกดสั่งทุกวีค</span></span>
               <button type="button" class="omk-switch" id="omakaseAlwaysOnSwitch"></button>
             </div>
             <div class="status-msg" id="omakaseAlwaysOnStatus" style="margin-top:10px;"></div>
@@ -1444,6 +1444,24 @@
         sw.classList.toggle('on', turningOn);
         statusEl.className = 'status-msg success';
         statusEl.textContent = turningOn ? cfg.successMsg : 'ปิด Always On แล้วครับ';
+
+        // เลือกได้แค่โปรแกรมเดียว — เปิดอันนี้แล้วต้องปิดอันอื่นอัตโนมัติ ไม่ใช่เปิดซ้อนกัน
+        if (turningOn) {
+          const others = OMK_SWITCH_CONFIG.filter(c => c.programName !== cfg.programName);
+          for (const other of others) {
+            const { data: otherProgram } = await sb.from('subscription_programs').select('id').eq('name', other.programName).maybeSingle();
+            if (!otherProgram) continue;
+            await sb.from('member_program_status').upsert(
+              { line_user_id: lineUserId, program_id: otherProgram.id, active: false, updated_at: new Date().toISOString() },
+              { onConflict: 'line_user_id,program_id' }
+            );
+            const otherSw = document.getElementById(other.switchId);
+            const otherStatusEl = document.getElementById(other.statusId);
+            if (otherSw) otherSw.classList.remove('on');
+            if (otherStatusEl) { otherStatusEl.className = 'status-msg'; otherStatusEl.textContent = ''; }
+          }
+        }
+
         renderProgramBadges();
       }
       initOmkSwitch(cfg); // ผูก onclick ใหม่
