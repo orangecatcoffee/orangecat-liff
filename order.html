@@ -1362,11 +1362,6 @@
       }
       return;
     }
-    if (!omakasePlaceholderId) {
-      statusEl.className = 'status-msg error';
-      statusEl.textContent = 'ระบบยังโหลดไม่พร้อม ลองรีเฟรชหน้าอีกครั้งนะครับ';
-      return;
-    }
 
     btn.disabled = true;
     btn.textContent = 'กำลังบันทึกออเดอร์...';
@@ -1374,15 +1369,19 @@
     const wantedDate = document.getElementById('wantedDate').value || todayStr();
     const customerName = getCustomerName();
 
-    const { error } = await sb.from('transactions').insert([{
-      member_id: memberId,
-      menu_item_id: omakasePlaceholderId,
-      quantity: 1,
-      total_price: 270,
-      channel: 'liff-omakase',
-      status: 'pending',
+    // สร้างแถว placeholder แบบเดียวกับที่บาริสต้าใช้อยู่แล้วในระบบภายใน (omakase_pending=true)
+    // ทำให้ออเดอร์นี้โผล่ในคิว "วันนี้" ของ brew.html พร้อมปุ่ม "เลือก 3 เมนู →" ทันที — ไม่ใช้ตาราง transactions แยกต่างหากอีกต่อไป
+    const { error } = await sb.from('preorders').insert([{
       customer_name: customerName,
+      menu_item_name: 'Omakase Classic (รอเลือกเมนู)',
+      price: 270,
       wanted_date: wantedDate,
+      line_user_id: lineUserId,
+      order_type: 'customer',
+      paid: false,
+      sweetness: selectedSweetness || 'ปกติ',
+      channel: 'liff-omakase',
+      omakase_pending: true,
     }]);
 
     if (error) {
