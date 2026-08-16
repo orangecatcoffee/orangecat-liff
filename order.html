@@ -102,7 +102,8 @@
   .cup-icon {
     width: 100%;
     aspect-ratio: 4/3;
-    object-fit: cover;
+    object-fit: contain;
+    background: #FFF3E8;
     border-radius: 12px 12px 0 0;
     display: block;
   }
@@ -906,7 +907,8 @@
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('id', { ascending: true });
     // เมนูทดลองรายสัปดาห์ (omakase_only=true) ไม่โผล่ในเมนูปกติ จนกว่าจะโปรโมทเป็น Special of the Month
-    const data = rawData ? rawData.filter(item => !item.omakase_only) : rawData;
+    // เมนู draft (signature_draft) ที่ยังไม่ประกาศ ก็ไม่โผล่เหมือนกัน จนกว่า Fah จะสั่งเปลี่ยน category เป็น signature_item เอง
+    const data = rawData ? rawData.filter(item => !item.omakase_only && item.category !== 'signature_draft') : rawData;
 
     const surpriseGrid = document.getElementById('surpriseGrid');
     const coffeeGrid = document.getElementById('coffeeGrid');
