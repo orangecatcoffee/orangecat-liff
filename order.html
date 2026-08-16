@@ -16,7 +16,7 @@
   .wrap {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 20px 20px 90px;
   }
 
   /* Top header banner (welcome image, replaces the old landing page) */
@@ -46,14 +46,9 @@
   /* Step indicator */
   /* Step indicator removed per feedback */
 
-  /* Layout: menu + sidebar */
+  /* Layout: full-width menu (no sidebar) */
   .layout {
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 20px;
-  }
-  @media (max-width: 720px) {
-    .layout { grid-template-columns: 1fr; }
+    display: block;
   }
 
   .group {
@@ -63,13 +58,6 @@
     padding: 18px;
     margin-bottom: 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    overflow: hidden;
-  }
-  .group::after {
-    content: '';
-    position: absolute; top: 0; right: 0; bottom: 0; width: 24px;
-    background: linear-gradient(90deg, rgba(255,255,255,0), #fff 85%);
-    pointer-events: none;
   }
   .group h2 {
     display: inline-block;
@@ -83,40 +71,37 @@
     margin-bottom: 12px;
   }
   .menu-grid {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
-    padding-bottom: 4px;
-    margin: 0 -18px;
-    padding-left: 18px;
-    padding-right: 18px;
-    scrollbar-width: none;
   }
-  .menu-grid::-webkit-scrollbar { display: none; }
   .menu-card {
-    flex: 0 0 128px;
-    scroll-snap-align: start;
     border: 2px solid #F0E4D8;
     border-radius: 14px;
-    padding: 8px 8px 10px;
-    text-align: center;
+    padding: 0 0 10px;
+    text-align: left;
     cursor: pointer;
     transition: all 0.15s;
     overflow: hidden;
+    position: relative;
   }
   .menu-card.selected {
     border-color: #E8863A;
-    background: #FFF3E8;
   }
   .menu-card .icon {
-    margin: -8px -8px 8px;
     font-size: 40px;
     line-height: 1.4;
+    text-align: center;
+    padding: 16px 0;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFF3E8;
   }
   .cup-icon {
     width: 100%;
-    aspect-ratio: 3/4;
+    aspect-ratio: 4/3;
     object-fit: cover;
     border-radius: 12px 12px 0 0;
     display: block;
@@ -126,33 +111,46 @@
     object-fit: contain;
     background: #fff;
   }
-  .selected-item .cup-icon {
-    width: 28px;
-    height: 42px;
-    aspect-ratio: unset;
-    border-radius: 5px;
-    vertical-align: middle;
-    margin-right: 4px;
-    display: inline-block;
-  }
   .menu-card .name {
     font-size: 12.5px;
     font-weight: 600;
     line-height: 1.3;
     margin-bottom: 4px;
     min-height: 32px;
+    padding: 0 10px;
   }
   .menu-card .price {
     font-size: 12px;
     color: #E8863A;
     font-weight: 700;
+    padding: 0 10px;
   }
   .menu-card .caption {
     font-size: 10px;
     color: #A8876F;
     margin-top: 3px;
     line-height: 1.3;
+    padding: 0 10px;
   }
+  .menu-card-imgwrap { position: relative; }
+  .menu-card-addbtn {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #E8863A;
+    color: #fff;
+    border: none;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(232,134,58,0.4);
+    cursor: pointer;
+    z-index: 2;
+  }
+  .menu-card-addbtn.in-cart { background: #4A9B5C; }
 
   /* Signature — folder-tab strip (active tab wide, others tiny) + single content panel below */
   .sig-tabstrip {
@@ -256,37 +254,6 @@
     white-space: pre-line;
   }
 
-  /* Sidebar */
-  .sidebar {
-    background: #fff;
-    border-radius: 16px;
-    padding: 18px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    align-self: start;
-    position: sticky;
-    top: 20px;
-  }
-  .sidebar h2 { font-size: 15px; color: #E8863A; margin-bottom: 12px; }
-  .selected-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #FFF3E8;
-    border-radius: 10px;
-    padding: 10px 12px;
-    margin-bottom: 14px;
-    font-size: 13px;
-  }
-  .selected-item .empty { color: #A8876F; }
-  .qty-control {
-    display: flex; align-items: center; gap: 10px;
-  }
-  .qty-btn {
-    width: 26px; height: 26px; border-radius: 50%;
-    border: 2px solid #E8863A; background: #fff; color: #E8863A;
-    font-size: 15px; font-weight: 700; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
   label.field-label {
     font-size: 12px; color: #8a6a4a; margin-bottom: 6px; display: block;
   }
@@ -296,6 +263,92 @@
   }
   .customer-name-auto b { color: #E8863A; }
   .customer-name-auto.loading { color: #A8876F; text-align: center; font-weight: 300; }
+  .qty-control {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .qty-btn {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid #E8863A; background: #fff; color: #E8863A;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Sticky Cart Bar */
+  .cart-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    background: #E8863A;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    display: none;
+    align-items: center; justify-content: space-between;
+    box-shadow: 0 -4px 14px rgba(0,0,0,0.15);
+  }
+  .cart-bar.show { display: flex; }
+  .cart-bar-info { display: flex; align-items: center; gap: 10px; color: #fff; }
+  .cart-bar-bag { font-size: 22px; position: relative; }
+  .cart-bar-count {
+    position: absolute; top: -8px; right: -8px;
+    background: #4A3428; color: #fff; font-size: 10px; font-weight: 700;
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cart-bar-text { font-size: 13px; font-weight: 600; }
+  .cart-bar-btn {
+    background: #fff; color: #E8863A; border: none;
+    padding: 10px 18px; border-radius: 999px; font-size: 13px; font-weight: 700;
+    font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 4px;
+  }
+
+  /* Cart Page — full-screen overlay */
+  .cart-page-overlay {
+    position: fixed; inset: 0; z-index: 70;
+    background: #FFF8F0;
+    display: none;
+    flex-direction: column;
+  }
+  .cart-page-overlay.open { display: flex; }
+  .cart-page-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    flex-shrink: 0;
+  }
+  .cart-page-back {
+    width: 32px; height: 32px; border-radius: 50%; border: none;
+    background: #FFF3E8; color: #E8863A; font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cart-page-title { font-size: 16px; font-weight: 700; color: #4A3428; }
+  .cart-page-body {
+    flex: 1; overflow-y: auto; padding: 16px;
+  }
+  .cart-line {
+    background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  .cart-line-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .cart-line-name { font-size: 13.5px; font-weight: 700; color: #4A3428; }
+  .cart-line-sub { font-size: 11px; color: #A8876F; margin-top: 2px; }
+  .cart-line-remove {
+    background: none; border: none; color: #D64545; font-size: 12px;
+    cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+  }
+  .cart-line-bottom {
+    display: flex; align-items: center; justify-content: space-between; margin-top: 10px;
+  }
+  .cart-line-price { font-size: 13px; font-weight: 700; color: #E8863A; }
+  .cart-line-bean-select {
+    width: 100%; margin-top: 8px; margin-bottom: 0;
+    padding: 7px 10px; font-size: 12px;
+  }
+  .cart-empty {
+    text-align: center; padding: 60px 20px; color: #A8876F;
+  }
+  .cart-page-footer {
+    background: #fff; padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.06); flex-shrink: 0;
+  }
+
+
   textarea, input, select {
     width: 100%;
     border: 2px solid #F0E4D8;
@@ -564,7 +617,7 @@
     <img id="imgSheetImg" src="" alt="">
     <div class="name" id="imgSheetName"></div>
     <div class="price" id="imgSheetPrice"></div>
-    <button type="button" class="img-sheet-btn" id="imgSheetSelectBtn">เลือกเมนูนี้ ✓</button>
+    <button type="button" class="img-sheet-btn" id="imgSheetSelectBtn">+ เพิ่มลงตะกร้า</button>
   </div>
 </div>
 
@@ -693,52 +746,60 @@
 
     </div>
 
-    <div class="sidebar">
-      <h2>รายการของคุณ</h2>
-      <div class="selected-item" id="selectedItemBox">
-        <span class="empty">ยังไม่ได้เลือกเมนู</span>
-      </div>
-
-      <div id="customerNameAuto" class="customer-name-auto" style="display:none;">
-        🐱 สั่งในนามคุณ: <b id="customerNameAutoText"></b>
-      </div>
-      <div id="customerNameManualWrap" style="display:none;">
-        <label class="field-label">ชื่อลูกค้า</label>
-        <input type="text" id="customerName" placeholder="ชื่อที่ให้เรียก เช่น หอนจ้า, ปั้นน">
-      </div>
-      <div id="customerNameLoading" class="customer-name-auto loading">🐾 กำลังโหลดข้อมูลสมาชิก...</div>
-
-      <div id="beanRow" style="display:none;">
-        <label class="field-label">เลือกเมล็ดกาแฟ</label>
-        <select id="beanSelect"></select>
-      </div>
-
-      <label class="field-label">วันที่ต้องการรับ</label>
-      <input type="date" id="wantedDate">
-
-      <label class="field-label">ความหวาน</label>
-      <div class="sweetness-row" id="sweetnessRow">
-        <button type="button" class="sweetness-btn selected" data-val="ไม่หวาน">ไม่หวาน</button>
-        <button type="button" class="sweetness-btn" data-val="หวานน้อย">หวานน้อย</button>
-        <button type="button" class="sweetness-btn" data-val="หวานปกติ">หวานปกติ</button>
-      </div>
-
-      <label class="field-label">หมายเหตุ (ไม่บังคับ)</label>
-      <textarea id="notes" rows="2" maxlength="100" placeholder="เช่น แพ้นมวัว / ขอน้ำแข็งน้อย"></textarea>
-
-      <label class="field-label">ที่อยู่ / จุดรับ</label>
-      <textarea id="address" rows="2" placeholder="เช่น ชื่อตึก/ชั้น/แผนก หรือที่อยู่บ้าน"></textarea>
-
-      <div class="total-row">
-        <span>รวมทั้งหมด</span>
-        <span id="totalPrice">0 บาท</span>
-      </div>
-
-      <button class="btn" id="submitBtn" disabled>เลือกเมนูก่อนนะครับ</button>
-      <div class="status-msg" id="statusMsg"></div>
-    </div>
   </div>
 
+</div>
+
+<div class="cart-bar" id="cartBar">
+  <div class="cart-bar-info">
+    <div class="cart-bar-bag">🛍<span class="cart-bar-count" id="cartBarCount">0</span></div>
+    <div class="cart-bar-text" id="cartBarText">0 แก้ว · 0 บาท</div>
+  </div>
+  <button type="button" class="cart-bar-btn" id="cartBarBtn">ดูตะกร้า →</button>
+</div>
+
+<div class="cart-page-overlay" id="cartPageOverlay">
+  <div class="cart-page-header">
+    <button type="button" class="cart-page-back" id="cartPageBack">←</button>
+    <div class="cart-page-title">ตะกร้าของคุณ</div>
+  </div>
+  <div class="cart-page-body" id="cartPageBody">
+    <div class="cart-empty">ยังไม่มีอะไรในตะกร้าเลย</div>
+  </div>
+  <div class="cart-page-footer" id="cartPageFooter" style="display:none;">
+    <div id="customerNameAuto" class="customer-name-auto" style="display:none;">
+      🐱 สั่งในนามคุณ: <b id="customerNameAutoText"></b>
+    </div>
+    <div id="customerNameManualWrap" style="display:none;">
+      <label class="field-label">ชื่อลูกค้า</label>
+      <input type="text" id="customerName" placeholder="ชื่อที่ให้เรียก เช่น หอนจ้า, ปั้นน">
+    </div>
+    <div id="customerNameLoading" class="customer-name-auto loading">🐾 กำลังโหลดข้อมูลสมาชิก...</div>
+
+    <label class="field-label">วันที่ต้องการรับ</label>
+    <input type="date" id="wantedDate">
+
+    <label class="field-label">ความหวาน (ใช้กับทุกแก้วในตะกร้า)</label>
+    <div class="sweetness-row" id="sweetnessRow">
+      <button type="button" class="sweetness-btn selected" data-val="ไม่หวาน">ไม่หวาน</button>
+      <button type="button" class="sweetness-btn" data-val="หวานน้อย">หวานน้อย</button>
+      <button type="button" class="sweetness-btn" data-val="หวานปกติ">หวานปกติ</button>
+    </div>
+
+    <label class="field-label">หมายเหตุ (ไม่บังคับ)</label>
+    <textarea id="notes" rows="2" maxlength="100" placeholder="เช่น แพ้นมวัว / ขอน้ำแข็งน้อย"></textarea>
+
+    <label class="field-label">ที่อยู่ / จุดรับ</label>
+    <textarea id="address" rows="2" placeholder="เช่น ชื่อตึก/ชั้น/แผนก หรือที่อยู่บ้าน"></textarea>
+
+    <div class="total-row">
+      <span>รวมทั้งหมด</span>
+      <span id="totalPrice">0 บาท</span>
+    </div>
+
+    <button class="btn" id="submitBtn" disabled>เลือกเมนูก่อนนะครับ</button>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
 </div>
 
 <script>
@@ -748,42 +809,9 @@
   const LIFF_ID = "2010600301-WA7nM057";
   const BEAN_DOSE_G = 20; // เกณฑ์เดียวกับ brew.html — สต็อกต้องเหลือ >= นี้ถึงจะให้ลูกค้าเลือกเมล็ดนั้นได้
 
-  let selectedItem = null;
+  let cart = []; // { lineId, kind: 'regular'|'omakase_solo'|'omakase_classic'|'omakase_fullweek', name, price, qty, category, menu_item_id, needs_bean, fixed_bean_name, bean_name, bean_surcharge }
+  let cartLineSeq = 0;
 
-  const collectionFab = document.getElementById('collectionFab');
-  function flyToCollection(sourceEl){
-    if (!sourceEl || !collectionFab) return;
-    const srcRect = sourceEl.getBoundingClientRect();
-    const dstRect = collectionFab.getBoundingClientRect();
-    if (srcRect.width === 0 || srcRect.height === 0) return;
-
-    const clone = document.createElement('img');
-    clone.src = sourceEl.src;
-    clone.className = 'flying-clone';
-    clone.style.top = srcRect.top + 'px';
-    clone.style.left = srcRect.left + 'px';
-    clone.style.width = srcRect.width + 'px';
-    clone.style.height = srcRect.height + 'px';
-    clone.style.opacity = '1';
-    document.body.appendChild(clone);
-    void clone.offsetWidth;
-
-    requestAnimationFrame(() => {
-      clone.style.top = (dstRect.top + dstRect.height/2 - 4) + 'px';
-      clone.style.left = (dstRect.left + dstRect.width/2 - 4) + 'px';
-      clone.style.width = '8px';
-      clone.style.height = '8px';
-      clone.style.opacity = '0.15';
-      clone.style.transform = 'rotate(360deg)';
-    });
-
-    setTimeout(() => {
-      clone.remove();
-      collectionFab.classList.add('pulse');
-      setTimeout(() => collectionFab.classList.remove('pulse'), 350);
-    }, 680);
-  }
-  let quantity = 1;
   let memberId = null; // เซ็ตจริงถ้าเจอ member ที่ผูก LINE user id นี้ไว้ใน members
   let lineUserId = null;
   let omakasePlaceholderId = null; // menu_items.id ของแถว placeholder (is_omakase_placeholder=true) — ดึงสดจาก DB ไม่ hardcode
@@ -851,23 +879,6 @@
       .gte('stock_quantity', BEAN_DOSE_G)
       .order('name');
     availableBeans = (!error && data) ? data : [];
-    const select = document.getElementById('beanSelect');
-    const defaultOpt = '<option value="" data-surcharge="0">— ไม่เลือก (ให้บาริสต้าเลือกให้) —</option>';
-    select.innerHTML = defaultOpt + (availableBeans.length
-      ? availableBeans.map(b => {
-          const sur = Number(b.customer_bean_surcharge) || 0;
-          const label = sur > 0 ? `${b.name} (+${sur}฿)` : b.name;
-          return `<option value="${b.name}" data-surcharge="${sur}">${label}</option>`;
-        }).join('')
-      : '');
-    updateTotal();
-  }
-
-  function selectedBeanSurcharge() {
-    const sel = document.getElementById('beanSelect');
-    if (!sel || !sel.value) return 0;
-    const opt = sel.selectedOptions[0];
-    return opt ? Number(opt.dataset.surcharge || 0) : 0;
   }
 
   function initDateAndSweetness(){
@@ -923,14 +934,42 @@
       div.dataset.id = item.id;
       const priceLabel = SURPRISE_CATS.includes(item.category) ? '65-75 บาท' : `${item.price} บาท`;
       const captionHtml = SURPRISE_CATS.includes(item.category) ? `<div class="caption">กดมาเดี๋ยวบาริสต้าเลือกให้เอง</div>` : '';
+      const imgHtml = item.image_url ? `<img src="${item.image_url}" alt="${item.name}" class="cup-icon">` : `<div class="icon">${iconFor(item)}</div>`;
       div.innerHTML = `
-        <div class="icon">${iconFor(item)}</div>
-        <div class="name">${item.name}</div>
+        <div class="menu-card-imgwrap">
+          ${imgHtml}
+          <button type="button" class="menu-card-addbtn" data-add-id="${item.id}">+</button>
+        </div>
+        <div class="name" style="margin-top:8px;">${item.name}</div>
         <div class="price">${priceLabel}</div>
         ${captionHtml}
       `;
-      div.addEventListener('click', () => { selectItem(item, div); openImageSheet(item); });
+      div.querySelector('.menu-card-imgwrap').addEventListener('click', (e) => {
+        if (e.target.closest('.menu-card-addbtn')) return;
+        openImageSheet(item);
+      });
+      div.querySelector('.menu-card-addbtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        addToCart({
+          kind: 'regular',
+          name: item.name,
+          price: SURPRISE_CATS.includes(item.category) ? 0 : item.price,
+          category: item.category,
+          menu_item_id: item.id,
+          needs_bean: item.needs_bean,
+          fixed_bean_name: item.fixed_bean_name || null,
+          image_url: item.image_url || null,
+          is_surprise: SURPRISE_CATS.includes(item.category),
+        });
+        flashAdded(e.currentTarget);
+      });
       return div;
+    }
+
+    function flashAdded(btn) {
+      btn.classList.add('in-cart');
+      btn.textContent = '✓';
+      setTimeout(() => { btn.classList.remove('in-cart'); btn.textContent = '+'; }, 900);
     }
 
     // 🎴 กาแฟแมวสุ่ม (ไพ่ทาโร่) — ไม่ใช่เมนูจาก DB เป็นการ์ดลิงก์ออกไปหน้าจั่วไพ่แยกต่างหาก วางคู่กับ "แมวส้มเลือกหน่อย" เสมอ (อยู่ขวา)
@@ -938,8 +977,8 @@
     const tarotCard = document.createElement('div');
     tarotCard.className = 'menu-card';
     tarotCard.innerHTML = `
-      <div class="icon">${TAROT_CARD_IMAGE_URL ? `<img src="${TAROT_CARD_IMAGE_URL}" alt="กาแฟแมวสุ่ม" class="cup-icon">` : '🎴'}</div>
-      <div class="name">กาแฟแมวสุ่ม</div>
+      <div class="menu-card-imgwrap">${TAROT_CARD_IMAGE_URL ? `<img src="${TAROT_CARD_IMAGE_URL}" alt="กาแฟแมวสุ่ม" class="cup-icon">` : '<div class="icon">🎴</div>'}</div>
+      <div class="name" style="margin-top:8px;">กาแฟแมวสุ่ม</div>
       <div class="price">65-75 บาท</div>
       <div class="caption">ไม่มีใครได้เลือก</div>
     `;
@@ -1001,10 +1040,20 @@
       `;
       const btn = document.getElementById('sigOrderBtn');
       btn.addEventListener('click', () => {
+        addToCart({
+          kind: 'regular',
+          name: item.name,
+          price: item.price,
+          category: item.category,
+          menu_item_id: item.id,
+          needs_bean: item.needs_bean,
+          fixed_bean_name: item.fixed_bean_name || null,
+          image_url: item.image_url || null,
+          is_surprise: false,
+        });
+        btn.textContent = 'เพิ่มลงตะกร้าแล้ว ✓';
         btn.classList.add('selected');
-        btn.textContent = 'เลือกแล้ว ✓';
-        selectItem(item, btn);
-        document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => { btn.textContent = 'สั่งเมนูนี้'; btn.classList.remove('selected'); }, 900);
       });
     }
 
@@ -1066,71 +1115,148 @@
     return bean ? (Number(bean.customer_bean_surcharge) || 0) : 0;
   }
 
-  function selectItem(item, el) {
-    document.querySelectorAll('.menu-card').forEach(e => e.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedItem = item;
-    quantity = 1;
+  // ===================== CART =====================
 
-    const beanRow = document.getElementById('beanRow');
-    const sel = document.getElementById('beanSelect');
-
-    if (item.needs_bean && item.fixed_bean_name) {
-      sel.value = item.fixed_bean_name;
-      // bean in stock -> lock it in, hide the picker; out of stock -> fall back to normal picker
-      beanRow.style.display = (sel.value === item.fixed_bean_name) ? 'none' : 'block';
-    } else {
-      beanRow.style.display = item.needs_bean ? 'block' : 'none';
-    }
-
-    renderSelected();
+  function addToCart(opts) {
+    cart.push({
+      lineId: ++cartLineSeq,
+      kind: opts.kind,
+      name: opts.name,
+      price: opts.price,
+      qty: 1,
+      category: opts.category || null,
+      menu_item_id: opts.menu_item_id || null,
+      needs_bean: !!opts.needs_bean,
+      fixed_bean_name: opts.fixed_bean_name || null,
+      image_url: opts.image_url || null,
+      is_surprise: !!opts.is_surprise,
+      bean_name: opts.fixed_bean_name || null, // เมล็ดที่ล็อกไว้ (ถ้ามี) เป็นค่าเริ่มต้น แก้ในตะกร้าได้ถ้าไม่ fixed
+      secret_item_price: opts.secret_item_price, // เฉพาะ omakase_solo
+      qty_locked: opts.qty_locked || false, // Omakase package ปรับจำนวนไม่ได้ (เอาออกแล้วสั่งใหม่แทน)
+    });
+    renderCartBar();
   }
 
-  function renderSelected() {
-    const box = document.getElementById('selectedItemBox');
-    if (!selectedItem) {
-      box.innerHTML = `<span class="empty">ยังไม่ได้เลือกเมนู</span>`;
-      document.getElementById('totalPrice').textContent = '0 บาท';
-      updateSubmitBtn();
+  function removeCartLine(lineId) {
+    cart = cart.filter(l => l.lineId !== lineId);
+    renderCartBar();
+    renderCartPage();
+  }
+
+  function changeCartQty(lineId, delta) {
+    const line = cart.find(l => l.lineId === lineId);
+    if (!line || line.qty_locked) return;
+    line.qty = Math.max(1, line.qty + delta);
+    renderCartBar();
+    renderCartPage();
+  }
+
+  function cartLineUnitPrice(line) {
+    const surcharge = (line.needs_bean && line.bean_name) ? beanSurcharge(line.bean_name) : 0;
+    return line.price + surcharge;
+  }
+
+  function cartTotal() {
+    return cart.reduce((sum, l) => sum + cartLineUnitPrice(l) * l.qty, 0);
+  }
+
+  function cartCount() {
+    return cart.reduce((sum, l) => sum + l.qty, 0);
+  }
+
+  function renderCartBar() {
+    const bar = document.getElementById('cartBar');
+    const count = cartCount();
+    if (count === 0) {
+      bar.classList.remove('show');
       return;
     }
-    const isSurprise = SURPRISE_CATS.includes(selectedItem.category);
-    box.innerHTML = isSurprise
-      ? `<span>${iconFor(selectedItem)} ${selectedItem.name}</span><div class="qty-control"><span id="qtyVal">1 แก้ว (บาริสต้าเลือกให้ตอนชง)</span></div>`
-      : `
-      <span>${iconFor(selectedItem)} ${selectedItem.name}</span>
-      <div class="qty-control">
-        <button class="qty-btn" id="qtyMinus" type="button">−</button>
-        <span id="qtyVal">${quantity}</span>
-        <button class="qty-btn" id="qtyPlus" type="button">+</button>
-      </div>
-    `;
-    if (!isSurprise) {
-      document.getElementById('qtyMinus').addEventListener('click', () => changeQty(-1));
-      document.getElementById('qtyPlus').addEventListener('click', () => changeQty(1));
-    } else {
-      quantity = 1; // แมวส้มเลือกหน่อย ผูก 1 แก้ว = 1 surprise_actual_item_id เสมอ ไม่รองรับหลายแก้วในแถวเดียว
+    bar.classList.add('show');
+    document.getElementById('cartBarCount').textContent = count;
+    document.getElementById('cartBarText').textContent = `${count} แก้ว · ${cartTotal()} บาท`;
+  }
+
+  function beanSelectHtml(line) {
+    const opts = ['<option value="">— ไม่ระบุ (ให้บาริสต้าเลือกให้) —</option>']
+      .concat(availableBeans.map(b => {
+        const sur = Number(b.customer_bean_surcharge) || 0;
+        const label = sur > 0 ? `${b.name} (+${sur}฿)` : b.name;
+        const sel = line.bean_name === b.name ? 'selected' : '';
+        return `<option value="${b.name}" ${sel}>${label}</option>`;
+      }));
+    return `<select class="cart-line-bean-select" data-bean-for="${line.lineId}">${opts.join('')}</select>`;
+  }
+
+  function renderCartPage() {
+    const bodyEl = document.getElementById('cartPageBody');
+    const footerEl = document.getElementById('cartPageFooter');
+    if (cart.length === 0) {
+      bodyEl.innerHTML = '<div class="cart-empty">ยังไม่มีอะไรในตะกร้าเลย 🐱</div>';
+      footerEl.style.display = 'none';
+      return;
     }
-    updateTotal();
+    footerEl.style.display = 'block';
+    bodyEl.innerHTML = cart.map(line => {
+      const unitPrice = cartLineUnitPrice(line);
+      const priceLabel = line.is_surprise ? '65-75 บาท (ราคาจริงตามเมนูที่บาริสต้าเลือก)' : `${unitPrice * line.qty} บาท`;
+      const qtyControlHtml = line.qty_locked
+        ? `<span style="font-size:12px;color:#A8876F;">1 แพ็ค</span>`
+        : `
+          <div class="qty-control">
+            <button type="button" class="qty-btn" data-qty-minus="${line.lineId}">−</button>
+            <span>${line.qty}</span>
+            <button type="button" class="qty-btn" data-qty-plus="${line.lineId}">+</button>
+          </div>
+        `;
+      const beanHtml = (line.needs_bean && !line.fixed_bean_name && availableBeans.length)
+        ? beanSelectHtml(line) : '';
+      return `
+        <div class="cart-line">
+          <div class="cart-line-top">
+            <div>
+              <div class="cart-line-name">${line.name}</div>
+              ${line.fixed_bean_name ? `<div class="cart-line-sub">เมล็ด: ${line.fixed_bean_name}</div>` : ''}
+            </div>
+            <button type="button" class="cart-line-remove" data-remove="${line.lineId}">ลบ</button>
+          </div>
+          ${beanHtml}
+          <div class="cart-line-bottom">
+            ${qtyControlHtml}
+            <span class="cart-line-price">${priceLabel}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    bodyEl.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => removeCartLine(Number(btn.dataset.remove)));
+    });
+    bodyEl.querySelectorAll('[data-qty-minus]').forEach(btn => {
+      btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.qtyMinus), -1));
+    });
+    bodyEl.querySelectorAll('[data-qty-plus]').forEach(btn => {
+      btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.qtyPlus), 1));
+    });
+    bodyEl.querySelectorAll('[data-bean-for]').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const line = cart.find(l => l.lineId === Number(sel.dataset.beanFor));
+        if (line) { line.bean_name = sel.value || null; renderCartBar(); renderCartPage(); }
+      });
+    });
+
+    document.getElementById('totalPrice').textContent = `${cartTotal()} บาท`;
     updateSubmitBtn();
   }
 
-  function changeQty(delta) {
-    quantity = Math.max(1, quantity + delta);
-    document.getElementById('qtyVal').textContent = quantity;
-    updateTotal();
-    updateSubmitBtn();
+  function openCartPage() {
+    renderCartPage();
+    document.getElementById('cartPageOverlay').classList.add('open');
   }
-
-  function updateTotal() {
-    if (selectedItem && SURPRISE_CATS.includes(selectedItem.category)) {
-      document.getElementById('totalPrice').textContent = '65-75 บาท (ราคาจริงตามเมนูที่บาริสต้าเลือก)';
-      return;
-    }
-    const surcharge = selectedItem ? selectedBeanSurcharge() : 0;
-    const total = selectedItem ? (selectedItem.price + surcharge) * quantity : 0;
-    document.getElementById('totalPrice').textContent = `${total} บาท`;
+  function closeCartPage() {
+    document.getElementById('cartPageOverlay').classList.remove('open');
   }
+  document.getElementById('cartBarBtn').addEventListener('click', openCartPage);
+  document.getElementById('cartPageBack').addEventListener('click', closeCartPage);
 
   function getCustomerName() {
     if (manualNameFallback) return document.getElementById('customerName').value.trim();
@@ -1139,28 +1265,23 @@
 
   function updateSubmitBtn() {
     const btn = document.getElementById('submitBtn');
-    const addr = document.getElementById('address').value.trim();
     const name = getCustomerName();
     if (!name && !manualNameFallback) {
       btn.disabled = true;
       btn.textContent = 'กำลังโหลดข้อมูลสมาชิก...';
-    } else if (!selectedItem) {
+    } else if (cart.length === 0) {
       btn.disabled = true;
-      btn.textContent = 'เลือกเมนูก่อนนะครับ';
+      btn.textContent = 'ตะกร้าว่างอยู่นะครับ';
     } else if (!name) {
       btn.disabled = true;
       btn.textContent = 'กรอกชื่อลูกค้าก่อนนะครับ';
     } else {
       btn.disabled = false;
-      btn.textContent = SURPRISE_CATS.includes(selectedItem.category)
-        ? 'ยืนยันการสั่งซื้อ · 65-75 บาท'
-        : `ยืนยันการสั่งซื้อ · ${(selectedItem.price + selectedBeanSurcharge()) * quantity} บาท`;
+      btn.textContent = `ยืนยันสั่งซื้อ · ${cartTotal()} บาท`;
     }
   }
 
-  document.getElementById('address').addEventListener('input', updateSubmitBtn);
   document.getElementById('customerName').addEventListener('input', updateSubmitBtn);
-  document.getElementById('beanSelect').addEventListener('change', () => { updateTotal(); updateSubmitBtn(); });
 
   document.getElementById('submitBtn').addEventListener('click', async () => {
     const btn = document.getElementById('submitBtn');
@@ -1169,37 +1290,29 @@
     const notes = document.getElementById('notes').value.trim();
     const customerName = getCustomerName();
 
-    if (!selectedItem || !customerName) return;
+    if (cart.length === 0 || !customerName) return;
 
     btn.disabled = true;
     btn.textContent = 'กำลังบันทึกออเดอร์...';
     statusEl.textContent = '';
     statusEl.className = 'status-msg';
 
-    const totalPrice = (selectedItem.price + selectedBeanSurcharge()) * quantity;
     const wantedDate = document.getElementById('wantedDate').value || todayStr();
-    const beanName = (selectedItem.needs_bean && document.getElementById('beanSelect').value)
-      ? document.getElementById('beanSelect').value : null;
+    const addrFull = notes ? `${addr} (หมายเหตุ: ${notes})` : addr;
 
-    const { error } = await sb
-      .from('transactions')
-      .insert([{
-        member_id: memberId,
-        menu_item_id: selectedItem.id,
-        quantity: quantity,
-        total_price: totalPrice,
-        bean_surcharge: selectedBeanSurcharge() * quantity,
-        channel: 'liff-order',
-        address: notes ? `${addr} (หมายเหตุ: ${notes})` : addr,
-        status: 'pending',
-        customer_name: customerName,
-        wanted_date: wantedDate,
-        sweetness: selectedSweetness,
-        bean_name: beanName
-      }]);
+    // แตกแต่ละ cart line ตาม qty เป็นแถวจริงแยกกัน (ห้าม lump-sum) แล้วยิง insert ตาม kind ของมัน
+    const jobs = [];
+    for (const line of cart) {
+      for (let i = 0; i < line.qty; i++) {
+        jobs.push(insertCartLine(line, { customerName, wantedDate, addrFull }));
+      }
+    }
 
-    if (error) {
-      statusEl.textContent = `บันทึกไม่สำเร็จ: ${error.message}`;
+    const results = await Promise.all(jobs);
+    const failed = results.filter(r => r && r.error);
+
+    if (failed.length > 0) {
+      statusEl.textContent = `บันทึกไม่สำเร็จบางรายการ: ${failed[0].error.message}`;
       statusEl.className = 'status-msg error';
       btn.disabled = false;
       updateSubmitBtn();
@@ -1209,8 +1322,75 @@
     statusEl.textContent = '✅ สั่งซื้อสำเร็จ! รอแอดมินยืนยันออเดอร์ครับ';
     statusEl.className = 'status-msg success';
     btn.textContent = 'สั่งซื้อแล้ว';
-    flyToCollection(document.querySelector('#selectedItemBox .cup-icon'));
+    cart = [];
+    renderCartBar();
+    setTimeout(closeCartPage, 1200);
   });
+
+  async function insertCartLine(line, ctx) {
+    const surcharge = (line.needs_bean && line.bean_name) ? beanSurcharge(line.bean_name) : 0;
+
+    if (line.kind === 'omakase_solo') {
+      return sb.from('preorders').insert([{
+        customer_name: ctx.customerName,
+        menu_item_name: line.name,
+        price: line.price,
+        wanted_date: ctx.wantedDate,
+        line_user_id: lineUserId,
+        order_type: 'customer',
+        paid: false,
+        sweetness: selectedSweetness || 'ปกติ',
+        channel: 'liff-omakase-solo',
+      }]);
+    }
+
+    if (line.kind === 'omakase_classic') {
+      return sb.from('preorders').insert([{
+        customer_name: ctx.customerName,
+        menu_item_name: 'Omakase Classic (รอเลือกเมนู)',
+        price: line.price,
+        wanted_date: ctx.wantedDate,
+        line_user_id: lineUserId,
+        order_type: 'customer',
+        paid: false,
+        sweetness: 'ปกติ',
+        channel: 'liff-omakase',
+        omakase_pending: true,
+      }]);
+    }
+
+    if (line.kind === 'omakase_fullweek') {
+      if (!omakasePlaceholderId) return { error: { message: 'ระบบยังโหลดไม่พร้อม ลองรีเฟรชหน้าอีกครั้งนะครับ' } };
+      return sb.from('transactions').insert([{
+        member_id: memberId,
+        menu_item_id: omakasePlaceholderId,
+        quantity: 1,
+        total_price: line.price,
+        channel: 'liff-omakase-fullweek',
+        status: 'pending',
+        customer_name: ctx.customerName,
+        wanted_date: ctx.wantedDate,
+      }]);
+    }
+
+    // regular / signature
+    return sb.from('transactions').insert([{
+      member_id: memberId,
+      menu_item_id: line.menu_item_id,
+      quantity: 1,
+      total_price: line.price + surcharge,
+      bean_surcharge: surcharge,
+      channel: 'liff-order',
+      address: ctx.addrFull,
+      status: 'pending',
+      customer_name: ctx.customerName,
+      wanted_date: ctx.wantedDate,
+      sweetness: selectedSweetness,
+      bean_name: line.bean_name,
+    }]);
+  }
+
+
 
   // รูป banner + ข้อความ เปลี่ยนตามแท็บที่เลือก — แก้ URL ตรงนี้ทีเดียวเมื่อ Fah ส่งรูปใหม่มาแทน
   const TAB_BANNERS = {
@@ -1224,9 +1404,6 @@
     document.getElementById('tab-' + tab).classList.add('active');
     document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
     document.querySelector('.cat-pill[data-tab="' + tab + '"]').classList.add('active');
-
-    // Omakase มีปุ่มสั่งของตัวเองแยกต่างหาก ไม่เกี่ยวกับ sidebar เลือกเมนูเดี่ยว — ซ่อน sidebar กันสับสนว่าต้องสั่ง 2 รอบ
-    document.querySelector('.sidebar').style.display = (tab === 'omakase') ? 'none' : '';
 
     const b = TAB_BANNERS[tab];
     if (b) {
@@ -1270,200 +1447,78 @@
     omkTierClassic: 'omakaseBtn',
     omkTierFullWeek: 'omakaseFullWeekBtn',
   };
-  function markTierOrdered(tierId) {
-    Object.keys(OMK_TIER_BTN_MAP).forEach(id => {
-      const el = document.getElementById(id);
-      const btn = document.getElementById(OMK_TIER_BTN_MAP[id]);
-      if (!el) return;
-      if (id === tierId) {
-        el.classList.add('ordered');
-      } else {
-        el.classList.remove('ordered');
-        if (btn) btn.textContent = 'สั่งเลย';
-      }
-    });
+  function markTierInCart(tierId, btn, label) {
+    const el = document.getElementById(tierId);
+    if (el) el.classList.add('ordered');
+    btn.classList.add('selected');
+    btn.textContent = 'เพิ่มลงตะกร้าแล้ว ✓';
+    setTimeout(() => {
+      btn.textContent = label;
+      btn.classList.remove('selected');
+      if (el) el.classList.remove('ordered');
+    }, 900);
   }
 
-  document.getElementById('omakaseBtn').addEventListener('click', async () => {
+  function requireMember(statusEl, label) {
+    if (memberId) return true;
+    statusEl.className = 'status-msg error';
+    statusEl.innerHTML = `สั่ง${label} ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" class="goRegisterBtnInline" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button>`;
+    const goRegisterBtn = statusEl.querySelector('.goRegisterBtnInline');
+    if (goRegisterBtn) {
+      goRegisterBtn.addEventListener('click', () => {
+        if (window.liff && liff.isInClient && liff.isInClient()) {
+          liff.openWindow({ url: 'https://liff.line.me/2010600301-1tjt7IdG', external: false });
+        } else {
+          window.location.href = 'https://liff.line.me/2010600301-1tjt7IdG';
+        }
+      });
+    }
+    return false;
+  }
+
+  document.getElementById('omakaseBtn').addEventListener('click', () => {
     const btn = document.getElementById('omakaseBtn');
     const statusEl = document.getElementById('omakaseStatus');
-    statusEl.className = 'status-msg';
-    statusEl.textContent = '';
+    statusEl.className = 'status-msg'; statusEl.textContent = '';
+    if (!requireMember(statusEl, ' Classic')) return;
 
-    // Omakase ต้องเป็นสมาชิกที่ผูก LINE แล้วเท่านั้น (ใช้เก็บเงิน 270 บาท/สัปดาห์ผ่านแชท)
-    if (!memberId) {
-      statusEl.className = 'status-msg error';
-      statusEl.innerHTML = 'สั่ง Omakase ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" id="goRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button> แล้วกลับมาสั่งใหม่ได้เลย';
-      const goRegisterBtn = document.getElementById('goRegisterBtn');
-      if (goRegisterBtn) {
-        goRegisterBtn.addEventListener('click', () => {
-          // ใช้ liff.openWindow แทน <a href> ธรรมดา — เปิดจากใน LIFF ที่รันอยู่แล้วด้วย <a> ตรงๆ
-          // ทำให้ LINE บางเครื่องขึ้นหน้า "Verification / Already added" ค้าง แทนที่จะพาไปหน้าลงทะเบียนจริง
-          if (window.liff && liff.isInClient && liff.isInClient()) {
-            liff.openWindow({ url: 'https://liff.line.me/2010600301-1tjt7IdG', external: false });
-          } else {
-            window.location.href = 'https://liff.line.me/2010600301-1tjt7IdG';
-          }
-        });
-      }
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'กำลังบันทึกออเดอร์...';
-
-    const wantedDate = document.getElementById('wantedDate').value || todayStr();
-    const customerName = getCustomerName();
-
-    // สร้างแถว placeholder แบบเดียวกับที่บาริสต้าใช้อยู่แล้วในระบบภายใน (omakase_pending=true)
-    // ทำให้ออเดอร์นี้โผล่ในคิว "วันนี้" ของ brew.html พร้อมปุ่ม "เลือก 3 เมนู →" ทันที — ไม่ใช้ตาราง transactions แยกต่างหากอีกต่อไป
-    const { error } = await sb.from('preorders').insert([{
-      customer_name: customerName,
-      menu_item_name: 'Omakase Classic (รอเลือกเมนู)',
-      price: 270,
-      wanted_date: wantedDate,
-      line_user_id: lineUserId,
-      order_type: 'customer',
-      paid: false,
-      sweetness: selectedSweetness || 'ปกติ',
-      channel: 'liff-omakase',
-      omakase_pending: true,
-    }]);
-
-    if (error) {
-      statusEl.className = 'status-msg error';
-      statusEl.textContent = `สั่งไม่สำเร็จ: ${error.message}`;
-      btn.disabled = false;
-      btn.textContent = 'สั่ง Omakase';
-      return;
-    }
-
-    statusEl.className = 'status-msg success';
-    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! บาริสต้าจะเลือก 3 เมนูให้คุณ แล้วแจ้งเก็บเงิน 270 บาทผ่านแชทนะครับ';
-    btn.textContent = 'สั่งแล้ว ✅';
-    markTierOrdered('omkTierClassic');
-    notifyShop('omakase_classic', customerName, 'สั่ง Omakase Classic (270.-)');
+    addToCart({ kind: 'omakase_classic', name: 'Omakase Classic', price: 270, qty_locked: true });
+    markTierInCart('omkTierClassic', btn, 'สั่งเลย');
+    notifyShop('omakase_classic', getCustomerName(), 'เพิ่ม Omakase Classic ลงตะกร้า (270.-)');
   });
 
-  // Omakase Solo = สั่งเมนู Secret (Signature) ปัจจุบันจริง — insert ออเดอร์จริงเหมือน Classic/Full Week ไม่ใช่แค่พาไปแท็บ Signature เฉยๆ
-  document.getElementById('omakaseSoloBtn').addEventListener('click', async () => {
+  // Omakase Solo = สั่งเมนู Secret (Signature) ปัจจุบันจริง
+  document.getElementById('omakaseSoloBtn').addEventListener('click', () => {
     const btn = document.getElementById('omakaseSoloBtn');
     const statusEl = document.getElementById('omakaseSoloSwitchStatus');
-    statusEl.className = 'status-msg';
-    statusEl.textContent = '';
-
-    if (!memberId) {
-      statusEl.className = 'status-msg error';
-      statusEl.innerHTML = 'สั่ง Solo ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" id="soloGoRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button>';
-      const goRegisterBtn = document.getElementById('soloGoRegisterBtn');
-      if (goRegisterBtn) {
-        goRegisterBtn.addEventListener('click', () => {
-          if (window.liff && liff.isInClient && liff.isInClient()) {
-            liff.openWindow({ url: 'https://liff.line.me/2010600301-1tjt7IdG', external: false });
-          } else {
-            window.location.href = 'https://liff.line.me/2010600301-1tjt7IdG';
-          }
-        });
-      }
-      return;
-    }
+    statusEl.className = 'status-msg'; statusEl.textContent = '';
+    if (!requireMember(statusEl, ' Solo')) return;
     if (!currentSecretItem) {
       statusEl.className = 'status-msg error';
       statusEl.textContent = 'ยังไม่มีเมนู Secret ประจำสัปดาห์นี้ในระบบครับ';
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'กำลังบันทึกออเดอร์...';
-
-    const wantedDate = document.getElementById('wantedDate').value || todayStr();
-    const customerName = getCustomerName();
-
-    const { error } = await sb.from('preorders').insert([{
-      customer_name: customerName,
-      menu_item_name: currentSecretItem.name,
-      price: currentSecretItem.price,
-      wanted_date: wantedDate,
-      line_user_id: lineUserId,
-      order_type: 'customer',
-      paid: false,
-      sweetness: selectedSweetness || 'ปกติ',
-      channel: 'liff-omakase-solo',
-    }]);
-
-    if (error) {
-      statusEl.className = 'status-msg error';
-      statusEl.textContent = `สั่งไม่สำเร็จ: ${error.message}`;
-      btn.disabled = false;
-      btn.textContent = 'สั่งเลย';
-      return;
-    }
-
-    statusEl.className = 'status-msg success';
-    statusEl.textContent = `✅ สั่งซื้อสำเร็จ! ${currentSecretItem.name} แล้วแจ้งเก็บเงิน ${currentSecretItem.price} บาทผ่านแชทนะครับ`;
-    btn.textContent = 'สั่งแล้ว ✅';
-    markTierOrdered('omkTierSolo');
-    notifyShop('omakase_solo', customerName, `สั่ง Omakase Solo — ${currentSecretItem.name} (${currentSecretItem.price}.-)`);
+    addToCart({ kind: 'omakase_solo', name: currentSecretItem.name, price: currentSecretItem.price, qty_locked: false });
+    markTierInCart('omkTierSolo', btn, 'สั่งเลย');
+    notifyShop('omakase_solo', getCustomerName(), `เพิ่ม Omakase Solo ลงตะกร้า — ${currentSecretItem.name} (${currentSecretItem.price}.-)`);
   });
 
-  // Omakase Full Week (สั่ง) — ออเดอร์ครั้งเดียวสำหรับสัปดาห์นี้ คนละส่วนกับสวิตช์ Always On (ที่ทำให้เกิดซ้ำทุกสัปดาห์อัตโนมัติ)
-  document.getElementById('omakaseFullWeekBtn').addEventListener('click', async () => {
+  // Omakase Full Week — เพิ่มลงตะกร้าเหมือนกัน คนละส่วนกับสวิตช์ Always On (subscription toggle แยกต่างหาก ไม่ผ่านตะกร้า)
+  document.getElementById('omakaseFullWeekBtn').addEventListener('click', () => {
     const btn = document.getElementById('omakaseFullWeekBtn');
     const statusEl = document.getElementById('omakaseFullWeekStatus');
-    statusEl.className = 'status-msg';
-    statusEl.textContent = '';
-
-    if (!memberId) {
-      statusEl.className = 'status-msg error';
-      statusEl.innerHTML = 'สั่ง Max ได้เฉพาะสมาชิกที่ลงทะเบียนแล้วนะครับ 🐱<br><button type="button" id="fullWeekGoRegisterBtn" style="margin-top:6px;background:none;border:none;color:inherit;text-decoration:underline;font:inherit;cursor:pointer;padding:0;">แตะตรงนี้เพื่อลงทะเบียนสมาชิก</button> แล้วกลับมาสั่งใหม่ได้เลย';
-      const goRegisterBtn = document.getElementById('fullWeekGoRegisterBtn');
-      if (goRegisterBtn) {
-        goRegisterBtn.addEventListener('click', () => {
-          if (window.liff && liff.isInClient && liff.isInClient()) {
-            liff.openWindow({ url: 'https://liff.line.me/2010600301-1tjt7IdG', external: false });
-          } else {
-            window.location.href = 'https://liff.line.me/2010600301-1tjt7IdG';
-          }
-        });
-      }
-      return;
-    }
+    statusEl.className = 'status-msg'; statusEl.textContent = '';
+    if (!requireMember(statusEl, ' Max')) return;
     if (!omakasePlaceholderId) {
       statusEl.className = 'status-msg error';
       statusEl.textContent = 'ระบบยังโหลดไม่พร้อม ลองรีเฟรชหน้าอีกครั้งนะครับ';
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'กำลังบันทึกออเดอร์...';
-
-    const wantedDate = document.getElementById('wantedDate').value || todayStr();
-    const customerName = getCustomerName();
-
-    const { error } = await sb.from('transactions').insert([{
-      member_id: memberId,
-      menu_item_id: omakasePlaceholderId,
-      quantity: 1,
-      total_price: 420,
-      channel: 'liff-omakase-fullweek',
-      status: 'pending',
-      customer_name: customerName,
-      wanted_date: wantedDate,
-    }]);
-
-    if (error) {
-      statusEl.className = 'status-msg error';
-      statusEl.textContent = `สั่งไม่สำเร็จ: ${error.message}`;
-      btn.disabled = false;
-      btn.textContent = 'สั่งเลย';
-      return;
-    }
-
-    statusEl.className = 'status-msg success';
-    statusEl.textContent = '✅ สั่งซื้อสำเร็จ! 5 แก้ว — เริ่มด้วย Secret 1 แก้ว แล้วแมวส้มดูแลกาแฟที่คุณคุ้นเคยให้ แล้วแจ้งเก็บเงิน 420 บาทผ่านแชทนะครับ';
-    btn.textContent = 'สั่งแล้ว ✅';
-    markTierOrdered('omkTierFullWeek');
-    notifyShop('omakase_fullweek', customerName, 'สั่ง Omakase Full Week (420.-, 5 แก้ว)');
+    addToCart({ kind: 'omakase_fullweek', name: 'Omakase Max (5 แก้ว)', price: 420, qty_locked: true });
+    markTierInCart('omkTierFullWeek', btn, 'สั่งเลย');
+    notifyShop('omakase_fullweek', getCustomerName(), 'เพิ่ม Omakase Max ลงตะกร้า (420.-, 5 แก้ว)');
   });
 
   // สวิตช์ "Always On" ต่อแพ็คเกจ — ผูกกับ subscription program แยกกันของแต่ละ tier (Solo/Classic/Full Week) ตัวเดียวกับที่ badge ใช้อยู่แล้ว
@@ -1561,8 +1616,11 @@
     document.getElementById('imgSheetName').textContent = item.name;
     const total = item.fixed_bean_name ? item.price + beanSurcharge(item.fixed_bean_name) : item.price;
     document.getElementById('imgSheetPrice').textContent = SURPRISE_CATS.includes(item.category) ? '65-75 บาท' : (total + ' บาท');
+    document.getElementById('imgSheetOverlay').dataset.itemId = item.id;
+    imgSheetCurrentItem = item;
     document.getElementById('imgSheetOverlay').classList.add('open');
   }
+  let imgSheetCurrentItem = null;
   function closeImageSheet() {
     document.getElementById('imgSheetOverlay').classList.remove('open');
   }
@@ -1571,8 +1629,20 @@
   });
   document.getElementById('imgSheetClose').addEventListener('click', closeImageSheet);
   document.getElementById('imgSheetSelectBtn').addEventListener('click', () => {
+    if (!imgSheetCurrentItem) return;
+    const item = imgSheetCurrentItem;
+    addToCart({
+      kind: 'regular',
+      name: item.name,
+      price: item.price,
+      category: item.category,
+      menu_item_id: item.id,
+      needs_bean: item.needs_bean,
+      fixed_bean_name: item.fixed_bean_name || null,
+      image_url: item.image_url || null,
+      is_surprise: SURPRISE_CATS.includes(item.category),
+    });
     closeImageSheet();
-    document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   // ===== Subscription program badges — full-screen 3D rotate modal =====
@@ -1659,12 +1729,7 @@
     stage.addEventListener('pointercancel', dragEnd);
   })();
 
-  function resetMenuGridScroll() {
-    document.querySelectorAll('.menu-grid').forEach(g => { g.scrollLeft = 0; });
-  }
-
-  loadBeans().then(loadMenu).then(resetMenuGridScroll);
-  window.addEventListener('load', resetMenuGridScroll); // เผื่อรูปโหลดช้าแล้วดัน scroll-snap เพี้ยนทีหลัง
+  loadBeans().then(loadMenu);
   initDateAndSweetness();
   initLiffProfile();
 </script>
