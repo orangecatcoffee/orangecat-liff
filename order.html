@@ -574,7 +574,6 @@
     <span class="cat-pill active" data-tab="comfort">Your Comfort Drinks</span>
     <span class="cat-pill" data-tab="omakase">🎴 Orange Cat Omakase</span>
     <span class="cat-pill" data-tab="signature">Orange Cat Signature</span>
-    <span class="cat-pill" data-tab="special">Special of the Month</span>
   </div>
 </div>
 
@@ -634,14 +633,6 @@
       <div class="tabpanel" id="tab-signature">
         <div class="sig-tabstrip" id="sigTabstrip"></div>
         <div class="sig-panel" id="sigPanel"></div>
-      </div>
-
-      <div class="tabpanel" id="tab-special">
-        <div class="group">
-          <h2>🌟 Special of the Month</h2>
-          <div class="menu-grid" id="specialGrid"></div>
-          <div id="specialBaseToggle" style="display:none;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:center;"></div>
-        </div>
       </div>
 
       <div class="tabpanel" id="tab-omakase">
@@ -793,7 +784,6 @@
     }, 680);
   }
   let quantity = 1;
-  let specialGroupsByBean = {}; // fixed_bean_name -> [items]; populated in loadMenu, read again in renderSelected for the shared base-drink toggle
   let memberId = null; // เซ็ตจริงถ้าเจอ member ที่ผูก LINE user id นี้ไว้ใน members
   let lineUserId = null;
   let omakasePlaceholderId = null; // menu_items.id ของแถว placeholder (is_omakase_placeholder=true) — ดึงสดจาก DB ไม่ hardcode
@@ -897,7 +887,6 @@
   const COFFEE_CATS = ['espresso','dirty','signature'];
   const MATCHA_CATS = ['matcha'];
   const SIGNATURE_CATS = ['signature_item']; // Signature items (เช่น Steamed Yuba Kek-Huay Latte) โชว์ที่แท็บนี้ — 'signature' เดิม (Orange Americano) ยังอยู่กลุ่มกาแฟ Comfort เหมือนเดิม ไม่กระทบ
-  const SPECIAL_CATS = ['special_of_month']; // เมนูพิเศษประจำเดือน — ไม่ผูกกับเมล็ด/ชื่อเมนูใดเมนูหนึ่ง อ่านสดจาก menu_items.category เสมอ
 
   async function loadMenu() {
     const { data: rawData, error } = await sb
@@ -912,7 +901,6 @@
     const coffeeGrid = document.getElementById('coffeeGrid');
     const matchaGrid = document.getElementById('matchaGrid');
     const otherGrid = document.getElementById('otherGrid');
-    const specialGrid = document.getElementById('specialGrid');
     const signatureItems = [];
 
     if (error) {
@@ -928,7 +916,6 @@
     coffeeGrid.innerHTML = '';
     matchaGrid.innerHTML = '';
     otherGrid.innerHTML = '';
-    specialGrid.innerHTML = '';
 
     function makeCard(item) {
       const div = document.createElement('div');
@@ -962,7 +949,6 @@
 
     data.forEach(item => {
       const cat = item.category;
-      if (SPECIAL_CATS.includes(cat)) return; // handled separately below as grouped cards with a base-drink toggle
       const card = makeCard(item);
       if (SURPRISE_CATS.includes(cat)) {
         surpriseGrid.appendChild(card);
@@ -979,48 +965,9 @@
 
     surpriseGrid.appendChild(tarotCard); // ต่อท้าย แมวส้มเลือกหน่อย เสมอ (อยู่ขวา)
 
-    // Special of the Month: group by fixed_bean_name so any bean with multiple base-drink
-    // variants (e.g. Americano/Latte) shows as one card with a toggle, not duplicate cards.
-    // Purely data-driven — works for any future bean/pair without code changes.
-    const specialGroups = specialGroupsByBean = {};
-    data.filter(item => SPECIAL_CATS.includes(item.category)).forEach(item => {
-      const key = item.fixed_bean_name || item.id;
-      (specialGroups[key] = specialGroups[key] || []).push(item);
-    });
-
-    function makeSpecialCard(group) {
-      const primary = group.find(i => i.drink_base === 'americano') || group[0];
-      const div = document.createElement('div');
-      div.className = 'menu-card';
-      div.dataset.id = primary.id;
-      const title = primary.fixed_bean_name || primary.name;
-      const icon = primary.image_url
-        ? `<img src="${primary.image_url}" alt="${title}" class="cup-icon special-cup-icon">`
-        : iconFor(primary);
-      const total = primary.price + beanSurcharge(primary.fixed_bean_name);
-      div.innerHTML = `
-        <div class="icon">${icon}</div>
-        <div class="name">${title}</div>
-        <div class="price">Iced Americano ${total} บาท</div>
-      `;
-      div.addEventListener('click', () => {
-        selectItem(primary, div);
-        openImageSheet(primary);
-      });
-      return div;
-    }
-
-    Object.values(specialGroups).forEach(group => {
-      specialGrid.appendChild(makeSpecialCard(group));
-    });
-
     currentSecretItem = signatureItems.length ? signatureItems[0] : null;
     renderSignatureTabs(signatureItems);
     renderOmakaseChapters(signatureItems);
-
-    if (!specialGrid.children.length) {
-      specialGrid.innerHTML = '<div class="status-msg">เดือนนี้ยังไม่มีเมนูพิเศษ รอติดตามนะ</div>';
-    }
   }
 
   function renderSignatureTabs(items) {
@@ -1269,7 +1216,6 @@
   const TAB_BANNERS = {
     comfort:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png', title: 'Your Comfort Drink',   sub: 'เมนูประจำร้าน 14 แก้ว' },
     signature: { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-signature.png', title: 'Signature',            sub: 'ซิกเนเจอร์ประจำร้าน' },
-    special:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-special.png', title: 'Special of the Month', sub: 'เมนูพิเศษประจำเดือน' },
     omakase:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-omakase.png', title: 'Omakase',             sub: 'Surprise You, Every Time! — เลือกได้ 3 ระดับ' },
   };
 
@@ -1290,7 +1236,7 @@
     }
   }
 
-  // เปิดตรงแท็บที่ต้องการได้ทันทีผ่าน ?tab=comfort|signature|special|omakase
+  // เปิดตรงแท็บที่ต้องการได้ทันทีผ่าน ?tab=comfort|signature|omakase
   // ใช้โดยหน้า Order Hub 5 กล่องใหม่ (index.html) กดปุ่มไหนก็พาตรงมาแท็บนั้นเลย ไม่ต้องมากดเปลี่ยนเอง
   const deepLinkTab = new URLSearchParams(location.search).get('tab');
   if (deepLinkTab && document.getElementById('tab-' + deepLinkTab)) {
