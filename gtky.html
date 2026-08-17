@@ -200,15 +200,7 @@
           customerDisplayName = profile.displayName || '';
         } catch (e) { /* เปิดนอก LINE ไม่มีโปรไฟล์ให้ดึง เงียบไว้ */ }
 
-        const answeredForNotify = answered.filter(a => a.answer && a.answer.trim().length > 0);
-        if (answeredForNotify.length > 0) {
-          fetch(NOTIFY_SHOP_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items: answeredForNotify.map(a => ({ question_text: a.question_text, answer_text: a.answer, note: a.note })), customer_name: customerDisplayName }),
-          }).catch(err => console.error('notify-shop-gtky failed:', err));
-        }
-
+        // แจ้งร้านว่ามีคนตอบ GTKY — ปิดไว้ตามที่ Fah ตัดสินใจ เพราะกินโควตา LINE 300 ข้อความฟรี/เดือน
         showDone();
       } catch (e) {
         showError('ส่งไม่สำเร็จ: ' + e.message);
@@ -238,14 +230,7 @@
       customerDisplayName = profile.displayName || '';
     } catch (e) { /* เปิดนอก LINE ไม่มีโปรไฟล์ให้ดึง เงียบไว้ */ }
 
-    if (answer && answer.trim().length > 0) {
-      fetch(NOTIFY_SHOP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: questionTextCache, answer_text: answer, note: note, customer_name: customerDisplayName }),
-      }).catch(err => console.error('notify-shop-gtky failed:', err));
-    }
-
+    // แจ้งร้านว่ามีคนตอบ GTKY — ปิดไว้ตามที่ Fah ตัดสินใจ เพราะกินโควตา LINE 300 ข้อความฟรี/เดือน
     showDone();
   });
 
