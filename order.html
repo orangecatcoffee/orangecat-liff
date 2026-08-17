@@ -761,39 +761,39 @@
   <div class="cart-page-body" id="cartPageBody">
     <button type="button" class="cart-page-back" id="cartPageBack">←</button>
     <div class="cart-page-title">ตะกร้าของคุณ</div>
-    <div class="cart-empty">ยังไม่มีอะไรในตะกร้าเลย</div>
+    <div id="cartLinesContainer"><div class="cart-empty">ยังไม่มีอะไรในตะกร้าเลย</div></div>
+    <div id="cartOrderDetails" style="display:none;">
+      <div id="customerNameAuto" class="customer-name-auto" style="display:none;">
+        🐱 สั่งในนามคุณ: <b id="customerNameAutoText"></b>
+      </div>
+      <div id="customerNameManualWrap" style="display:none;">
+        <label class="field-label">ชื่อลูกค้า</label>
+        <input type="text" id="customerName" placeholder="ชื่อที่ให้เรียก เช่น หอนจ้า, ปั้นน">
+      </div>
+      <div id="customerNameLoading" class="customer-name-auto loading">🐾 กำลังโหลดข้อมูลสมาชิก...</div>
+
+      <label class="field-label">วันที่ต้องการรับ</label>
+      <input type="date" id="wantedDate">
+
+      <label class="field-label">ความหวาน (ใช้กับทุกแก้วในตะกร้า)</label>
+      <div class="sweetness-row" id="sweetnessRow">
+        <button type="button" class="sweetness-btn selected" data-val="ไม่หวาน">ไม่หวาน</button>
+        <button type="button" class="sweetness-btn" data-val="หวานน้อย">หวานน้อย</button>
+        <button type="button" class="sweetness-btn" data-val="หวานปกติ">หวานปกติ</button>
+      </div>
+
+      <label class="field-label">หมายเหตุ (ไม่บังคับ)</label>
+      <textarea id="notes" rows="2" maxlength="100" placeholder="เช่น แพ้นมวัว / ขอน้ำแข็งน้อย"></textarea>
+
+      <label class="field-label">ที่อยู่ / จุดรับ</label>
+      <textarea id="address" rows="2" placeholder="เช่น ชื่อตึก/ชั้น/แผนก หรือที่อยู่บ้าน"></textarea>
+    </div>
   </div>
   <div class="cart-page-footer" id="cartPageFooter" style="display:none;">
-    <div id="customerNameAuto" class="customer-name-auto" style="display:none;">
-      🐱 สั่งในนามคุณ: <b id="customerNameAutoText"></b>
-    </div>
-    <div id="customerNameManualWrap" style="display:none;">
-      <label class="field-label">ชื่อลูกค้า</label>
-      <input type="text" id="customerName" placeholder="ชื่อที่ให้เรียก เช่น หอนจ้า, ปั้นน">
-    </div>
-    <div id="customerNameLoading" class="customer-name-auto loading">🐾 กำลังโหลดข้อมูลสมาชิก...</div>
-
-    <label class="field-label">วันที่ต้องการรับ</label>
-    <input type="date" id="wantedDate">
-
-    <label class="field-label">ความหวาน (ใช้กับทุกแก้วในตะกร้า)</label>
-    <div class="sweetness-row" id="sweetnessRow">
-      <button type="button" class="sweetness-btn selected" data-val="ไม่หวาน">ไม่หวาน</button>
-      <button type="button" class="sweetness-btn" data-val="หวานน้อย">หวานน้อย</button>
-      <button type="button" class="sweetness-btn" data-val="หวานปกติ">หวานปกติ</button>
-    </div>
-
-    <label class="field-label">หมายเหตุ (ไม่บังคับ)</label>
-    <textarea id="notes" rows="2" maxlength="100" placeholder="เช่น แพ้นมวัว / ขอน้ำแข็งน้อย"></textarea>
-
-    <label class="field-label">ที่อยู่ / จุดรับ</label>
-    <textarea id="address" rows="2" placeholder="เช่น ชื่อตึก/ชั้น/แผนก หรือที่อยู่บ้าน"></textarea>
-
     <div class="total-row">
       <span>รวมทั้งหมด</span>
       <span id="totalPrice">0 บาท</span>
     </div>
-
     <button class="btn" id="submitBtn" disabled>เลือกเมนูก่อนนะครับ</button>
     <div class="status-msg" id="statusMsg"></div>
   </div>
@@ -1191,16 +1191,18 @@
   }
 
   function renderCartPage() {
-    const bodyEl = document.getElementById('cartPageBody');
+    const linesEl = document.getElementById('cartLinesContainer');
+    const detailsEl = document.getElementById('cartOrderDetails');
     const footerEl = document.getElementById('cartPageFooter');
-    const titleHtml = '<button type="button" class="cart-page-back" id="cartPageBack">←</button><div class="cart-page-title">ตะกร้าของคุณ</div>';
     if (cart.length === 0) {
-      bodyEl.innerHTML = titleHtml + '<div class="cart-empty">ยังไม่มีอะไรในตะกร้าเลย 🐱</div>';
+      linesEl.innerHTML = '<div class="cart-empty">ยังไม่มีอะไรในตะกร้าเลย 🐱</div>';
+      detailsEl.style.display = 'none';
       footerEl.style.display = 'none';
       return;
     }
+    detailsEl.style.display = 'block';
     footerEl.style.display = 'block';
-    bodyEl.innerHTML = titleHtml + cart.map(line => {
+    linesEl.innerHTML = cart.map(line => {
       const unitPrice = cartLineUnitPrice(line);
       const priceLabel = line.is_surprise ? '70-85 บาท (ราคาจริงตามเมนูที่บาริสต้าเลือก)' : `${unitPrice * line.qty} บาท`;
       const qtyControlHtml = line.qty_locked
@@ -1232,16 +1234,16 @@
       `;
     }).join('');
 
-    bodyEl.querySelectorAll('[data-remove]').forEach(btn => {
+    linesEl.querySelectorAll('[data-remove]').forEach(btn => {
       btn.addEventListener('click', () => removeCartLine(Number(btn.dataset.remove)));
     });
-    bodyEl.querySelectorAll('[data-qty-minus]').forEach(btn => {
+    linesEl.querySelectorAll('[data-qty-minus]').forEach(btn => {
       btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.qtyMinus), -1));
     });
-    bodyEl.querySelectorAll('[data-qty-plus]').forEach(btn => {
+    linesEl.querySelectorAll('[data-qty-plus]').forEach(btn => {
       btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.qtyPlus), 1));
     });
-    bodyEl.querySelectorAll('[data-bean-for]').forEach(sel => {
+    linesEl.querySelectorAll('[data-bean-for]').forEach(sel => {
       sel.addEventListener('change', () => {
         const line = cart.find(l => l.lineId === Number(sel.dataset.beanFor));
         if (line) { line.bean_name = sel.value || null; renderCartBar(); renderCartPage(); }
