@@ -1023,6 +1023,11 @@
     }
 
     let activeIndex = 0;
+    const deepLinkItem = new URLSearchParams(location.search).get('item');
+    if (deepLinkItem) {
+      const idx = items.findIndex(it => it.name === deepLinkItem);
+      if (idx >= 0) activeIndex = idx;
+    }
 
     function renderPanel() {
       const item = items[activeIndex];
