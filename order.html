@@ -180,8 +180,8 @@
     transition: max-width .2s, background .2s;
   }
   .sig-tab.active {
-    max-width: 220px;
-    flex: 1 1 auto;
+    max-width: 70px;
+    flex: 0 0 auto;
     background: #fff;
     color: #4A3428;
   }
@@ -208,18 +208,11 @@
     justify-content: center;
   }
   .sig-photo-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  .sig-eyebrow {
-    font-size: 10.5px;
-    letter-spacing: 2px;
-    font-weight: 700;
-    color: #E8863A;
-    margin-top: 16px;
-  }
   .sig-name {
     font-size: 19px;
     font-weight: 700;
     color: #4A3428;
-    margin-top: 4px;
+    margin-top: 18px;
     line-height: 1.3;
   }
   .sig-ingredients {
@@ -1053,17 +1046,7 @@
       const photo = item.image_url
         ? `<img src="${item.image_url}" alt="${item.name}">`
         : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:50px;">${iconFor(item)}</div>`;
-      panelEl.innerHTML = `
-        <div class="sig-photo-wrap">${photo}</div>
-        <div class="sig-eyebrow">SIGNATURE</div>
-        <div class="sig-name">${item.name}</div>
-        ${item.story_ingredients ? `<div class="sig-ingredients">${item.story_ingredients}</div>` : ''}
-        <div class="sig-price-row">
-          <span class="sig-price">${item.price} บาท</span>
-          <button type="button" class="sig-order-btn" id="sigOrderBtn">สั่งเมนูนี้</button>
-        </div>
-        ${item.story_body ? `<div class="sig-story">${item.story_body}</div>` : ''}
-        ${(item.made_from_scratch_images && item.made_from_scratch_images.length) ? `
+      const mfsHtml = (item.made_from_scratch_images && item.made_from_scratch_images.length) ? `
           <div class="sig-mfs-title">🧡 Made From Scratch</div>
           <div class="sig-mfs-scroll">
             ${item.made_from_scratch_images.map(url => {
@@ -1073,7 +1056,17 @@
                 : `<img src="${url}" class="sig-mfs-img" alt="Made From Scratch">`;
             }).join('')}
           </div>
-        ` : ''}
+      ` : '';
+      panelEl.innerHTML = `
+        <div class="sig-photo-wrap">${photo}</div>
+        ${mfsHtml}
+        <div class="sig-name">${item.name}</div>
+        ${item.story_ingredients ? `<div class="sig-ingredients">${item.story_ingredients}</div>` : ''}
+        <div class="sig-price-row">
+          <span class="sig-price">${item.price} บาท</span>
+          <button type="button" class="sig-order-btn" id="sigOrderBtn">สั่งเมนูนี้</button>
+        </div>
+        ${item.story_body ? `<div class="sig-story">${item.story_body}</div>` : ''}
       `;
       const btn = document.getElementById('sigOrderBtn');
       btn.addEventListener('click', () => {
@@ -1100,7 +1093,7 @@
         const tab = document.createElement('button');
         tab.type = 'button';
         tab.className = 'sig-tab' + (i === activeIndex ? ' active' : '');
-        tab.textContent = item.name;
+        tab.textContent = '#' + String(i + 1).padStart(2, '0');
         tab.addEventListener('click', () => {
           if (activeIndex === i) return;
           activeIndex = i;
