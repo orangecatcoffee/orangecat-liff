@@ -254,6 +254,29 @@
     color: #6B5445;
     white-space: pre-line;
   }
+  .sig-mfs-title {
+    margin-top: 22px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #E8863A;
+  }
+  .sig-mfs-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    margin-top: 10px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .sig-mfs-scroll::-webkit-scrollbar { display: none; }
+  .sig-mfs-img {
+    flex: 0 0 130px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 12px;
+  }
 
   label.field-label {
     font-size: 12px; color: #8a6a4a; margin-bottom: 6px; display: block;
@@ -1040,6 +1063,12 @@
           <button type="button" class="sig-order-btn" id="sigOrderBtn">สั่งเมนูนี้</button>
         </div>
         ${item.story_body ? `<div class="sig-story">${item.story_body}</div>` : ''}
+        ${(item.made_from_scratch_images && item.made_from_scratch_images.length) ? `
+          <div class="sig-mfs-title">🧡 Made From Scratch</div>
+          <div class="sig-mfs-scroll">
+            ${item.made_from_scratch_images.map(url => `<img src="${url}" class="sig-mfs-img" alt="Made From Scratch">`).join('')}
+          </div>
+        ` : ''}
       `;
       const btn = document.getElementById('sigOrderBtn');
       btn.addEventListener('click', () => {
