@@ -914,12 +914,22 @@
     });
   }
 
-  const SURPRISE_CATS = ['surprise']; // 🐱 แมวส้มเลือกหน่อย — บาริสต้าเลือกเมนูจริงตอนชง ราคาจริง 70-85 ขึ้นกับเมนูที่เลือก
-  const COFFEE_CATS = ['espresso','dirty','signature'];
-  const MATCHA_CATS = ['matcha'];
-  const SIGNATURE_CATS = ['signature_item']; // Signature items (เช่น Steamed Yuba Kek-Huay Latte) โชว์ที่แท็บนี้ — 'signature' เดิม (Orange Americano) ยังอยู่กลุ่มกาแฟ Comfort เหมือนเดิม ไม่กระทบ
+  // 🗂️ Category → tab_group mapping ดึงจาก menu_categories table สด (ไม่ hardcode array ในโค้ดแล้ว)
+  // เพิ่มหมวดหมู่ใหม่ = insert แถวใหม่ใน menu_categories ไม่ต้องแก้/deploy โค้ดนี้
+  let CATEGORY_TAB_GROUP = {}; // { category: tab_group }
+
+  async function loadCategoryMap() {
+    const { data, error } = await sb.from('menu_categories').select('category, tab_group');
+    if (!error && data) {
+      CATEGORY_TAB_GROUP = Object.fromEntries(data.map(c => [c.category, c.tab_group]));
+    }
+  }
+  function tabGroupFor(category) {
+    return CATEGORY_TAB_GROUP[category] || 'other';
+  }
 
   async function loadMenu() {
+    await loadCategoryMap();
     const { data: rawData, error } = await sb
       .from('menu_items')
       .select('*')
@@ -953,8 +963,9 @@
       const div = document.createElement('div');
       div.className = 'menu-card';
       div.dataset.id = item.id;
-      const priceLabel = SURPRISE_CATS.includes(item.category) ? '70-85 บาท' : `${item.price} บาท`;
-      const captionHtml = SURPRISE_CATS.includes(item.category) ? `<div class="caption">กดมาเดี๋ยวบาริสต้าเลือกให้เอง</div>` : '';
+      const isSurprise = tabGroupFor(item.category) === 'surprise';
+      const priceLabel = isSurprise ? '70-85 บาท' : `${item.price} บาท`;
+      const captionHtml = isSurprise ? `<div class="caption">กดมาเดี๋ยวบาริสต้าเลือกให้เอง</div>` : '';
       const imgHtml = item.image_url ? `<img src="${item.image_url}" alt="${item.name}" class="cup-icon">` : `<div class="icon">${iconFor(item)}</div>`;
       div.innerHTML = `
         <div class="menu-card-imgwrap">
@@ -974,13 +985,13 @@
         addToCart({
           kind: 'regular',
           name: item.name,
-          price: SURPRISE_CATS.includes(item.category) ? 0 : item.price,
+          price: isSurprise ? 0 : item.price,
           category: item.category,
           menu_item_id: item.id,
           needs_bean: item.needs_bean,
           fixed_bean_name: item.fixed_bean_name || null,
           image_url: item.image_url || null,
-          is_surprise: SURPRISE_CATS.includes(item.category),
+          is_surprise: isSurprise,
         });
         flashAdded(e.currentTarget);
       });
@@ -1008,15 +1019,15 @@
     });
 
     data.forEach(item => {
-      const cat = item.category;
+      const group = tabGroupFor(item.category);
       const card = makeCard(item);
-      if (SURPRISE_CATS.includes(cat)) {
+      if (group === 'surprise') {
         surpriseGrid.appendChild(card);
-      } else if (SIGNATURE_CATS.includes(cat)) {
+      } else if (group === 'signature') {
         signatureItems.push(item);
-      } else if (MATCHA_CATS.includes(cat)) {
+      } else if (group === 'matcha') {
         matchaGrid.appendChild(card);
-      } else if (COFFEE_CATS.includes(cat)) {
+      } else if (group === 'coffee') {
         coffeeGrid.appendChild(card);
       } else {
         otherGrid.appendChild(card);
@@ -1663,7 +1674,7 @@
     imgEl.classList.toggle('contain-img', !!item.fixed_bean_name);
     document.getElementById('imgSheetName').textContent = item.name;
     const total = item.fixed_bean_name ? item.price + beanSurcharge(item.fixed_bean_name) : item.price;
-    document.getElementById('imgSheetPrice').textContent = SURPRISE_CATS.includes(item.category) ? '70-85 บาท' : (total + ' บาท');
+    document.getElementById('imgSheetPrice').textContent = tabGroupFor(item.category) === 'surprise' ? '70-85 บาท' : (total + ' บาท');
     document.getElementById('imgSheetOverlay').dataset.itemId = item.id;
     imgSheetCurrentItem = item;
     document.getElementById('imgSheetOverlay').classList.add('open');
@@ -1688,7 +1699,7 @@
       needs_bean: item.needs_bean,
       fixed_bean_name: item.fixed_bean_name || null,
       image_url: item.image_url || null,
-      is_surprise: SURPRISE_CATS.includes(item.category),
+      is_surprise: tabGroupFor(item.category) === 'surprise',
     });
     closeImageSheet();
   });
