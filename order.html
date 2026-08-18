@@ -1066,7 +1066,12 @@
         ${(item.made_from_scratch_images && item.made_from_scratch_images.length) ? `
           <div class="sig-mfs-title">🧡 Made From Scratch</div>
           <div class="sig-mfs-scroll">
-            ${item.made_from_scratch_images.map(url => `<img src="${url}" class="sig-mfs-img" alt="Made From Scratch">`).join('')}
+            ${item.made_from_scratch_images.map(url => {
+              const isVideo = /\.(mov|mp4|webm|m4v)(\?.*)?$/i.test(url);
+              return isVideo
+                ? `<video src="${url}" class="sig-mfs-img" autoplay muted loop playsinline></video>`
+                : `<img src="${url}" class="sig-mfs-img" alt="Made From Scratch">`;
+            }).join('')}
           </div>
         ` : ''}
       `;
