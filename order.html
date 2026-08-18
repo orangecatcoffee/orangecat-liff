@@ -1441,8 +1441,13 @@
     document.querySelector('.cat-pill[data-tab="' + tab + '"]').classList.add('active');
 
     const b = TAB_BANNERS[tab];
-    if (b) {
-      document.getElementById('headerBanner').style.backgroundImage = `url('${b.img}')`;
+    const bannerEl = document.getElementById('headerBanner');
+    if (tab === 'signature') {
+      // ตัด banner รูปใหญ่ออกเฉพาะแท็บ Signature — อยากให้เห็นเมนูเร็วขึ้น เนื้อหา Story ในการ์ดชัดเจนพอแล้วไม่ต้องมีอีก
+      bannerEl.style.display = 'none';
+    } else if (b) {
+      bannerEl.style.display = '';
+      bannerEl.style.backgroundImage = `url('${b.img}')`;
       document.getElementById('headerBannerTitle').textContent = b.title;
       document.getElementById('headerBannerSub').textContent = b.sub;
     }
