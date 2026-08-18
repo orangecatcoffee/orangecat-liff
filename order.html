@@ -208,11 +208,18 @@
     justify-content: center;
   }
   .sig-photo-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .sig-eyebrow {
+    font-size: 10.5px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: #E8863A;
+    margin-top: 16px;
+  }
   .sig-name {
     font-size: 19px;
     font-weight: 700;
     color: #4A3428;
-    margin-top: 18px;
+    margin-top: 4px;
     line-height: 1.3;
   }
   .sig-ingredients {
@@ -1060,6 +1067,7 @@
       panelEl.innerHTML = `
         <div class="sig-photo-wrap">${photo}</div>
         ${mfsHtml}
+        <div class="sig-eyebrow">SIGNATURE — CHAPTER #${String(activeIndex + 1).padStart(2, '0')}</div>
         <div class="sig-name">${item.name}</div>
         ${item.story_ingredients ? `<div class="sig-ingredients">${item.story_ingredients}</div>` : ''}
         <div class="sig-price-row">
