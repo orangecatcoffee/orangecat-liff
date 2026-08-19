@@ -936,8 +936,8 @@
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('id', { ascending: true });
     // เมนูทดลองรายสัปดาห์ (omakase_only=true) ไม่โผล่ในเมนูปกติ จนกว่าจะโปรโมทเป็น Special of the Month
-    // เมนู draft (signature_draft) ที่ยังไม่ประกาศ ก็ไม่โผล่เหมือนกัน จนกว่า Fah จะสั่งเปลี่ยน category เป็น signature_item เอง
-    const data = rawData ? rawData.filter(item => !item.omakase_only && item.category !== 'signature_draft') : rawData;
+    // เมนู draft (signature_draft) ที่ยังไม่ประกาศ และเมนูที่พักการขาย (on_hold) ก็ไม่โผล่เหมือนกัน
+    const data = rawData ? rawData.filter(item => !item.omakase_only && item.category !== 'signature_draft' && item.category !== 'on_hold') : rawData;
 
     const surpriseGrid = document.getElementById('surpriseGrid');
     const coffeeGrid = document.getElementById('coffeeGrid');
