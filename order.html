@@ -483,11 +483,11 @@
   .omk-shared-sub {
     background: #fff; border-radius: 14px; padding: 14px 16px; margin-top: 26px; margin-bottom: 14px;
   }
-  .omk-shared-sub-top {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  .omk-shared-sub-title {
+    font-size: 17px; font-weight: 800; color: #4A3428; text-align: center;
   }
   .omk-shared-sub-desc {
-    font-size: 11.5px; color: #8a6a4a; line-height: 1.7; margin-top: 10px;
+    font-size: 11.5px; color: #8a6a4a; line-height: 1.7; margin-top: 10px; text-align: center;
   }
   .omk-shared-sub-chips {
     display: flex; gap: 6px; margin-top: 12px;
@@ -499,6 +499,9 @@
   }
   .omk-shared-chip.selected {
     border-color: #E8863A; background: #FFF3E8; color: #E8863A;
+  }
+  .omk-subscribe-note {
+    text-align: center; font-size: 10.5px; color: #A8876F; margin-top: 8px;
   }
   .omk-tier-row {
     display: flex;
@@ -565,21 +568,63 @@
     display: flex; flex-direction: column; align-items: center; gap: 4px;
     margin: 0 8px 12px; padding-top: 10px; border-top: 1px solid #F0E4D8; width: calc(100% - 16px);
   }
-  .omk-switch-label { font-size: 10px; font-weight: 700; color: #4A3428; text-align: center; }
   .omk-switch-sub { display: block; font-size: 8.5px; font-weight: 400; color: #A8876F; margin-top: 2px; line-height: 1.3; }
-  .omk-switch {
-    position: relative; width: 38px; height: 22px; border-radius: 999px;
-    background: #E0D2C2; border: none; flex-shrink: 0; cursor: pointer;
-    transition: background .2s;
+
+  /* ปุ่ม Subscribe ใหญ่ กลางกรอบ พร้อมอนิเมชั่นแมวส้มวิ่งส่งกาแฟตอนกดสมัคร */
+  .omk-subscribe-btn {
+    position: relative;
+    width: 100%; height: 68px;
+    margin-top: 14px;
+    border-radius: 20px; border: none;
+    background: #F0E4D8;
+    overflow: hidden; cursor: pointer;
+    transition: background .3s;
   }
-  .omk-switch::after {
-    content: ''; position: absolute; top: 3px; left: 3px;
-    width: 16px; height: 16px; border-radius: 50%; background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-    transition: transform .2s;
+  .omk-subscribe-btn.on { background: linear-gradient(135deg, #4A9B5C, #3d8049); }
+  .omk-sub-label-text {
+    position: relative; z-index: 2;
+    font-size: 15px; font-weight: 800; color: #6B5445;
+    transition: opacity .2s;
   }
-  .omk-switch.on { background: #4A9B5C; }
-  .omk-switch.on::after { transform: translateX(16px); }
+  .omk-subscribe-btn.on .omk-sub-label-text { color: #fff; }
+  .omk-subscribe-btn.animating .omk-sub-label-text { opacity: 0; }
+
+  .omk-cat-ears {
+    position: absolute; left: 10%; top: 50%; z-index: 1;
+    transform: translateY(-50%) scale(0);
+    font-size: 20px; opacity: 0;
+  }
+  .omk-subscribe-btn.animating .omk-cat-ears { animation: omkEarsPop .3s ease-out forwards; }
+  @keyframes omkEarsPop {
+    0% { opacity: 0; transform: translateY(-50%) scale(0); }
+    60% { opacity: 1; transform: translateY(-50%) scale(1.3); }
+    100% { opacity: 1; transform: translateY(-50%) scale(1); }
+  }
+
+  .omk-cat-runner {
+    position: absolute; top: 50%; left: -20%; z-index: 1;
+    transform: translateY(-50%);
+    font-size: 28px; opacity: 0; white-space: nowrap;
+  }
+  .omk-subscribe-btn.animating .omk-cat-runner { animation: omkCatRun .9s ease-in-out .25s forwards; }
+  @keyframes omkCatRun {
+    0% { left: -20%; opacity: 0; transform: translateY(-50%) rotate(0deg); }
+    10% { opacity: 1; }
+    45% { transform: translateY(-50%) rotate(-6deg); }
+    60% { transform: translateY(-50%) rotate(6deg); }
+    90% { opacity: 1; }
+    100% { left: 108%; opacity: 0; transform: translateY(-50%) rotate(0deg); }
+  }
+
+  .omk-speed-lines {
+    position: absolute; inset: 0; z-index: 0; opacity: 0;
+    background: repeating-linear-gradient(100deg, transparent 0 10px, rgba(255,255,255,0.55) 10px 12px);
+  }
+  .omk-subscribe-btn.animating .omk-speed-lines { animation: omkSpeedLines .9s ease-in-out .25s forwards; }
+  @keyframes omkSpeedLines {
+    0%, 100% { opacity: 0; }
+    20%, 70% { opacity: 0.45; }
+  }
 
   .omk-chapters { background: #fff; border-radius: 14px; padding: 16px; margin-top: 12px; }
   .omk-chapters-title { font-weight: 800; font-size: 14px; color: #4A3428; margin-bottom: 10px; }
@@ -705,9 +750,9 @@
 
 <div class="catbar-wrap">
   <div class="catbar" id="catbar">
-    <span class="cat-pill active" data-tab="comfort">COMFORT</span>
-    <span class="cat-pill" data-tab="omakase">OMAKASE</span>
+    <span class="cat-pill active" data-tab="omakase">OMAKASE</span>
     <span class="cat-pill" data-tab="signature">SIGNATURE</span>
+    <span class="cat-pill" data-tab="comfort">COMFORT</span>
   </div>
 </div>
 
@@ -746,7 +791,7 @@
   <div class="layout">
     <div class="menu-col">
 
-      <div class="tabpanel active" id="tab-comfort">
+      <div class="tabpanel" id="tab-comfort">
         <div class="group">
           <h2>🐱 วันนี้ไม่อยากเลือก</h2>
           <div class="menu-grid" id="surpriseGrid"></div>
@@ -770,7 +815,7 @@
         <div class="sig-panel" id="sigPanel"></div>
       </div>
 
-      <div class="tabpanel" id="tab-omakase">
+      <div class="tabpanel active" id="tab-omakase">
         <div class="omk-card">
           <div class="omk-title">OMAKASE</div>
           <div class="omk-sub">ซีรีส์ประจำสัปดาห์ของกาแฟแมวส้ม — ทุกสัปดาห์มี 1 Secret ใหม่ ที่แมวส้มคิด ทดลอง และตั้งใจทำเป็นพิเศษ</div>
@@ -789,7 +834,7 @@
                 <div class="omk-tier-check"><span class="ck">✓</span><span>ไม่ต้องเลือกเอง เซอร์ไพรส์ล้วน</span></div>
               </div>
             </div>
-            <button type="button" class="omk-tier-btn" id="omakaseSoloBtn">สั่งเลย</button>
+            <button type="button" class="omk-tier-btn" id="omakaseSoloBtn">+ เพิ่มลงตะกร้า</button>
             <div class="status-msg" style="margin:0 8px 12px;"></div>
           </div>
 
@@ -807,7 +852,7 @@
                 <div class="omk-tier-check"><span class="ck">✓</span><span>เลือกเมนูโปรดได้อีก 2 แก้ว</span></div>
               </div>
             </div>
-            <button type="button" class="omk-tier-btn" id="omakaseBtn">สั่งเลย</button>
+            <button type="button" class="omk-tier-btn" id="omakaseBtn">+ เพิ่มลงตะกร้า</button>
             <div class="status-msg" id="omakaseStatus" style="margin:0 8px 12px;"></div>
           </div>
 
@@ -824,16 +869,13 @@
                 <div class="omk-tier-check"><span class="ck">✓</span><span>กาแฟคุ้นเคยทุกวันที่เหลือ</span></div>
               </div>
             </div>
-            <button type="button" class="omk-tier-btn" id="omakaseFullWeekBtn">สั่งเลย</button>
+            <button type="button" class="omk-tier-btn" id="omakaseFullWeekBtn">+ เพิ่มลงตะกร้า</button>
             <div class="status-msg" id="omakaseFullWeekStatus" style="margin:0 8px 12px;"></div>
           </div>
           </div>
 
           <div class="omk-shared-sub">
-            <div class="omk-shared-sub-top">
-              <span class="omk-switch-label" style="text-align:left;">Always On Subscription</span>
-              <button type="button" class="omk-switch" id="omkSharedSwitch"></button>
-            </div>
+            <div class="omk-shared-sub-title">Always On Subscription</div>
             <div class="omk-shared-sub-desc">
               ไม่ต้องกดสั่งบ่อยๆ ถ้ารู้ว่าจะสั่งทุกสัปดาห์อยู่แล้ว<br>
               กด subscription เพื่อมีผล 1 เดือน<br>
@@ -844,6 +886,14 @@
               <button type="button" class="omk-shared-chip selected" data-tier="classic">CLASSIC</button>
               <button type="button" class="omk-shared-chip" data-tier="max">MAX</button>
             </div>
+
+            <button type="button" class="omk-subscribe-btn" id="omkSharedSwitch">
+              <span class="omk-sub-label-text" id="omkSubLabelText">Subscribe แมวส้ม 1 เดือน</span>
+              <span class="omk-cat-ears" aria-hidden="true">🐾</span>
+              <span class="omk-cat-runner" aria-hidden="true">🐱☕</span>
+              <span class="omk-speed-lines" aria-hidden="true"></span>
+            </button>
+            <div class="omk-subscribe-note">เรียกเก็บเงินสัปดาห์ละครั้ง</div>
             <div class="status-msg" id="omkSharedSubStatus" style="margin-top:8px;"></div>
           </div>
 
@@ -1569,7 +1619,7 @@
   });
 
   // ปัดซ้าย-ขวากลางหน้าจอเพื่อสลับ Comfort → Omakase → Signature ได้ ไม่ต้องกดปุ่มด้านบนอย่างเดียว
-  const SWIPE_TAB_ORDER = ['comfort', 'omakase', 'signature'];
+  const SWIPE_TAB_ORDER = ['omakase', 'signature', 'comfort'];
   (function initSwipeTabs() {
     const menuCol = document.querySelector('.menu-col');
     if (!menuCol) return;
@@ -1619,6 +1669,8 @@
   const deepLinkTab = new URLSearchParams(location.search).get('tab');
   if (deepLinkTab && document.getElementById('tab-' + deepLinkTab)) {
     selectTab(deepLinkTab);
+  } else {
+    selectTab('omakase'); // ค่าเริ่มต้นใหม่ — เปิดมาเจอ Omakase ก่อนเลย
   }
 
   document.getElementById('catbar').addEventListener('click', (e) => {
@@ -1684,7 +1736,7 @@
     if (!requireMember(statusEl, ' Classic')) return;
 
     addToCart({ kind: 'omakase_classic', name: 'Omakase Classic', price: 270, qty_locked: true });
-    markTierInCart('omkTierClassic', btn, 'สั่งเลย');
+    markTierInCart('omkTierClassic', btn, '+ เพิ่มลงตะกร้า');
     notifyShop('omakase_classic', getCustomerName(), 'เพิ่ม Omakase Classic ลงตะกร้า (270.-)');
   });
 
@@ -1701,7 +1753,7 @@
     }
 
     addToCart({ kind: 'omakase_solo', name: currentSecretItem.name, price: currentSecretItem.price, qty_locked: false });
-    markTierInCart('omkTierSolo', btn, 'สั่งเลย');
+    markTierInCart('omkTierSolo', btn, '+ เพิ่มลงตะกร้า');
     notifyShop('omakase_solo', getCustomerName(), `เพิ่ม Omakase Solo ลงตะกร้า — ${currentSecretItem.name} (${currentSecretItem.price}.-)`);
   });
 
@@ -1718,7 +1770,7 @@
     }
 
     addToCart({ kind: 'omakase_fullweek', name: 'Omakase Max (5 แก้ว)', price: 420, qty_locked: true });
-    markTierInCart('omkTierFullWeek', btn, 'สั่งเลย');
+    markTierInCart('omkTierFullWeek', btn, '+ เพิ่มลงตะกร้า');
     notifyShop('omakase_fullweek', getCustomerName(), 'เพิ่ม Omakase Max ลงตะกร้า (420.-, 5 แก้ว)');
   });
 
@@ -1771,10 +1823,14 @@
 
   async function initSharedOmkSwitch() {
     const sw = document.getElementById('omkSharedSwitch');
+    const labelEl = document.getElementById('omkSubLabelText');
     const statusEl = document.getElementById('omkSharedSubStatus');
+    const DEFAULT_LABEL = 'Subscribe แมวส้ม 1 เดือน';
+    const ON_LABEL = '✅ ยินดีด้วย คุณคือสมาชิกแมวส้ม';
 
     if (!memberId) {
       sw.classList.remove('on');
+      labelEl.textContent = DEFAULT_LABEL;
     } else {
       let activeTier = null;
       for (const [tier, cfg] of Object.entries(OMK_PROGRAM_BY_TIER)) {
@@ -1783,8 +1839,8 @@
         const { data: status } = await sb.from('member_program_status').select('active').eq('line_user_id', lineUserId).eq('program_id', programId).maybeSingle();
         if (status && status.active) { activeTier = tier; break; }
       }
-      if (activeTier) { omkSelectedTier = activeTier; sw.classList.add('on'); }
-      else { sw.classList.remove('on'); }
+      if (activeTier) { omkSelectedTier = activeTier; sw.classList.add('on'); labelEl.textContent = ON_LABEL; }
+      else { sw.classList.remove('on'); labelEl.textContent = DEFAULT_LABEL; }
     }
     renderSharedOmkChips();
 
@@ -1827,11 +1883,18 @@
       sw.onclick = null; // กันกดรัวระหว่างรอ
 
       if (turningOn) {
+        // แมวส้มวิ่งส่งกาแฟ 🐱☕ — เล่นอนิเมชั่นก่อน แล้วค่อยบันทึกจริง
+        sw.classList.add('animating');
+        await new Promise(resolve => setTimeout(resolve, 1150));
+        sw.classList.remove('animating');
+
         await setActiveOmkTier(omkSelectedTier);
+        labelEl.textContent = ON_LABEL;
         statusEl.className = 'status-msg success';
         statusEl.textContent = OMK_PROGRAM_BY_TIER[omkSelectedTier].successMsg;
       } else {
         await deactivateAllOmkTiers();
+        labelEl.textContent = DEFAULT_LABEL;
         statusEl.className = 'status-msg success';
         statusEl.textContent = 'ปิด Always On แล้วครับ';
       }
