@@ -487,26 +487,48 @@
   }
   .omk-tier {
     flex: 1 1 0;
-    background: #fff; border-radius: 14px; padding: 12px 8px 12px;
-    display: flex; flex-direction: column; align-items: center; text-align: center;
+    background: #fff; border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column; align-items: stretch; text-align: center;
     border: 2px solid transparent; transition: border-color .2s;
+    box-shadow: 0 3px 10px rgba(90,54,27,0.08);
   }
   .omk-tier.ordered { border-color: #4A9B5C; }
+  .omk-tier-header {
+    position: relative;
+    padding: 14px 8px 22px;
+    color: #fff;
+    clip-path: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%);
+  }
+  .omk-tier[id="omkTierSolo"] .omk-tier-header { background: linear-gradient(135deg, #C9A579, #A8825A); }
+  .omk-tier[id="omkTierClassic"] .omk-tier-header { background: linear-gradient(135deg, #F0894A, #E8621A); }
+  .omk-tier[id="omkTierFullWeek"] .omk-tier-header { background: linear-gradient(135deg, #6B4A2E, #4A3428); }
+  .omk-tier-badge {
+    font-size: 8.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    background: rgba(255,255,255,0.25); border-radius: 999px; padding: 3px 8px;
+    display: inline-block; margin-bottom: 5px;
+  }
+  .omk-tier-name { font-weight: 800; font-size: 15px; letter-spacing: 0.5px; color: #fff; }
   .omk-tier-top {
     display: flex; flex-direction: column; align-items: center;
-    min-height: 150px;
+    padding: 4px 8px 12px;
+    flex: 1;
   }
-  .omk-tier-name { font-weight: 800; font-size: 15px; color: #4A3428; letter-spacing: 0.5px; }
-  .omk-tier-price-text { font-weight: 700; font-size: 12px; color: #E8863A; margin-top: 4px; }
-  .omk-tier-desc { font-size: 10px; color: #8a6a4a; margin-top: 8px; line-height: 1.45; }
+  .omk-tier-price-text { font-weight: 800; font-size: 16px; color: #E8863A; margin-top: 10px; }
+  .omk-tier-checklist { margin-top: 10px; width: 100%; text-align: left; }
+  .omk-tier-check {
+    display: flex; align-items: flex-start; gap: 5px;
+    font-size: 9.5px; color: #6B5445; line-height: 1.4; margin-bottom: 5px;
+  }
+  .omk-tier-check .ck { flex-shrink: 0; width: 13px; height: 13px; border-radius: 50%; background: #4A9B5C;
+    color: #fff; font-size: 8px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
   .omk-tier-btn {
-    width: 100%; background: #E8863A; color: #fff; border: none;
-    padding: 9px 4px; border-radius: 999px; font-weight: 700; font-size: 11.5px; font-family: inherit;
+    width: calc(100% - 16px); margin: 0 8px 12px; background: #E8863A; color: #fff; border: none;
+    padding: 10px 4px; border-radius: 999px; font-weight: 700; font-size: 11.5px; font-family: inherit;
   }
   .omk-tier-btn.selected { background: #4A9B5C; }
   .omk-switch-row {
     display: flex; flex-direction: column; align-items: center; gap: 4px;
-    margin-top: 10px; padding-top: 10px; border-top: 1px solid #F0E4D8; width: 100%;
+    margin: 0 8px 12px; padding-top: 10px; border-top: 1px solid #F0E4D8; width: calc(100% - 16px);
   }
   .omk-switch-label { font-size: 10px; font-weight: 700; color: #4A3428; text-align: center; }
   .omk-switch-sub { display: block; font-size: 8.5px; font-weight: 400; color: #A8876F; margin-top: 2px; line-height: 1.3; }
@@ -720,10 +742,17 @@
 
           <div class="omk-tier-row">
           <div class="omk-tier" id="omkTierSolo">
-            <div class="omk-tier-top">
+            <div class="omk-tier-header">
+              <div class="omk-tier-badge">ลองก่อน</div>
               <div class="omk-tier-name">SOLO</div>
+            </div>
+            <div class="omk-tier-top">
               <div class="omk-tier-price-text">135 บาท</div>
-              <div class="omk-tier-desc">1 แก้ว — ลองชิม Secret ประจำสัปดาห์นี้เลย</div>
+              <div class="omk-tier-checklist">
+                <div class="omk-tier-check"><span class="ck">✓</span><span>1 แก้ว / สัปดาห์</span></div>
+                <div class="omk-tier-check"><span class="ck">✓</span><span>ลองชิม Secret ประจำสัปดาห์นี้</span></div>
+                <div class="omk-tier-check"><span class="ck">✓</span><span>ไม่ต้องเลือกเอง เซอร์ไพรส์ล้วน</span></div>
+              </div>
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseSoloBtn">สั่งเลย</button>
             <div class="omk-switch-row">
@@ -735,10 +764,17 @@
           </div>
 
           <div class="omk-tier" id="omkTierClassic">
-            <div class="omk-tier-top">
+            <div class="omk-tier-header">
+              <div class="omk-tier-badge">⭐ แนะนำ</div>
               <div class="omk-tier-name">CLASSIC</div>
+            </div>
+            <div class="omk-tier-top">
               <div class="omk-tier-price-text">270 บาท</div>
-              <div class="omk-tier-desc">3 แก้ว — Secret 1 แก้ว บวกอีก 2 แก้วให้เลือก</div>
+              <div class="omk-tier-checklist">
+                <div class="omk-tier-check"><span class="ck">✓</span><span>3 แก้ว / สัปดาห์</span></div>
+                <div class="omk-tier-check"><span class="ck">✓</span><span>Secret 1 แก้ว</span></div>
+                <div class="omk-tier-check"><span class="ck">✓</span><span>เลือกเมนูโปรดได้อีก 2 แก้ว</span></div>
+              </div>
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseBtn">สั่งเลย</button>
             <div class="omk-switch-row">
@@ -750,10 +786,17 @@
           </div>
 
           <div class="omk-tier" id="omkTierFullWeek">
-            <div class="omk-tier-top">
+            <div class="omk-tier-header">
+              <div class="omk-tier-badge">คุ้มสุด</div>
               <div class="omk-tier-name">MAX</div>
+            </div>
+            <div class="omk-tier-top">
               <div class="omk-tier-price-text">420 บาท</div>
-              <div class="omk-tier-desc">5 แก้ว — Secret 1 แก้ว บวกกาแฟคุ้นเคยทุกวัน</div>
+              <div class="omk-tier-checklist">
+                <div class="omk-tier-check"><span class="ck">✓</span><span>5 แก้ว / สัปดาห์</span></div>
+                <div class="omk-tier-check"><span class="ck">✓</span><span>Secret 1 แก้ว</span></div>
+                <div class="omk-tier-check"><span class="ck">✓</span><span>กาแฟคุ้นเคยทุกวันที่เหลือ</span></div>
+              </div>
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseFullWeekBtn">สั่งเลย</button>
             <div class="omk-switch-row">
