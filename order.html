@@ -481,17 +481,21 @@
     padding: 9px 18px; border-radius: 999px; font-size: 13px;
   }
   .omk-shared-sub {
-    background: #fff; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
+    background: #fff; border-radius: 14px; padding: 14px 16px; margin-top: 26px; margin-bottom: 14px;
   }
   .omk-shared-sub-top {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
+  .omk-shared-sub-desc {
+    font-size: 11.5px; color: #8a6a4a; line-height: 1.7; margin-top: 10px;
+  }
   .omk-shared-sub-chips {
-    display: flex; gap: 6px; margin-top: 10px;
+    display: flex; gap: 6px; margin-top: 12px;
   }
   .omk-shared-chip {
     flex: 1; padding: 8px 4px; border-radius: 999px; border: 2px solid #F0E4D8;
     background: #fff; color: #8a6a4a; font-size: 11px; font-weight: 700; font-family: inherit;
+    transition: border-color .15s, background .15s, color .15s;
   }
   .omk-shared-chip.selected {
     border-color: #E8863A; background: #FFF3E8; color: #E8863A;
@@ -499,28 +503,28 @@
   .omk-tier-row {
     display: flex;
     align-items: flex-end;
-    gap: 6px;
+    gap: 4px;
     width: 100vw;
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
-    padding: 0 6px;
+    padding: 20px 4px 0;
   }
   .omk-tier {
-    flex: 1 1 0;
     background: #fff; border-radius: 16px; overflow: hidden;
     display: flex; flex-direction: column; align-items: stretch; text-align: center;
     border: 2px solid transparent; transition: border-color .2s, transform .2s, box-shadow .2s;
     box-shadow: 0 3px 10px rgba(90,54,27,0.08);
     position: relative;
   }
-  .omk-tier-solo { margin-top: 30px; }
-  .omk-tier-classic { margin-top: 8px; }
-  .omk-tier-max { margin-top: 0; }
-  .omk-tier-tapped {
-    transform: translateY(-10px) scale(1.03);
-    box-shadow: 0 12px 26px rgba(90,54,27,0.25);
-    z-index: 2;
-  }
+  /* ขนาดของแต่ละแพคต่างกันจริง (ไม่ใช่แค่ตำแหน่ง) — Solo เล็กสุด, Classic ใหญ่สุด (แนะนำ), Max รองลงมา
+     ตั้งจุดหมุนไว้ที่ล่างกลาง กันไม่ให้การ์ดขยับหนีขอบตอนสเกล */
+  .omk-tier-solo { flex: 0.82 1 0; transform: scale(0.86); transform-origin: bottom center; margin-top: 26px; }
+  .omk-tier-classic { flex: 1.12 1 0; transform: scale(1.06); transform-origin: bottom center; margin-top: 0; z-index: 1; }
+  .omk-tier-max { flex: 1 1 0; transform: scale(0.96); transform-origin: bottom center; margin-top: 6px; }
+  /* กด active แล้วยกขึ้น+ขยายอีกนิด แต่ต้องคูณจากขนาดฐานของตัวเอง กันไม่ให้ Solo ที่ active ดูใหญ่เกิน Classic ที่เฉยๆ */
+  .omk-tier-solo.omk-tier-tapped { transform: translateY(-8px) scale(0.92); box-shadow: 0 12px 26px rgba(90,54,27,0.25); z-index: 3; }
+  .omk-tier-classic.omk-tier-tapped { transform: translateY(-8px) scale(1.12); box-shadow: 0 12px 26px rgba(90,54,27,0.25); z-index: 3; }
+  .omk-tier-max.omk-tier-tapped { transform: translateY(-8px) scale(1.02); box-shadow: 0 12px 26px rgba(90,54,27,0.25); z-index: 3; }
   .omk-tier.ordered { border-color: #4A9B5C; }
   .omk-tier-header {
     position: relative;
@@ -536,13 +540,15 @@
     background: rgba(255,255,255,0.25); border-radius: 999px; padding: 3px 8px;
     display: inline-block; margin-bottom: 5px;
   }
-  .omk-tier-name { font-weight: 800; font-size: 15px; letter-spacing: 0.5px; color: #fff; }
+  .omk-tier-cupcount { font-weight: 900; font-size: 26px; line-height: 1.1; color: #fff; letter-spacing: 0.3px; }
+  .omk-tier-name { font-weight: 700; font-size: 11px; letter-spacing: 1.5px; color: rgba(255,255,255,0.85); margin-top: 2px; }
   .omk-tier-top {
     display: flex; flex-direction: column; align-items: center;
     padding: 4px 8px 12px;
     flex: 1;
   }
   .omk-tier-price-text { font-weight: 800; font-size: 16px; color: #E8863A; margin-top: 10px; }
+  .omk-tier-perweek { font-weight: 600; font-size: 10px; color: #A8876F; margin-left: 2px; }
   .omk-tier-checklist { margin-top: 10px; width: 100%; text-align: left; }
   .omk-tier-check {
     display: flex; align-items: flex-start; gap: 5px;
@@ -769,27 +775,14 @@
           <div class="omk-title">OMAKASE</div>
           <div class="omk-sub">ซีรีส์ประจำสัปดาห์ของกาแฟแมวส้ม — ทุกสัปดาห์มี 1 Secret ใหม่ ที่แมวส้มคิด ทดลอง และตั้งใจทำเป็นพิเศษ</div>
 
-          <div class="omk-shared-sub">
-            <div class="omk-shared-sub-top">
-              <span class="omk-switch-label" style="text-align:left;">Always On Subscription<span class="omk-switch-sub" style="margin-top:1px;">ไม่ต้องกดสั่งทุกสัปดาห์ — เลือกแพ็คที่จะสมัคร แล้วเปิดสวิตช์นี้</span></span>
-              <button type="button" class="omk-switch" id="omkSharedSwitch"></button>
-            </div>
-            <div class="omk-shared-sub-chips" id="omkSharedSubChips">
-              <button type="button" class="omk-shared-chip" data-tier="solo">SOLO</button>
-              <button type="button" class="omk-shared-chip selected" data-tier="classic">CLASSIC</button>
-              <button type="button" class="omk-shared-chip" data-tier="max">MAX</button>
-            </div>
-            <div class="status-msg" id="omkSharedSubStatus" style="margin-top:8px;"></div>
-          </div>
-
           <div class="omk-tier-row">
-          <div class="omk-tier omk-tier-solo" id="omkTierSolo">
+          <div class="omk-tier omk-tier-solo" id="omkTierSolo" data-tier="solo">
             <div class="omk-tier-header">
-              <div class="omk-tier-badge">ลองก่อน</div>
+              <div class="omk-tier-cupcount">1 แก้ว</div>
               <div class="omk-tier-name">SOLO</div>
             </div>
             <div class="omk-tier-top">
-              <div class="omk-tier-price-text">135 บาท</div>
+              <div class="omk-tier-price-text">135 บาท<span class="omk-tier-perweek">/สัปดาห์</span></div>
               <div class="omk-tier-checklist">
                 <div class="omk-tier-check"><span class="ck">✓</span><span>1 แก้ว / สัปดาห์</span></div>
                 <div class="omk-tier-check"><span class="ck">✓</span><span>ลองชิม Secret ประจำสัปดาห์นี้</span></div>
@@ -800,13 +793,14 @@
             <div class="status-msg" style="margin:0 8px 12px;"></div>
           </div>
 
-          <div class="omk-tier omk-tier-classic" id="omkTierClassic">
+          <div class="omk-tier omk-tier-classic" id="omkTierClassic" data-tier="classic">
             <div class="omk-tier-header">
               <div class="omk-tier-badge">⭐ แนะนำ</div>
+              <div class="omk-tier-cupcount">3 แก้ว</div>
               <div class="omk-tier-name">CLASSIC</div>
             </div>
             <div class="omk-tier-top">
-              <div class="omk-tier-price-text">270 บาท</div>
+              <div class="omk-tier-price-text">270 บาท<span class="omk-tier-perweek">/สัปดาห์</span></div>
               <div class="omk-tier-checklist">
                 <div class="omk-tier-check"><span class="ck">✓</span><span>3 แก้ว / สัปดาห์</span></div>
                 <div class="omk-tier-check"><span class="ck">✓</span><span>Secret 1 แก้ว</span></div>
@@ -817,13 +811,13 @@
             <div class="status-msg" id="omakaseStatus" style="margin:0 8px 12px;"></div>
           </div>
 
-          <div class="omk-tier omk-tier-max" id="omkTierFullWeek">
+          <div class="omk-tier omk-tier-max" id="omkTierFullWeek" data-tier="max">
             <div class="omk-tier-header">
-              <div class="omk-tier-badge">คุ้มสุด</div>
+              <div class="omk-tier-cupcount">5 แก้ว</div>
               <div class="omk-tier-name">MAX</div>
             </div>
             <div class="omk-tier-top">
-              <div class="omk-tier-price-text">420 บาท</div>
+              <div class="omk-tier-price-text">420 บาท<span class="omk-tier-perweek">/สัปดาห์</span></div>
               <div class="omk-tier-checklist">
                 <div class="omk-tier-check"><span class="ck">✓</span><span>5 แก้ว / สัปดาห์</span></div>
                 <div class="omk-tier-check"><span class="ck">✓</span><span>Secret 1 แก้ว</span></div>
@@ -833,6 +827,24 @@
             <button type="button" class="omk-tier-btn" id="omakaseFullWeekBtn">สั่งเลย</button>
             <div class="status-msg" id="omakaseFullWeekStatus" style="margin:0 8px 12px;"></div>
           </div>
+          </div>
+
+          <div class="omk-shared-sub">
+            <div class="omk-shared-sub-top">
+              <span class="omk-switch-label" style="text-align:left;">Always On Subscription</span>
+              <button type="button" class="omk-switch" id="omkSharedSwitch"></button>
+            </div>
+            <div class="omk-shared-sub-desc">
+              ไม่ต้องกดสั่งบ่อยๆ ถ้ารู้ว่าจะสั่งทุกสัปดาห์อยู่แล้ว<br>
+              กด subscription เพื่อมีผล 1 เดือน<br>
+              การเลือกนี้จะช่วยให้ร้านสามารถเตรียมวัตถุดิบได้ดียิ่งขึ้น
+            </div>
+            <div class="omk-shared-sub-chips" id="omkSharedSubChips">
+              <button type="button" class="omk-shared-chip" data-tier="solo">SOLO</button>
+              <button type="button" class="omk-shared-chip selected" data-tier="classic">CLASSIC</button>
+              <button type="button" class="omk-shared-chip" data-tier="max">MAX</button>
+            </div>
+            <div class="status-msg" id="omkSharedSubStatus" style="margin-top:8px;"></div>
           </div>
 
           <div id="omkChapters"></div>
@@ -1723,6 +1735,10 @@
     document.querySelectorAll('.omk-shared-chip').forEach(chip => {
       chip.classList.toggle('selected', chip.dataset.tier === omkSelectedTier);
     });
+    // ซิงก์การ์ดที่ยกขึ้น (active) ให้ตรงกับ tier ที่เลือกไว้เสมอ ไม่ว่าจะเลือกจากชิพหรือแตะการ์ดโดยตรง
+    document.querySelectorAll('.omk-tier').forEach(tierEl => {
+      tierEl.classList.toggle('omk-tier-tapped', tierEl.dataset.tier === omkSelectedTier);
+    });
   }
 
   async function getProgramId(programName) {
@@ -1829,12 +1845,16 @@
     initSharedOmkSwitch();
   }
 
-  // เอฟเฟกต์ "ยกขึ้น" ให้เห็นชัดว่าการ์ดไหนกำลังแอคทีฟอยู่ ตอนแตะเลือก
+  // แตะการ์ดไหน ยกการ์ดนั้นขึ้น + ซิงก์ชิพเลือกแพ็คด้านล่างให้ตรงกันด้วย
   document.querySelectorAll('.omk-tier').forEach(tierEl => {
     tierEl.addEventListener('click', (e) => {
       if (e.target.closest('.omk-tier-btn')) return; // อย่าไปชนกับปุ่มสั่งเลย ปล่อยให้ทำงานตามปกติ
-      document.querySelectorAll('.omk-tier').forEach(t => t.classList.remove('omk-tier-tapped'));
-      tierEl.classList.add('omk-tier-tapped');
+      omkSelectedTier = tierEl.dataset.tier;
+      renderSharedOmkChips();
+      const sw = document.getElementById('omkSharedSwitch');
+      if (sw && sw.classList.contains('on') && memberId) {
+        setActiveOmkTier(omkSelectedTier).then(() => renderProgramBadges());
+      }
     });
   });
 
