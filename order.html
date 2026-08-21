@@ -480,17 +480,46 @@
     background: #fff; color: #E8863A; border: none; font-weight: 700;
     padding: 9px 18px; border-radius: 999px; font-size: 13px;
   }
+  .omk-shared-sub {
+    background: #fff; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  .omk-shared-sub-top {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .omk-shared-sub-chips {
+    display: flex; gap: 6px; margin-top: 10px;
+  }
+  .omk-shared-chip {
+    flex: 1; padding: 8px 4px; border-radius: 999px; border: 2px solid #F0E4D8;
+    background: #fff; color: #8a6a4a; font-size: 11px; font-weight: 700; font-family: inherit;
+  }
+  .omk-shared-chip.selected {
+    border-color: #E8863A; background: #FFF3E8; color: #E8863A;
+  }
   .omk-tier-row {
     display: flex;
-    align-items: stretch;
-    gap: 8px;
+    align-items: flex-end;
+    gap: 6px;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    padding: 0 6px;
   }
   .omk-tier {
     flex: 1 1 0;
     background: #fff; border-radius: 16px; overflow: hidden;
     display: flex; flex-direction: column; align-items: stretch; text-align: center;
-    border: 2px solid transparent; transition: border-color .2s;
+    border: 2px solid transparent; transition: border-color .2s, transform .2s, box-shadow .2s;
     box-shadow: 0 3px 10px rgba(90,54,27,0.08);
+    position: relative;
+  }
+  .omk-tier-solo { margin-top: 30px; }
+  .omk-tier-classic { margin-top: 8px; }
+  .omk-tier-max { margin-top: 0; }
+  .omk-tier-tapped {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: 0 12px 26px rgba(90,54,27,0.25);
+    z-index: 2;
   }
   .omk-tier.ordered { border-color: #4A9B5C; }
   .omk-tier-header {
@@ -740,8 +769,21 @@
           <div class="omk-title">OMAKASE</div>
           <div class="omk-sub">ซีรีส์ประจำสัปดาห์ของกาแฟแมวส้ม — ทุกสัปดาห์มี 1 Secret ใหม่ ที่แมวส้มคิด ทดลอง และตั้งใจทำเป็นพิเศษ</div>
 
+          <div class="omk-shared-sub">
+            <div class="omk-shared-sub-top">
+              <span class="omk-switch-label" style="text-align:left;">Always On Subscription<span class="omk-switch-sub" style="margin-top:1px;">ไม่ต้องกดสั่งทุกสัปดาห์ — เลือกแพ็คที่จะสมัคร แล้วเปิดสวิตช์นี้</span></span>
+              <button type="button" class="omk-switch" id="omkSharedSwitch"></button>
+            </div>
+            <div class="omk-shared-sub-chips" id="omkSharedSubChips">
+              <button type="button" class="omk-shared-chip" data-tier="solo">SOLO</button>
+              <button type="button" class="omk-shared-chip selected" data-tier="classic">CLASSIC</button>
+              <button type="button" class="omk-shared-chip" data-tier="max">MAX</button>
+            </div>
+            <div class="status-msg" id="omkSharedSubStatus" style="margin-top:8px;"></div>
+          </div>
+
           <div class="omk-tier-row">
-          <div class="omk-tier" id="omkTierSolo">
+          <div class="omk-tier omk-tier-solo" id="omkTierSolo">
             <div class="omk-tier-header">
               <div class="omk-tier-badge">ลองก่อน</div>
               <div class="omk-tier-name">SOLO</div>
@@ -755,15 +797,10 @@
               </div>
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseSoloBtn">สั่งเลย</button>
-            <div class="omk-switch-row">
-              <span class="omk-switch-label">Always On<span class="omk-switch-sub">Subscription<br>ไม่ต้องกดสั่งทุกวีค</span></span>
-              <button type="button" class="omk-switch" id="omakaseSoloSwitch"></button>
-            </div>
-            <div class="status-msg" id="omakaseSoloSwitchStatus" style="margin-top:10px;"></div>
-            <div class="status-msg" style="margin-top:10px;"></div>
+            <div class="status-msg" style="margin:0 8px 12px;"></div>
           </div>
 
-          <div class="omk-tier" id="omkTierClassic">
+          <div class="omk-tier omk-tier-classic" id="omkTierClassic">
             <div class="omk-tier-header">
               <div class="omk-tier-badge">⭐ แนะนำ</div>
               <div class="omk-tier-name">CLASSIC</div>
@@ -777,15 +814,10 @@
               </div>
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseBtn">สั่งเลย</button>
-            <div class="omk-switch-row">
-              <span class="omk-switch-label">Always On<span class="omk-switch-sub">Subscription<br>ไม่ต้องกดสั่งทุกวีค</span></span>
-              <button type="button" class="omk-switch" id="omakaseClassicSwitch"></button>
-            </div>
-            <div class="status-msg" id="omakaseClassicSwitchStatus" style="margin-top:10px;"></div>
-            <div class="status-msg" id="omakaseStatus" style="margin-top:10px;"></div>
+            <div class="status-msg" id="omakaseStatus" style="margin:0 8px 12px;"></div>
           </div>
 
-          <div class="omk-tier" id="omkTierFullWeek">
+          <div class="omk-tier omk-tier-max" id="omkTierFullWeek">
             <div class="omk-tier-header">
               <div class="omk-tier-badge">คุ้มสุด</div>
               <div class="omk-tier-name">MAX</div>
@@ -799,12 +831,7 @@
               </div>
             </div>
             <button type="button" class="omk-tier-btn" id="omakaseFullWeekBtn">สั่งเลย</button>
-            <div class="omk-switch-row">
-              <span class="omk-switch-label">Always On<span class="omk-switch-sub">Subscription<br>ไม่ต้องกดสั่งทุกวีค</span></span>
-              <button type="button" class="omk-switch" id="omakaseAlwaysOnSwitch"></button>
-            </div>
-            <div class="status-msg" id="omakaseAlwaysOnStatus" style="margin-top:10px;"></div>
-            <div class="status-msg" id="omakaseFullWeekStatus" style="margin-top:10px;"></div>
+            <div class="status-msg" id="omakaseFullWeekStatus" style="margin:0 8px 12px;"></div>
           </div>
           </div>
 
@@ -1683,28 +1710,82 @@
     notifyShop('omakase_fullweek', getCustomerName(), 'เพิ่ม Omakase Max ลงตะกร้า (420.-, 5 แก้ว)');
   });
 
-  // สวิตช์ "Always On" ต่อแพ็คเกจ — ผูกกับ subscription program แยกกันของแต่ละ tier (Solo/Classic/Full Week) ตัวเดียวกับที่ badge ใช้อยู่แล้ว
-  const OMK_SWITCH_CONFIG = [
-    { switchId: 'omakaseSoloSwitch',    statusId: 'omakaseSoloSwitchStatus',    programName: 'Omakase Solo',      successMsg: '✅ เปิด Always On (Solo) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 135 บาท/สัปดาห์ผ่านแชทนะครับ' },
-    { switchId: 'omakaseClassicSwitch', statusId: 'omakaseClassicSwitchStatus', programName: 'Omakase Classic',   successMsg: '✅ เปิด Always On (Classic) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 270 บาท/สัปดาห์ผ่านแชทนะครับ' },
-    { switchId: 'omakaseAlwaysOnSwitch', statusId: 'omakaseAlwaysOnStatus',     programName: 'Omakase Max', successMsg: '✅ เปิด Always On แล้ว! 5 แก้ว/สัปดาห์ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 420 บาท/สัปดาห์ผ่านแชทนะครับ' },
-  ];
+  // สวิตช์ "Always On" แบบเดียว ใช้ร่วมกันทั้ง 3 แพ็ค — เลือก tier จาก chip แล้วเปิดสวิตช์เดียว
+  // (โปรแกรมยังคง mutual-exclusive เหมือนเดิม เปิดแพ็คนึงจะปิดอีก 2 แพ็คให้อัตโนมัติ)
+  const OMK_PROGRAM_BY_TIER = {
+    solo:    { programName: 'Omakase Solo',    successMsg: '✅ เปิด Always On (Solo) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 135 บาท/สัปดาห์ผ่านแชทนะครับ' },
+    classic: { programName: 'Omakase Classic', successMsg: '✅ เปิด Always On (Classic) แล้ว! บาริสต้าจะดูแลให้ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 270 บาท/สัปดาห์ผ่านแชทนะครับ' },
+    max:     { programName: 'Omakase Max',     successMsg: '✅ เปิด Always On (Max) แล้ว! 5 แก้ว/สัปดาห์ทุกสัปดาห์ แล้วแจ้งเก็บเงิน 420 บาท/สัปดาห์ผ่านแชทนะครับ' },
+  };
+  let omkSelectedTier = 'classic';
 
-  async function initOmkSwitch(cfg) {
-    const sw = document.getElementById(cfg.switchId);
-    const statusEl = document.getElementById(cfg.statusId);
-    if (!memberId) { sw.classList.remove('on'); return; }
+  function renderSharedOmkChips() {
+    document.querySelectorAll('.omk-shared-chip').forEach(chip => {
+      chip.classList.toggle('selected', chip.dataset.tier === omkSelectedTier);
+    });
+  }
 
-    const { data: program } = await sb.from('subscription_programs').select('id').eq('name', cfg.programName).maybeSingle();
-    if (!program) return;
+  async function getProgramId(programName) {
+    const { data } = await sb.from('subscription_programs').select('id').eq('name', programName).maybeSingle();
+    return data ? data.id : null;
+  }
 
-    const { data: status } = await sb
-      .from('member_program_status')
-      .select('active')
-      .eq('line_user_id', lineUserId)
-      .eq('program_id', program.id)
-      .maybeSingle();
-    sw.classList.toggle('on', !!(status && status.active));
+  async function setActiveOmkTier(tier) {
+    for (const [t, cfg] of Object.entries(OMK_PROGRAM_BY_TIER)) {
+      const programId = await getProgramId(cfg.programName);
+      if (!programId) continue;
+      await sb.from('member_program_status').upsert(
+        { line_user_id: lineUserId, program_id: programId, active: t === tier, updated_at: new Date().toISOString() },
+        { onConflict: 'line_user_id,program_id' }
+      );
+    }
+    notifyShop('always_on', getCustomerName(), `เปิด Always On — ${OMK_PROGRAM_BY_TIER[tier].programName}`);
+  }
+
+  async function deactivateAllOmkTiers() {
+    for (const cfg of Object.values(OMK_PROGRAM_BY_TIER)) {
+      const programId = await getProgramId(cfg.programName);
+      if (!programId) continue;
+      await sb.from('member_program_status').upsert(
+        { line_user_id: lineUserId, program_id: programId, active: false, updated_at: new Date().toISOString() },
+        { onConflict: 'line_user_id,program_id' }
+      );
+    }
+  }
+
+  async function initSharedOmkSwitch() {
+    const sw = document.getElementById('omkSharedSwitch');
+    const statusEl = document.getElementById('omkSharedSubStatus');
+
+    if (!memberId) {
+      sw.classList.remove('on');
+    } else {
+      let activeTier = null;
+      for (const [tier, cfg] of Object.entries(OMK_PROGRAM_BY_TIER)) {
+        const programId = await getProgramId(cfg.programName);
+        if (!programId) continue;
+        const { data: status } = await sb.from('member_program_status').select('active').eq('line_user_id', lineUserId).eq('program_id', programId).maybeSingle();
+        if (status && status.active) { activeTier = tier; break; }
+      }
+      if (activeTier) { omkSelectedTier = activeTier; sw.classList.add('on'); }
+      else { sw.classList.remove('on'); }
+    }
+    renderSharedOmkChips();
+
+    document.querySelectorAll('.omk-shared-chip').forEach(chip => {
+      chip.onclick = async () => {
+        const newTier = chip.dataset.tier;
+        if (newTier === omkSelectedTier) return;
+        omkSelectedTier = newTier;
+        renderSharedOmkChips();
+        if (sw.classList.contains('on') && memberId) {
+          await setActiveOmkTier(newTier);
+          statusEl.className = 'status-msg success';
+          statusEl.textContent = OMK_PROGRAM_BY_TIER[newTier].successMsg;
+          renderProgramBadges();
+        }
+      };
+    });
 
     sw.onclick = async () => {
       statusEl.className = 'status-msg';
@@ -1729,46 +1810,33 @@
       const turningOn = !sw.classList.contains('on');
       sw.onclick = null; // กันกดรัวระหว่างรอ
 
-      const { error } = await sb.from('member_program_status').upsert(
-        { line_user_id: lineUserId, program_id: program.id, active: turningOn, updated_at: new Date().toISOString() },
-        { onConflict: 'line_user_id,program_id' }
-      );
-
-      if (error) {
-        statusEl.className = 'status-msg error';
-        statusEl.textContent = `บันทึกไม่สำเร็จ: ${error.message}`;
-      } else {
-        sw.classList.toggle('on', turningOn);
+      if (turningOn) {
+        await setActiveOmkTier(omkSelectedTier);
         statusEl.className = 'status-msg success';
-        statusEl.textContent = turningOn ? cfg.successMsg : 'ปิด Always On แล้วครับ';
-        if (turningOn) notifyShop('always_on', getCustomerName(), `เปิด Always On — ${cfg.programName}`);
-
-        // เลือกได้แค่โปรแกรมเดียว — เปิดอันนี้แล้วต้องปิดอันอื่นอัตโนมัติ ไม่ใช่เปิดซ้อนกัน
-        if (turningOn) {
-          const others = OMK_SWITCH_CONFIG.filter(c => c.programName !== cfg.programName);
-          for (const other of others) {
-            const { data: otherProgram } = await sb.from('subscription_programs').select('id').eq('name', other.programName).maybeSingle();
-            if (!otherProgram) continue;
-            await sb.from('member_program_status').upsert(
-              { line_user_id: lineUserId, program_id: otherProgram.id, active: false, updated_at: new Date().toISOString() },
-              { onConflict: 'line_user_id,program_id' }
-            );
-            const otherSw = document.getElementById(other.switchId);
-            const otherStatusEl = document.getElementById(other.statusId);
-            if (otherSw) otherSw.classList.remove('on');
-            if (otherStatusEl) { otherStatusEl.className = 'status-msg'; otherStatusEl.textContent = ''; }
-          }
-        }
-
-        renderProgramBadges();
+        statusEl.textContent = OMK_PROGRAM_BY_TIER[omkSelectedTier].successMsg;
+      } else {
+        await deactivateAllOmkTiers();
+        statusEl.className = 'status-msg success';
+        statusEl.textContent = 'ปิด Always On แล้วครับ';
       }
-      initOmkSwitch(cfg); // ผูก onclick ใหม่
+      sw.classList.toggle('on', turningOn);
+      renderProgramBadges();
+      initSharedOmkSwitch(); // ผูก onclick ใหม่
     };
   }
 
   function initAllOmkSwitches() {
-    OMK_SWITCH_CONFIG.forEach(initOmkSwitch);
+    initSharedOmkSwitch();
   }
+
+  // เอฟเฟกต์ "ยกขึ้น" ให้เห็นชัดว่าการ์ดไหนกำลังแอคทีฟอยู่ ตอนแตะเลือก
+  document.querySelectorAll('.omk-tier').forEach(tierEl => {
+    tierEl.addEventListener('click', (e) => {
+      if (e.target.closest('.omk-tier-btn')) return; // อย่าไปชนกับปุ่มสั่งเลย ปล่อยให้ทำงานตามปกติ
+      document.querySelectorAll('.omk-tier').forEach(t => t.classList.remove('omk-tier-tapped'));
+      tierEl.classList.add('omk-tier-tapped');
+    });
+  });
 
   function openImageSheet(item) {
     if (!item.image_url) return; // ไม่มีรูป ไม่ต้องเปิด
