@@ -23,14 +23,16 @@
   .header-banner {
     position: relative; overflow: hidden;
     margin: 12px 16px 16px; border-radius: 18px;
-    height: 140px;
-    background-size: cover; background-position: center;
     box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-    transition: background-image 0.2s;
+    cursor: zoom-in;
+    background: #FFF3E8;
+  }
+  .header-banner img {
+    display: block; width: 100%; height: auto; max-height: 60vh; object-fit: contain;
   }
   .header-banner::after {
     content: ''; position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%);
+    background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.55) 100%);
   }
   .header-banner-label {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 12px 18px;
@@ -674,7 +676,8 @@
   <div class="badge-modal-hint">ปัดซ้าย-ขวาเพื่อหมุนดูรอบด้าน</div>
 </div>
 
-<div class="header-banner" id="headerBanner" style="background-image:url('https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png')">
+<div class="header-banner" id="headerBanner">
+  <img id="headerBannerImg" src="https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png" alt="banner">
   <div class="header-banner-label">
     <div class="header-banner-title" id="headerBannerTitle">COMFORT</div>
     <div class="header-banner-sub" id="headerBannerSub">เมนูประจำร้าน 14 แก้ว</div>
@@ -1466,11 +1469,22 @@
       bannerEl.style.display = 'none';
     } else if (b) {
       bannerEl.style.display = '';
-      bannerEl.style.backgroundImage = `url('${b.img}')`;
+      document.getElementById('headerBannerImg').src = b.img;
       document.getElementById('headerBannerTitle').textContent = b.title;
       document.getElementById('headerBannerSub').textContent = b.sub;
     }
   }
+
+  document.getElementById('headerBanner').addEventListener('click', () => {
+    const imgEl = document.getElementById('imgSheetImg');
+    imgEl.src = document.getElementById('headerBannerImg').src;
+    imgEl.classList.add('contain-img');
+    document.getElementById('imgSheetName').textContent = '';
+    document.getElementById('imgSheetPrice').textContent = '';
+    document.getElementById('imgSheetSelectBtn').style.display = 'none';
+    document.getElementById('imgSheetOverlay').dataset.itemId = '';
+    document.getElementById('imgSheetOverlay').classList.add('open');
+  });
 
   // ปัดซ้าย-ขวากลางหน้าจอเพื่อสลับ Comfort → Omakase → Signature ได้ ไม่ต้องกดปุ่มด้านบนอย่างเดียว
   const SWIPE_TAB_ORDER = ['comfort', 'omakase', 'signature'];
@@ -1721,6 +1735,7 @@
     document.getElementById('imgSheetName').textContent = item.name;
     const total = item.fixed_bean_name ? item.price + beanSurcharge(item.fixed_bean_name) : item.price;
     document.getElementById('imgSheetPrice').textContent = tabGroupFor(item.category) === 'surprise' ? '70-85 บาท' : (total + ' บาท');
+    document.getElementById('imgSheetSelectBtn').style.display = '';
     document.getElementById('imgSheetOverlay').dataset.itemId = item.id;
     imgSheetCurrentItem = item;
     document.getElementById('imgSheetOverlay').classList.add('open');
