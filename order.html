@@ -564,6 +564,11 @@
     padding: 10px 4px; border-radius: 999px; font-weight: 700; font-size: 11.5px; font-family: inherit;
   }
   .omk-tier-btn.selected { background: #4A9B5C; }
+  .omk-tier-btn.confirm-pending { background: #D64545; animation: omkConfirmPulse 0.6s ease-in-out infinite; }
+  @keyframes omkConfirmPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
   .omk-switch-row {
     display: flex; flex-direction: column; align-items: center; gap: 4px;
     margin: 0 8px 12px; padding-top: 10px; border-top: 1px solid #F0E4D8; width: calc(100% - 16px);
@@ -1729,11 +1734,31 @@
     return false;
   }
 
+  // เพิ่มลงตะกร้าต้องกด 2 ครั้งยืนยัน (double confirm) กันกดพลาด — กดแรกโชว์ "แตะอีกครั้งเพื่อยืนยัน" กดสองค่อยเพิ่มจริง
+  const OMK_ARMED = { omakaseBtn: false, omakaseSoloBtn: false, omakaseFullWeekBtn: false };
+  function armDoubleConfirm(btnId) {
+    const btn = document.getElementById(btnId);
+    OMK_ARMED[btnId] = true;
+    btn.textContent = 'แตะอีกครั้งเพื่อยืนยัน';
+    btn.classList.add('confirm-pending');
+    setTimeout(() => {
+      if (OMK_ARMED[btnId]) {
+        OMK_ARMED[btnId] = false;
+        btn.textContent = '+ เพิ่มลงตะกร้า';
+        btn.classList.remove('confirm-pending');
+      }
+    }, 3000);
+  }
+
   document.getElementById('omakaseBtn').addEventListener('click', () => {
     const btn = document.getElementById('omakaseBtn');
     const statusEl = document.getElementById('omakaseStatus');
     statusEl.className = 'status-msg'; statusEl.textContent = '';
     if (!requireMember(statusEl, ' Classic')) return;
+
+    if (!OMK_ARMED.omakaseBtn) { armDoubleConfirm('omakaseBtn'); return; }
+    OMK_ARMED.omakaseBtn = false;
+    btn.classList.remove('confirm-pending');
 
     addToCart({ kind: 'omakase_classic', name: 'Omakase Classic', price: 270, qty_locked: true });
     markTierInCart('omkTierClassic', btn, '+ เพิ่มลงตะกร้า');
@@ -1752,6 +1777,10 @@
       return;
     }
 
+    if (!OMK_ARMED.omakaseSoloBtn) { armDoubleConfirm('omakaseSoloBtn'); return; }
+    OMK_ARMED.omakaseSoloBtn = false;
+    btn.classList.remove('confirm-pending');
+
     addToCart({ kind: 'omakase_solo', name: currentSecretItem.name, price: currentSecretItem.price, qty_locked: false });
     markTierInCart('omkTierSolo', btn, '+ เพิ่มลงตะกร้า');
     notifyShop('omakase_solo', getCustomerName(), `เพิ่ม Omakase Solo ลงตะกร้า — ${currentSecretItem.name} (${currentSecretItem.price}.-)`);
@@ -1768,6 +1797,10 @@
       statusEl.textContent = 'ระบบยังโหลดไม่พร้อม ลองรีเฟรชหน้าอีกครั้งนะครับ';
       return;
     }
+
+    if (!OMK_ARMED.omakaseFullWeekBtn) { armDoubleConfirm('omakaseFullWeekBtn'); return; }
+    OMK_ARMED.omakaseFullWeekBtn = false;
+    btn.classList.remove('confirm-pending');
 
     addToCart({ kind: 'omakase_fullweek', name: 'Omakase Max (5 แก้ว)', price: 420, qty_locked: true });
     markTierInCart('omkTierFullWeek', btn, '+ เพิ่มลงตะกร้า');
@@ -1826,7 +1859,7 @@
     const labelEl = document.getElementById('omkSubLabelText');
     const statusEl = document.getElementById('omkSharedSubStatus');
     const DEFAULT_LABEL = 'Subscribe แมวส้ม 1 เดือน';
-    const ON_LABEL = '✅ ยินดีด้วย คุณคือสมาชิกแมวส้ม';
+    const ON_LABEL = '✅ ยินดีด้วย คุณคือสลิ่มแมวส้ม';
 
     if (!memberId) {
       sw.classList.remove('on');
