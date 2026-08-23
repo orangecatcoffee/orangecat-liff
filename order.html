@@ -1658,7 +1658,7 @@
       if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return;
 
       const activePanel = document.querySelector('.tabpanel.active');
-      const currentTab = activePanel ? activePanel.id.replace('tab-', '') : 'comfort';
+      const currentTab = activePanel ? activePanel.id.replace('tab-', '') : 'omakase';
       const idx = SWIPE_TAB_ORDER.indexOf(currentTab);
       if (idx === -1) return;
       if (dx < 0 && idx < SWIPE_TAB_ORDER.length - 1) {
@@ -1667,6 +1667,55 @@
         selectTab(SWIPE_TAB_ORDER[idx - 1]); // ปัดขวา → แท็บก่อนหน้า
       }
     });
+  })();
+
+  // เลื่อนจอลงจนสุดหน้าแล้วเลื่อนต่ออีกนิด (เหมือนพยายามเลื่อนต่อ) ให้สลับไปแท็บถัดไปเลย
+  // เหมือนเนื้อหาต่อเนื่องกันไม่ขาดตอน — เลื่อนขึ้นจนสุดบนแล้วเลื่อนต่อ ก็ย้อนกลับไปแท็บก่อนหน้าเหมือนกัน
+  (function initScrollPastEndTabTransition() {
+    let touchStartY = null;
+    let touchStartX = null;
+    let armedAtBottom = false;
+    let armedAtTop = false;
+
+    function atBottom() {
+      return (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 4);
+    }
+    function atTop() {
+      return window.scrollY <= 2;
+    }
+
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      if (e.target.closest('.sig-mfs-scroll')) return; // อย่าไปชนกับการเลื่อนรูป Made From Scratch ในตัว
+      touchStartY = e.touches[0].clientY;
+      touchStartX = e.touches[0].clientX;
+      armedAtBottom = atBottom();
+      armedAtTop = atTop();
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      if (touchStartY === null) return;
+      const touch = e.changedTouches[0];
+      const dy = touchStartY - touch.clientY; // บวก = ลากขึ้น (พยายามเลื่อนเนื้อหาลงต่อ)
+      const dx = touch.clientX - touchStartX;
+      touchStartY = null; touchStartX = null;
+
+      // ต้องเป็นการเลื่อนแนวตั้งชัดเจนกว่าแนวนอน กันชนกับการปัดสลับแท็บซ้าย-ขวา
+      if (Math.abs(dy) < 70 || Math.abs(dy) < Math.abs(dx)) return;
+
+      const activePanel = document.querySelector('.tabpanel.active');
+      const currentTab = activePanel ? activePanel.id.replace('tab-', '') : 'omakase';
+      const idx = SWIPE_TAB_ORDER.indexOf(currentTab);
+      if (idx === -1) return;
+
+      if (armedAtBottom && atBottom() && dy > 0 && idx < SWIPE_TAB_ORDER.length - 1) {
+        selectTab(SWIPE_TAB_ORDER[idx + 1]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (armedAtTop && atTop() && dy < 0 && idx > 0) {
+        selectTab(SWIPE_TAB_ORDER[idx - 1]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, { passive: true });
   })();
 
   // เปิดตรงแท็บที่ต้องการได้ทันทีผ่าน ?tab=comfort|signature|omakase
