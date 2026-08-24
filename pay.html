@@ -129,7 +129,7 @@
       <div class="amount-label">ยอดที่ต้องชำระ</div>
     </div>
     <div class="shop-name">กาแฟแมวส้ม</div>
-    <div class="shop-number">PromptPay: 097 134 4100</div>
+    <div class="shop-number" id="shopNumberLabel">PromptPay</div>
 
     <div class="hint">
       🐾 <b>วิธีจ่าย:</b> ใส่ยอดเงินแล้วกด "สร้าง QR" (หรือข้ามได้ถ้าจะใส่ยอดเองตอนสแกน) → เปิดแอปธนาคาร → สแกน QR นี้ → ยืนยันการโอน แล้วแจ้งพนักงานหน้าร้านได้เลยค่ะ
@@ -137,9 +137,16 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-  const PROMPTPAY_NUMBER = "0971344100";
+  const SUPABASE_URL = "https://nhzjnutvirjgiclkkfgx.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oempudXR2aXJqZ2ljbGtrZmd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMjc3NjEsImV4cCI6MjA5ODcwMzc2MX0.Bv2zsjmo3yd9YpmfxUAmXf-aaFy7SbY77fmM_k4f7eg";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ดึง PromptPay ID จากฐานข้อมูล ไม่ hardcode ในไฟล์แล้ว — Fah เปลี่ยนเองได้จากหน้า owner โดยไม่ต้องแก้โค้ด
+  let PROMPTPAY_ID = "004629000776791";
+  let PROMPTPAY_ID_TAG = "03";
 
   function crc16(str) {
     let crc = 0xFFFF;
@@ -157,21 +164,14 @@
     return id + String(value.length).padStart(2, '0') + value;
   }
 
-  function formatMobile(phone) {
-    let digits = phone.replace(/\D/g, '');
-    if (digits.startsWith('0')) digits = '66' + digits.substring(1);
-    return digits.padStart(13, '0');
-  }
-
-  function buildPromptPayPayload(mobile, amount) {
+  function buildPromptPayPayload(id, idTag, amount) {
     const isDynamic = !!amount;
     const f00 = field('00', '01');
     const f01 = field('01', isDynamic ? '12' : '11');
 
-    const merchantMobile = formatMobile(mobile);
     const sub00 = field('00', 'A000000677010111');
-    const sub01 = field('01', merchantMobile);
-    const f29 = field('29', sub00 + sub01);
+    const subId = field(idTag, id);
+    const f29 = field('29', sub00 + subId);
 
     const f53 = field('53', '764');
     const f54 = isDynamic ? field('54', Number(amount).toFixed(2)) : '';
@@ -192,7 +192,7 @@
 
   function renderQR(amount) {
     qrDiv.innerHTML = '';
-    const payload = buildPromptPayPayload(PROMPTPAY_NUMBER, amount);
+    const payload = buildPromptPayPayload(PROMPTPAY_ID, PROMPTPAY_ID_TAG, amount);
     new QRCode(qrDiv, {
       text: payload,
       width: 220,
@@ -227,13 +227,27 @@
     renderQR(null);
   });
 
-  // initial render: prefill from ?amount= if present (e.g. linked from order.html in future), else amount-less QR
-  if (initialAmount) {
-    amountInput.value = initialAmount;
-    renderQR(parseFloat(initialAmount));
-  } else {
-    renderQR(null);
+  // initial render: โหลด PromptPay ID จากฐานข้อมูลก่อน แล้วค่อยสร้าง QR (กันกรณี Fah เปลี่ยนค่าไว้)
+  async function loadPaymentSettingsAndRender() {
+    try {
+      const { data, error } = await sb.from('payment_settings').select('promptpay_id, promptpay_id_tag, label').eq('id', 1).maybeSingle();
+      if (!error && data) {
+        PROMPTPAY_ID = data.promptpay_id;
+        PROMPTPAY_ID_TAG = data.promptpay_id_tag;
+        if (data.label) document.getElementById('shopNumberLabel').textContent = data.label;
+      }
+    } catch (_) {
+      // โหลดไม่สำเร็จ (เช่นเน็ตหลุด) — ใช้ค่า fallback ที่ตั้งไว้ในไฟล์แทน ยังใช้งานได้ตามปกติ
+    }
+
+    if (initialAmount) {
+      amountInput.value = initialAmount;
+      renderQR(parseFloat(initialAmount));
+    } else {
+      renderQR(null);
+    }
   }
+  loadPaymentSettingsAndRender();
 </script>
 
 </body>
