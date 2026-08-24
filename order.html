@@ -229,6 +229,13 @@
     color: #A8876F;
     margin-top: 3px;
   }
+  .sig-release-stamp {
+    font-size: 9px;
+    color: #C4B5A5;
+    margin-top: 2px;
+    font-style: italic;
+    letter-spacing: 0.3px;
+  }
   .sig-price-row {
     display: flex;
     align-items: center;
@@ -1176,6 +1183,16 @@
 
     surpriseGrid.appendChild(tarotCard); // ต่อท้าย แมวส้มเลือกหน่อย เสมอ (อยู่ขวา)
 
+    // เรียง Chapter ตามเลขที่ Fah ตั้งเองใน chapter_number เท่านั้น ไม่ใช้ sort_order/ลำดับ query
+    // กันปัญหาสร้างเมนูใหม่แล้วแทรกผิดที่ — ไม่ตั้งเลขไว้ (null) จะไปอยู่ท้ายสุด
+    signatureItems.sort((a, b) => {
+      const ca = a.chapter_number, cb = b.chapter_number;
+      if (ca === null && cb === null) return 0;
+      if (ca === null) return 1;
+      if (cb === null) return -1;
+      return ca - cb;
+    });
+
     currentSecretItem = signatureItems.length ? signatureItems[0] : null;
     renderSignatureTabs(signatureItems);
     renderOmakaseChapters(signatureItems);
@@ -1215,11 +1232,15 @@
             }).join('')}
           </div>
       ` : '';
+      const releaseStamp = item.release_date
+        ? `<div class="sig-release-stamp">launched ${new Date(item.release_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>`
+        : '';
       panelEl.innerHTML = `
         <div class="sig-photo-wrap">${photo}</div>
         ${mfsHtml}
         <div class="sig-eyebrow">SIGNATURE — CHAPTER #${String(activeIndex + 1).padStart(2, '0')}</div>
         <div class="sig-name">${item.name}</div>
+        ${releaseStamp}
         ${item.story_ingredients ? `<div class="sig-ingredients">${item.story_ingredients}</div>` : ''}
         <div class="sig-price-row">
           <span class="sig-price">${item.price} บาท</span>
