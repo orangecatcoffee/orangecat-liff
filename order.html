@@ -232,7 +232,7 @@
   .sig-release-stamp {
     font-size: 9px;
     color: #C4B5A5;
-    margin-top: 2px;
+    margin-top: 14px;
     font-style: italic;
     letter-spacing: 0.3px;
   }
@@ -1240,13 +1240,13 @@
         ${mfsHtml}
         <div class="sig-eyebrow">SIGNATURE — CHAPTER #${String(activeIndex + 1).padStart(2, '0')}</div>
         <div class="sig-name">${item.name}</div>
-        ${releaseStamp}
         ${item.story_ingredients ? `<div class="sig-ingredients">${item.story_ingredients}</div>` : ''}
         <div class="sig-price-row">
           <span class="sig-price">${item.price} บาท</span>
           <button type="button" class="sig-order-btn" id="sigOrderBtn">สั่งเมนูนี้</button>
         </div>
         ${item.story_body ? `<div class="sig-story">${item.story_body}</div>` : ''}
+        ${releaseStamp}
       `;
       const btn = document.getElementById('sigOrderBtn');
       btn.addEventListener('click', () => {
