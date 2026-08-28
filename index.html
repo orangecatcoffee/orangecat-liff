@@ -3,18 +3,197 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เมนู — กาแฟแมวส้ม</title>
+<title>กาแฟแมวส้ม</title>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;
-    background:#F7EDE0;font-family:'Mitr',sans-serif;color:#5A361B;}
+  :root {
+    --cream: #F7EDE0;
+    --brown: #5A361B;
+    --brown-soft: #8a6a4a;
+    --orange: #E8621A;
+    --orange-soft: #F0894A;
+    --border: rgba(90,54,27,0.1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--cream);
+    font-family: 'Mitr', sans-serif;
+    color: var(--brown);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px 40px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: absolute;
+    top: -120px; left: 50%;
+    transform: translateX(-50%);
+    width: 480px; height: 320px;
+    background: radial-gradient(ellipse, rgba(232,98,26,0.16) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero {
+    padding-top: 52px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .paw-row {
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: var(--orange-soft);
+    margin-bottom: 14px;
+    opacity: 0.85;
+  }
+  .mascot {
+    width: 92px; height: 92px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--orange-soft), var(--orange));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px;
+    margin: 0 auto 18px;
+    box-shadow: 0 8px 20px rgba(232,98,26,0.25);
+  }
+  .shop-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--brown);
+    letter-spacing: 0.5px;
+  }
+  .tagline {
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--orange);
+    margin-top: 2px;
+  }
+  .sub {
+    font-size: 12.5px;
+    color: var(--brown-soft);
+    margin-top: 10px;
+    font-weight: 300;
+    letter-spacing: 0.3px;
+  }
+
+  .doors {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .door {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fff;
+    border-radius: 18px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: var(--brown);
+    border: 1px solid var(--border);
+    box-shadow: 0 3px 12px rgba(90,54,27,0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .door:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 6px rgba(90,54,27,0.08);
+  }
+  .door-icon {
+    flex-shrink: 0;
+    width: 46px; height: 46px;
+    border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .door-main .door-icon { background: linear-gradient(135deg, var(--orange-soft), var(--orange)); }
+  .door-line .door-icon { background: #E9F8EF; }
+  .door-ig .door-icon { background: linear-gradient(135deg, #FEDA75 0%, #FA7E1E 30%, #D62976 60%, #962FBF 80%, #4F5BD5 100%); }
+
+  .door-text { flex: 1; min-width: 0; }
+  .door-title {
+    font-size: 15.5px;
+    font-weight: 600;
+    color: var(--brown);
+  }
+  .door-main .door-title { color: var(--orange); }
+  .door-sub {
+    font-size: 11px;
+    color: var(--brown-soft);
+    font-weight: 300;
+    margin-top: 2px;
+  }
+  .door-arrow {
+    flex-shrink: 0;
+    font-size: 18px;
+    color: rgba(90,54,27,0.25);
+  }
+
+  .door-main {
+    border: 1.5px solid rgba(232,98,26,0.3);
+    box-shadow: 0 4px 16px rgba(232,98,26,0.14);
+  }
+
+  footer {
+    margin-top: 48px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(90,54,27,0.3);
+    position: relative;
+    z-index: 1;
+  }
 </style>
-<script>
-  // เข้ามาแล้วพาไปหน้าเมนูจริงทันที ไม่มีหน้าคั่นให้เห็น (แก้ปัญหา 2 หน้าซ้อนกัน)
-  window.location.replace('order.html?tab=omakase');
-</script>
 </head>
 <body>
-  🐱 กำลังพาไปที่เมนู...
-  <noscript><a href="order.html?tab=omakase">กดที่นี่เพื่อไปหน้าเมนู</a></noscript>
+
+<div class="hero">
+  <div class="paw-row">🐾 🐾 🐾</div>
+  <div class="mascot">🐱</div>
+  <div class="shop-name">กาแฟแมวส้ม</div>
+  <div class="tagline">Orange Cat Coffee</div>
+  <div class="sub">เลือกช่องทางที่ต้องการด้านล่างนี้ได้เลย</div>
+</div>
+
+<div class="doors">
+  <a class="door door-main" href="https://liff.line.me/2010600301-WA7nM057?tab=omakase">
+    <div class="door-icon">☕</div>
+    <div class="door-text">
+      <div class="door-title">สั่งเมนู</div>
+      <div class="door-sub">ดูเมนู Comfort · Omakase · Signature</div>
+    </div>
+    <div class="door-arrow">›</div>
+  </a>
+
+  <a class="door door-line" href="https://line.me/R/ti/p/@maewsomcoffee">
+    <div class="door-icon">💬</div>
+    <div class="door-text">
+      <div class="door-title">แอด LINE ร้าน</div>
+      <div class="door-sub">@maewsomcoffee</div>
+    </div>
+    <div class="door-arrow">›</div>
+  </a>
+
+  <a class="door door-ig" href="https://instagram.com/maewsomcoffee">
+    <div class="door-icon">📸</div>
+    <div class="door-text">
+      <div class="door-title">Instagram ร้าน</div>
+      <div class="door-sub">@maewsomcoffee</div>
+    </div>
+    <div class="door-arrow">›</div>
+  </a>
+</div>
+
+<footer>กาแฟแมวส้ม · Orange Cat Coffee</footer>
+
 </body>
 </html>
