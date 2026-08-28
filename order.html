@@ -765,6 +765,8 @@
     <span class="cat-pill active" data-tab="omakase">OMAKASE</span>
     <span class="cat-pill" data-tab="signature">SIGNATURE</span>
     <span class="cat-pill" data-tab="comfort">COMFORT</span>
+    <span class="cat-pill" data-tab="playful_comfort">PLAYFUL COMFORT</span>
+    <span class="cat-pill" data-tab="pawtein_twist">PAW-TEIN TWIST</span>
   </div>
 </div>
 
@@ -808,18 +810,16 @@
           <h2>🐱 วันนี้ไม่อยากเลือก</h2>
           <div class="menu-grid" id="surpriseGrid"></div>
         </div>
-        <div class="group">
-          <h2>☕ กลุ่มกาแฟ</h2>
-          <div class="menu-grid" id="coffeeGrid"></div>
-        </div>
-        <div class="group">
-          <h2>🍵 กลุ่มชาเขียว</h2>
-          <div class="menu-grid" id="matchaGrid"></div>
-        </div>
-        <div class="group">
-          <h2>🥤 อื่นๆ</h2>
-          <div class="menu-grid" id="otherGrid"></div>
-        </div>
+        <div id="comfortGroups"></div>
+      </div>
+
+      <div class="tabpanel" id="tab-playful_comfort">
+        <div id="playfulComfortTagline" style="font-size:13px;color:#A8876F;padding:4px 2px 14px;line-height:1.6;"></div>
+        <div id="playfulComfortGroups"></div>
+      </div>
+
+      <div class="tabpanel" id="tab-pawtein_twist">
+        <div id="pawteinTwistGroups"></div>
       </div>
 
       <div class="tabpanel" id="tab-signature">
@@ -1061,18 +1061,64 @@
     });
   }
 
-  // 🗂️ Category → tab_group mapping ดึงจาก menu_categories table สด (ไม่ hardcode array ในโค้ดแล้ว)
-  // เพิ่มหมวดหมู่ใหม่ = insert แถวใหม่ใน menu_categories ไม่ต้องแก้/deploy โค้ดนี้
-  let CATEGORY_TAB_GROUP = {}; // { category: tab_group }
+  // 🗂️ Category → tab_key/tab_group/label ดึงจาก menu_categories+menu_tabs สด (ไม่ hardcode ในโค้ดแล้ว)
+  // เพิ่ม/แก้หมวดหมู่ใหม่ = insert/update แถวใน menu_categories ผ่านหน้า admin เมนู ไม่ต้องแก้/deploy โค้ดนี้เลย
+  let CATEGORY_META = {}; // { category: { tab_key, tab_group, label_th, sort_order } }
+  let MENU_TABS = []; // [{ key, label, tagline, sort_order, is_active }]
 
   async function loadCategoryMap() {
-    const { data, error } = await sb.from('menu_categories').select('category, tab_group');
-    if (!error && data) {
-      CATEGORY_TAB_GROUP = Object.fromEntries(data.map(c => [c.category, c.tab_group]));
-    }
+    const [{ data: catData }, { data: tabData }] = await Promise.all([
+      sb.from('menu_categories').select('category, tab_key, tab_group, label_th, sort_order'),
+      sb.from('menu_tabs').select('key, label, tagline, sort_order, is_active').eq('is_active', true).order('sort_order', { ascending: true }),
+    ]);
+    CATEGORY_META = Object.fromEntries((catData || []).map(c => [c.category, c]));
+    MENU_TABS = tabData || [];
   }
   function tabGroupFor(category) {
-    return CATEGORY_TAB_GROUP[category] || 'other';
+    const meta = CATEGORY_META[category];
+    return meta ? meta.tab_group : 'other';
+  }
+  function tabKeyFor(category) {
+    const meta = CATEGORY_META[category];
+    return meta ? meta.tab_key : 'hidden';
+  }
+
+  // แท็บที่ใช้ generic renderer (กลุ่มย่อยไดนามิกทั้งหมด) — omakase กับ signature มี layout พิเศษของตัวเอง ไม่ผ่านทางนี้
+  const GENERIC_TABS = ['comfort', 'playful_comfort', 'pawtein_twist'];
+  const GENERIC_TAB_CONTAINER_ID = { comfort: 'comfortGroups', playful_comfort: 'playfulComfortGroups', pawtein_twist: 'pawteinTwistGroups' };
+
+  function renderGenericTabGroups(itemsByCategory) {
+    GENERIC_TABS.forEach(tabKey => {
+      const container = document.getElementById(GENERIC_TAB_CONTAINER_ID[tabKey]);
+      if (!container) return;
+      container.innerHTML = '';
+
+      // รวม category ทุกตัวที่อยู่ใน tab นี้ (ยกเว้น surprise ซึ่ง render แยกพิเศษเสมอ) จัดกลุ่มตาม tab_group
+      const groups = {}; // tab_group -> { label_th, sort_order, items: [] }
+      Object.entries(CATEGORY_META).forEach(([category, meta]) => {
+        if (meta.tab_key !== tabKey || category === 'surprise') return;
+        const items = itemsByCategory[category] || [];
+        if (!groups[meta.tab_group]) groups[meta.tab_group] = { label_th: meta.label_th, sort_order: meta.sort_order || 0, items: [] };
+        groups[meta.tab_group].items.push(...items);
+      });
+
+      Object.values(groups)
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .forEach(g => {
+          if (g.items.length === 0) return; // หมวดว่าง (ยังไม่มีเมนู live) ไม่ต้องโชว์หัวข้อเปล่าๆ
+          const groupDiv = document.createElement('div');
+          groupDiv.className = 'group';
+          groupDiv.innerHTML = `<h2>${g.label_th || ''}</h2><div class="menu-grid"></div>`;
+          const grid = groupDiv.querySelector('.menu-grid');
+          g.items.forEach(item => grid.appendChild(makeCard(item)));
+          container.appendChild(groupDiv);
+        });
+    });
+
+    // Tagline ของ Playful Comfort (ดึงจาก menu_tabs.tagline สด แก้ที่ DB ได้เลยไม่ต้อง deploy)
+    const pc = MENU_TABS.find(t => t.key === 'playful_comfort');
+    const taglineEl = document.getElementById('playfulComfortTagline');
+    if (taglineEl) taglineEl.textContent = (pc && pc.tagline) || '';
   }
 
   async function loadMenu() {
@@ -1083,28 +1129,23 @@
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('id', { ascending: true });
     // เมนูทดลองรายสัปดาห์ (omakase_only=true) ไม่โผล่ในเมนูปกติ จนกว่าจะโปรโมทเป็น Special of the Month
-    // เมนู draft (signature_draft) ที่ยังไม่ประกาศ และเมนูที่พักการขาย (on_hold) ก็ไม่โผล่เหมือนกัน
-    const data = rawData ? rawData.filter(item => !item.omakase_only && item.category !== 'signature_draft' && item.category !== 'on_hold') : rawData;
+    // เมนูที่ status ไม่ใช่ live (draft/pending/on_hold) ก็ไม่โผล่ในเมนูลูกค้าเหมือนกัน
+
+    const data = rawData ? rawData.filter(item => !item.omakase_only && item.status === 'live') : rawData;
 
     const surpriseGrid = document.getElementById('surpriseGrid');
-    const coffeeGrid = document.getElementById('coffeeGrid');
-    const matchaGrid = document.getElementById('matchaGrid');
-    const otherGrid = document.getElementById('otherGrid');
     const signatureItems = [];
 
     if (error) {
-      coffeeGrid.innerHTML = `<div class="status-msg error">โหลดเมนูไม่สำเร็จ: ${error.message}</div>`;
+      surpriseGrid.innerHTML = `<div class="status-msg error">โหลดเมนูไม่สำเร็จ: ${error.message}</div>`;
       return;
     }
     if (!data || data.length === 0) {
-      coffeeGrid.innerHTML = `<div class="status-msg error">ไม่พบเมนูใน menu_items</div>`;
+      surpriseGrid.innerHTML = `<div class="status-msg error">ไม่พบเมนูใน menu_items</div>`;
       return;
     }
 
     surpriseGrid.innerHTML = '';
-    coffeeGrid.innerHTML = '';
-    matchaGrid.innerHTML = '';
-    otherGrid.innerHTML = '';
 
     function makeCard(item) {
       const div = document.createElement('div');
@@ -1165,21 +1206,18 @@
       window.location.href = 'https://orangecat-tarot.vercel.app/';
     });
 
+    const itemsByCategory = {}; // category -> [item, ...] สำหรับ 3 แท็บ generic (comfort/playful_comfort/pawtein_twist)
     data.forEach(item => {
       const group = tabGroupFor(item.category);
-      const card = makeCard(item);
       if (group === 'surprise') {
-        surpriseGrid.appendChild(card);
+        surpriseGrid.appendChild(makeCard(item));
       } else if (group === 'signature') {
         signatureItems.push(item);
-      } else if (group === 'matcha') {
-        matchaGrid.appendChild(card);
-      } else if (group === 'coffee') {
-        coffeeGrid.appendChild(card);
       } else {
-        otherGrid.appendChild(card);
+        (itemsByCategory[item.category] = itemsByCategory[item.category] || []).push(item);
       }
     });
+    renderGenericTabGroups(itemsByCategory);
 
     surpriseGrid.appendChild(tarotCard); // ต่อท้าย แมวส้มเลือกหน่อย เสมอ (อยู่ขวา)
 
@@ -1622,8 +1660,8 @@
 
     const b = TAB_BANNERS[tab];
     const bannerEl = document.getElementById('headerBanner');
-    if (tab === 'signature') {
-      // ตัด banner รูปใหญ่ออกเฉพาะแท็บ Signature — อยากให้เห็นเมนูเร็วขึ้น เนื้อหา Story ในการ์ดชัดเจนพอแล้วไม่ต้องมีอีก
+    if (tab === 'signature' || tab === 'playful_comfort' || tab === 'pawtein_twist') {
+      // แท็บใหม่ยังไม่มีรูป banner ของตัวเอง — ซ่อนไว้ก่อนเหมือน Signature จนกว่า Fah จะส่งรูปมาเพิ่ม
       bannerEl.style.display = 'none';
     } else if (b) {
       bannerEl.style.display = '';
@@ -1645,7 +1683,7 @@
   });
 
   // ปัดซ้าย-ขวากลางหน้าจอเพื่อสลับ Comfort → Omakase → Signature ได้ ไม่ต้องกดปุ่มด้านบนอย่างเดียว
-  const SWIPE_TAB_ORDER = ['omakase', 'signature', 'comfort'];
+  const SWIPE_TAB_ORDER = ['omakase', 'comfort', 'playful_comfort', 'pawtein_twist', 'signature'];
   (function initSwipeTabs() {
     const menuCol = document.querySelector('.menu-col');
     if (!menuCol) return;
