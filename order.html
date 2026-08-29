@@ -855,6 +855,14 @@
           <h2>🥤 อื่นๆ</h2>
           <div class="menu-grid" id="otherGrid"></div>
         </div>
+
+        <div id="seriesSection" style="display:none;margin-top:24px;">
+          <div class="section-header">
+            <div class="section-header-title">🍓 STRAWBERRY WEEK</div>
+            <div class="section-header-sub">One batch. Five ways to fall for strawberry. Only for 2 weeks.</div>
+          </div>
+          <div class="menu-grid" id="seriesGrid"></div>
+        </div>
       </div>
 
       <div class="tabpanel" id="tab-playful_comfort">
@@ -881,14 +889,6 @@
         <div class="section-header">
           <div class="section-header-title">🍊 SIGNATURE</div>
           <div class="section-header-sub">เมนูซิกเนเจอร์ — เรื่องราวเฉพาะร้าน คิดค้นเอง ไม่เหมือนใคร</div>
-        </div>
-
-        <div id="seriesSection" style="display:none;">
-          <div class="section-header">
-            <div class="section-header-title">🍓 STRAWBERRY WEEK</div>
-            <div class="section-header-sub">One batch. Five ways to fall for strawberry. Only for 2 weeks.</div>
-          </div>
-          <div class="menu-grid" id="seriesGrid"></div>
         </div>
 
         <div class="sig-tabstrip" id="sigTabstrip"></div>
@@ -1285,6 +1285,7 @@
     seriesGridEl.innerHTML = '';
     if (seriesItems.length) {
       seriesSection.style.display = '';
+      seriesItems.sort((a, b) => Number(a.price) - Number(b.price)); // ไล่ราคาถูกไปแพง
       seriesItems.forEach(item => seriesGridEl.appendChild(makeCard(item)));
     } else {
       seriesSection.style.display = 'none';
