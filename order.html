@@ -390,7 +390,7 @@
     display: flex; align-items: center; justify-content: space-between; margin-top: 10px;
   }
   .cart-line-price { font-size: 13px; font-weight: 700; color: #E8863A; }
-  .cart-line-bean-select {
+  .cart-line-bean-select, .cart-line-milk-select {
     width: 100%; margin-top: 8px; margin-bottom: 0;
     padding: 7px 10px; font-size: 12px;
   }
@@ -1044,7 +1044,7 @@
   const LIFF_ID = "2010600301-WA7nM057";
   const BEAN_DOSE_G = 20; // เกณฑ์เดียวกับ brew.html — สต็อกต้องเหลือ >= นี้ถึงจะให้ลูกค้าเลือกเมล็ดนั้นได้
 
-  let cart = []; // { lineId, kind: 'regular'|'omakase_solo'|'omakase_classic'|'omakase_fullweek', name, price, qty, category, menu_item_id, needs_bean, fixed_bean_name, bean_name, bean_surcharge }
+  let cart = []; // { lineId, kind: 'regular'|'omakase_solo'|'omakase_classic'|'omakase_fullweek', name, price, qty, category, menu_item_id, needs_bean, fixed_bean_name, bean_name, bean_surcharge, milk_eligible, milk_name }
   let cartLineSeq = 0;
 
   let memberId = null; // เซ็ตจริงถ้าเจอ member ที่ผูก LINE user id นี้ไว้ใน members
@@ -1055,6 +1055,8 @@
   let manualNameFallback = false; // true เฉพาะตอนเปิดนอก LINE (เช่น เทสใน browser ปกติ)
   let selectedSweetness = 'ไม่หวาน';
   let availableBeans = [];
+  let availableMilks = [];
+  let milkEligibleIds = new Set(); // menu_item_id ที่มีนมสดในสูตรจริง (query จาก menu_recipes สด ไม่ hardcode)
 
   // needs_bean มาจาก menu_items ตรงๆ อยู่แล้ว ไม่ต้อง hardcode รายชื่อเมนูซ้ำ
 
@@ -1114,6 +1116,26 @@
       .gte('stock_quantity', BEAN_DOSE_G)
       .order('name');
     availableBeans = (!error && data) ? data : [];
+  }
+
+  async function loadMilks() {
+    const { data, error } = await sb
+      .from('ingredients')
+      .select('id, name, customer_bean_surcharge, stock_quantity')
+      .eq('category', 'milk')
+      .eq('active', true)
+      .gt('customer_bean_surcharge', 0) // เฉพาะนมทางเลือกที่มี upcharge (ไม่ดึง Dairy milk/Coconut water/Whipping Cream/Syrup)
+      .gt('stock_quantity', 0)
+      .order('customer_bean_surcharge');
+    availableMilks = (!error && data) ? data : [];
+  }
+
+  async function loadMilkEligibleItems() {
+    const { data, error } = await sb
+      .from('menu_recipes')
+      .select('menu_item_id, ingredients!inner(name)')
+      .eq('ingredients.name', 'Dairy milk');
+    milkEligibleIds = new Set((!error && data) ? data.map(r => r.menu_item_id) : []);
   }
 
   function initDateAndSweetness(){
@@ -1230,6 +1252,7 @@
           fixed_bean_name: item.fixed_bean_name || null,
           image_url: item.image_url || null,
           is_surprise: isSurprise,
+          milk_eligible: milkEligibleIds.has(item.id),
         });
         flashAdded(e.currentTarget);
       });
@@ -1463,6 +1486,8 @@
       bean_name: opts.fixed_bean_name || null, // เมล็ดที่ล็อกไว้ (ถ้ามี) เป็นค่าเริ่มต้น แก้ในตะกร้าได้ถ้าไม่ fixed
       secret_item_price: opts.secret_item_price, // เฉพาะ omakase_solo
       qty_locked: opts.qty_locked || false, // Omakase package ปรับจำนวนไม่ได้ (เอาออกแล้วสั่งใหม่แทน)
+      milk_eligible: !!opts.milk_eligible, // มีนมสดในสูตรจริง (จาก menu_recipes) — เปลี่ยนนมได้
+      milk_name: null, // null = นมสดปกติ (รวมในราคา), ไม่ null = นมทางเลือกที่เลือก
     });
     renderCartBar();
   }
@@ -1481,9 +1506,16 @@
     renderCartPage();
   }
 
+  function milkSurcharge(milkName) {
+    if (!milkName) return 0;
+    const milk = availableMilks.find(m => m.name === milkName);
+    return milk ? (Number(milk.customer_bean_surcharge) || 0) : 0;
+  }
+
   function cartLineUnitPrice(line) {
-    const surcharge = (line.needs_bean && line.bean_name) ? beanSurcharge(line.bean_name) : 0;
-    return line.price + surcharge;
+    const beanSur = (line.needs_bean && line.bean_name) ? beanSurcharge(line.bean_name) : 0;
+    const milkSur = (line.milk_eligible && line.milk_name) ? milkSurcharge(line.milk_name) : 0;
+    return line.price + beanSur + milkSur;
   }
 
   function cartTotal() {
@@ -1517,6 +1549,17 @@
     return `<select class="cart-line-bean-select" data-bean-for="${line.lineId}">${opts.join('')}</select>`;
   }
 
+  function milkSelectHtml(line) {
+    const opts = ['<option value="">นมสด (รวมในราคา)</option>']
+      .concat(availableMilks.map(m => {
+        const sur = Number(m.customer_bean_surcharge) || 0;
+        const label = sur > 0 ? `${m.name} (+${sur}฿)` : m.name;
+        const sel = line.milk_name === m.name ? 'selected' : '';
+        return `<option value="${m.name}" ${sel}>${label}</option>`;
+      }));
+    return `<select class="cart-line-milk-select" data-milk-for="${line.lineId}">${opts.join('')}</select>`;
+  }
+
   function renderCartPage() {
     const linesEl = document.getElementById('cartLinesContainer');
     const detailsEl = document.getElementById('cartOrderDetails');
@@ -1543,6 +1586,8 @@
         `;
       const beanHtml = (line.needs_bean && !line.fixed_bean_name && availableBeans.length)
         ? beanSelectHtml(line) : '';
+      const milkHtml = (line.milk_eligible && availableMilks.length)
+        ? milkSelectHtml(line) : '';
       return `
         <div class="cart-line">
           <div class="cart-line-top">
@@ -1553,6 +1598,7 @@
             <button type="button" class="cart-line-remove" data-remove="${line.lineId}">ลบ</button>
           </div>
           ${beanHtml}
+          ${milkHtml}
           <div class="cart-line-bottom">
             ${qtyControlHtml}
             <span class="cart-line-price">${priceLabel}</span>
@@ -1574,6 +1620,12 @@
       sel.addEventListener('change', () => {
         const line = cart.find(l => l.lineId === Number(sel.dataset.beanFor));
         if (line) { line.bean_name = sel.value || null; renderCartBar(); renderCartPage(); }
+      });
+    });
+    linesEl.querySelectorAll('[data-milk-for]').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const line = cart.find(l => l.lineId === Number(sel.dataset.milkFor));
+        if (line) { line.milk_name = sel.value || null; renderCartBar(); renderCartPage(); }
       });
     });
 
@@ -1664,6 +1716,7 @@
 
   async function insertCartLine(line, ctx) {
     const surcharge = (line.needs_bean && line.bean_name) ? beanSurcharge(line.bean_name) : 0;
+    const milkSur = (line.milk_eligible && line.milk_name) ? milkSurcharge(line.milk_name) : 0;
 
     if (line.kind === 'omakase_solo') {
       return sb.from('preorders').insert([{
@@ -1713,8 +1766,9 @@
       member_id: memberId,
       menu_item_id: line.menu_item_id,
       quantity: 1,
-      total_price: line.price + surcharge,
+      total_price: line.price + surcharge + milkSur,
       bean_surcharge: surcharge,
+      milk_surcharge: milkSur,
       channel: 'liff-order',
       address: ctx.addrFull,
       status: 'pending',
@@ -1722,6 +1776,7 @@
       wanted_date: ctx.wantedDate,
       sweetness: selectedSweetness,
       bean_name: line.bean_name,
+      milk_name: line.milk_eligible ? line.milk_name : null,
     }]);
   }
 
@@ -2182,7 +2237,7 @@
     stage.addEventListener('pointercancel', dragEnd);
   })();
 
-  loadBeans().then(loadMenu);
+  Promise.all([loadBeans(), loadMilks(), loadMilkEligibleItems()]).then(loadMenu);
   initDateAndSweetness();
   initLiffProfile();
 </script>
