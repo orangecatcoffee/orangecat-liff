@@ -161,6 +161,9 @@
     padding: 12px 16px 4px;
     line-height: 1.6;
   }
+  .section-header { padding: 18px 16px 8px; }
+  .section-header-title { font-size: 17px; font-weight: 700; color: var(--tab-accent, #E8863A); letter-spacing: 0.3px; }
+  .section-header-sub { font-size: 12.5px; color: #8a6a4a; margin-top: 4px; line-height: 1.6; }
   #tab-playful_comfort { --tab-accent: #C4318A; --tab-accent-bg: #FCE8F2; }
   #tab-pawtein_twist { --tab-accent: #4A9B5C; --tab-accent-bg: #EAF6ED; }
 
@@ -466,8 +469,14 @@
     padding-top: 12px; padding-bottom: 11px;
     box-shadow: 0 -2px 8px rgba(232,134,58,0.3);
   }
-  .tabpanel { display: none; }
-  .tabpanel.active { display: block; }
+  .tabpanel { display: block; scroll-margin-top: 62px; }
+  .menu-col { display: flex; flex-direction: column; }
+  /* ลำดับที่เห็นจริงบนจอ (บนลงล่าง) — ไม่ได้ย้าย HTML จริง แค่จัดลำดับด้วย CSS ให้ตรงกับปุ่มแท็บ ลดความเสี่ยงจากการย้ายบล็อกใหญ่ */
+  #tab-omakase { order: 0; }
+  #tab-signature { order: 1; }
+  #tab-comfort { order: 2; }
+  #tab-playful_comfort { order: 3; }
+  #tab-pawtein_twist { order: 4; }
   .soon-box {
     text-align: center; padding: 40px 20px; border: 2px dashed #F0E4D8;
     border-radius: 16px; color: #A8876F; font-size: 14px; font-weight: 600;
@@ -802,13 +811,12 @@
 </div>
 
 <div class="header-banner" id="headerBanner">
-  <img id="headerBannerImg" src="https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png" alt="banner">
+  <img id="headerBannerImg" src="https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-omakase.png" alt="banner">
   <div class="header-banner-label">
-    <div class="header-banner-title" id="headerBannerTitle">COMFORT</div>
-    <div class="header-banner-sub" id="headerBannerSub">เมนูประจำร้าน 14 แก้ว</div>
+    <div class="header-banner-title" id="headerBannerTitle">OMAKASE</div>
+    <div class="header-banner-sub" id="headerBannerSub">Surprise You, Every Time! — เลือกได้ 3 ระดับ</div>
   </div>
 </div>
-<div class="tab-tagline" id="tabTagline" style="display:none;"></div>
 
 <div class="wrap">
 
@@ -816,6 +824,10 @@
     <div class="menu-col">
 
       <div class="tabpanel" id="tab-comfort">
+        <div class="section-header">
+          <div class="section-header-title">☕ COMFORT</div>
+          <div class="section-header-sub">เมนูประจำวันที่คุ้นเคย สั่งง่าย จ่ายเบา</div>
+        </div>
         <div class="group">
           <h2>🐱 วันนี้ไม่อยากเลือก</h2>
           <div class="menu-grid" id="surpriseGrid"></div>
@@ -835,6 +847,10 @@
       </div>
 
       <div class="tabpanel" id="tab-playful_comfort">
+        <div class="section-header">
+          <div class="section-header-title">🎭 PLAYFUL COMFORT</div>
+          <div class="section-header-sub">Aboong Meets… Your familiar favorites, with an orange-cat twist.</div>
+        </div>
         <div class="group">
           <h2>🎭 Playful Comfort</h2>
           <div class="menu-grid" id="playfulComfortGrid"></div>
@@ -842,6 +858,10 @@
       </div>
 
       <div class="tabpanel" id="tab-pawtein_twist">
+        <div class="section-header">
+          <div class="section-header-title">🍓💪 PAW-TEIN TWIST</div>
+          <div class="section-header-sub">ปั่นเพื่อสายรักสุขภาพ โปรตีนจริง ไม่ต้องเดา</div>
+        </div>
         <div class="group">
           <h2>🍓💪 Paw-tein Twist</h2>
           <div class="menu-grid" id="pawteinTwistGrid"></div>
@@ -849,6 +869,10 @@
       </div>
 
       <div class="tabpanel" id="tab-signature">
+        <div class="section-header">
+          <div class="section-header-title">🍊 SIGNATURE</div>
+          <div class="section-header-sub">เมนูซิกเนเจอร์ — เรื่องราวเฉพาะร้าน คิดค้นเอง ไม่เหมือนใคร</div>
+        </div>
         <div class="sig-tabstrip" id="sigTabstrip"></div>
         <div class="sig-panel" id="sigPanel"></div>
       </div>
@@ -1654,27 +1678,12 @@
     pawtein_twist: '🍓💪 ปั่นเพื่อสายรักสุขภาพ โปรตีนจริง ไม่ต้องเดา',
   };
 
-  function selectTab(tab) {
-    document.querySelectorAll('.tabpanel').forEach(el => el.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
+  function selectTab(tab, instant) {
     document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
-    document.querySelector('.cat-pill[data-tab="' + tab + '"]').classList.add('active');
-
-    const b = TAB_BANNERS[tab];
-    const bannerEl = document.getElementById('headerBanner');
-    const taglineEl = document.getElementById('tabTagline');
-    if (tab === 'signature' || tab === 'playful_comfort' || tab === 'pawtein_twist') {
-      // แท็บใหม่ยังไม่มีรูป banner ของตัวเอง — ซ่อนไว้ก่อนเหมือน Signature จนกว่า Fah จะส่งรูปมาเพิ่ม
-      bannerEl.style.display = 'none';
-      taglineEl.style.display = '';
-      taglineEl.textContent = TAB_TAGLINES[tab] || '';
-    } else if (b) {
-      bannerEl.style.display = '';
-      taglineEl.style.display = 'none';
-      document.getElementById('headerBannerImg').src = b.img;
-      document.getElementById('headerBannerTitle').textContent = b.title;
-      document.getElementById('headerBannerSub').textContent = b.sub;
-    }
+    const pill = document.querySelector('.cat-pill[data-tab="' + tab + '"]');
+    if (pill) pill.classList.add('active');
+    const panel = document.getElementById('tab-' + tab);
+    if (panel) panel.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
   }
 
   document.getElementById('headerBanner').addEventListener('click', () => {
@@ -1688,108 +1697,29 @@
     document.getElementById('imgSheetOverlay').classList.add('open');
   });
 
-  // ปัดซ้าย-ขวากลางหน้าจอเพื่อสลับ Comfort → Omakase → Signature ได้ ไม่ต้องกดปุ่มด้านบนอย่างเดียว
-  const SWIPE_TAB_ORDER = ['omakase', 'signature', 'comfort', 'playful_comfort', 'pawtein_twist'];
-  (function initSwipeTabs() {
-    const menuCol = document.querySelector('.menu-col');
-    if (!menuCol) return;
-    let touchStartX = null;
-    let touchStartY = null;
-    let swiping = false;
-
-    menuCol.addEventListener('touchstart', (e) => {
-      if (e.touches.length !== 1) return;
-      if (e.target.closest('.sig-mfs-scroll')) return; // อย่าไปชนกับการเลื่อนรูป Made From Scratch ในตัว
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      swiping = false;
-    }, { passive: true });
-
-    menuCol.addEventListener('touchmove', (e) => {
-      if (touchStartX === null || e.touches.length !== 1) return;
-      const dx = e.touches[0].clientX - touchStartX;
-      const dy = e.touches[0].clientY - touchStartY;
-      // ต้องปัดแนวนอนชัดเจนกว่าแนวตั้ง ไม่งั้นจะไปชนกับการเลื่อนหน้าจอปกติ (scroll)
-      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) swiping = true;
-    }, { passive: true });
-
-    menuCol.addEventListener('touchend', (e) => {
-      if (touchStartX === null) return;
-      const touch = e.changedTouches[0];
-      const dx = touch.clientX - touchStartX;
-      const dy = touch.clientY - touchStartY;
-      touchStartX = null; touchStartY = null;
-      if (!swiping) return;
-      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return;
-
-      const activePanel = document.querySelector('.tabpanel.active');
-      const currentTab = activePanel ? activePanel.id.replace('tab-', '') : 'omakase';
-      const idx = SWIPE_TAB_ORDER.indexOf(currentTab);
-      if (idx === -1) return;
-      if (dx < 0 && idx < SWIPE_TAB_ORDER.length - 1) {
-        selectTab(SWIPE_TAB_ORDER[idx + 1]); // ปัดซ้าย → แท็บถัดไป
-      } else if (dx > 0 && idx > 0) {
-        selectTab(SWIPE_TAB_ORDER[idx - 1]); // ปัดขวา → แท็บก่อนหน้า
-      }
-    });
+  // Sticky chip bar + เลื่อนต่อเนื่องทั้งหน้า: ไฮไลต์ชิปที่ตรงกับ section ที่กำลังเห็นอยู่ตอนเลื่อนเอง (ไม่ต้องกดปุ่ม)
+  (function initScrollSpy() {
+    const panels = Array.from(document.querySelectorAll('.tabpanel'));
+    if (!panels.length || !('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const tab = entry.target.id.replace('tab-', '');
+        document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
+        const pill = document.querySelector('.cat-pill[data-tab="' + tab + '"]');
+        if (pill) pill.classList.add('active');
+      });
+    }, { rootMargin: '-90px 0px -65% 0px', threshold: 0 });
+    panels.forEach(p => observer.observe(p));
   })();
 
-  // เลื่อนจอลงจนสุดหน้าแล้วเลื่อนต่ออีกนิด (เหมือนพยายามเลื่อนต่อ) ให้สลับไปแท็บถัดไปเลย
-  // เหมือนเนื้อหาต่อเนื่องกันไม่ขาดตอน — เลื่อนขึ้นจนสุดบนแล้วเลื่อนต่อ ก็ย้อนกลับไปแท็บก่อนหน้าเหมือนกัน
-  (function initScrollPastEndTabTransition() {
-    let touchStartY = null;
-    let touchStartX = null;
-    let armedAtBottom = false;
-    let armedAtTop = false;
-
-    function atBottom() {
-      return (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 4);
-    }
-    function atTop() {
-      return window.scrollY <= 2;
-    }
-
-    document.addEventListener('touchstart', (e) => {
-      if (e.touches.length !== 1) return;
-      if (e.target.closest('.sig-mfs-scroll')) return; // อย่าไปชนกับการเลื่อนรูป Made From Scratch ในตัว
-      touchStartY = e.touches[0].clientY;
-      touchStartX = e.touches[0].clientX;
-      armedAtBottom = atBottom();
-      armedAtTop = atTop();
-    }, { passive: true });
-
-    document.addEventListener('touchend', (e) => {
-      if (touchStartY === null) return;
-      const touch = e.changedTouches[0];
-      const dy = touchStartY - touch.clientY; // บวก = ลากขึ้น (พยายามเลื่อนเนื้อหาลงต่อ)
-      const dx = touch.clientX - touchStartX;
-      touchStartY = null; touchStartX = null;
-
-      // ต้องเป็นการเลื่อนแนวตั้งชัดเจนกว่าแนวนอน กันชนกับการปัดสลับแท็บซ้าย-ขวา
-      if (Math.abs(dy) < 70 || Math.abs(dy) < Math.abs(dx)) return;
-
-      const activePanel = document.querySelector('.tabpanel.active');
-      const currentTab = activePanel ? activePanel.id.replace('tab-', '') : 'omakase';
-      const idx = SWIPE_TAB_ORDER.indexOf(currentTab);
-      if (idx === -1) return;
-
-      if (armedAtBottom && atBottom() && dy > 0 && idx < SWIPE_TAB_ORDER.length - 1) {
-        selectTab(SWIPE_TAB_ORDER[idx + 1]);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (armedAtTop && atTop() && dy < 0 && idx > 0) {
-        selectTab(SWIPE_TAB_ORDER[idx - 1]);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }, { passive: true });
-  })();
-
-  // เปิดตรงแท็บที่ต้องการได้ทันทีผ่าน ?tab=comfort|signature|omakase
+  // เปิดตรงแท็บที่ต้องการได้ทันทีผ่าน ?tab=comfort|signature|omakase — เลื่อนแบบทันที ไม่ animate ตอนเปิดหน้าแรก
   // ใช้โดยหน้า Order Hub 5 กล่องใหม่ (index.html) กดปุ่มไหนก็พาตรงมาแท็บนั้นเลย ไม่ต้องมากดเปลี่ยนเอง
   const deepLinkTab = new URLSearchParams(location.search).get('tab');
   if (deepLinkTab && document.getElementById('tab-' + deepLinkTab)) {
-    selectTab(deepLinkTab);
+    selectTab(deepLinkTab, true);
   } else {
-    selectTab('omakase'); // ค่าเริ่มต้นใหม่ — เปิดมาเจอ Omakase ก่อนเลย
+    selectTab('omakase', true); // ค่าเริ่มต้นใหม่ — เปิดมาเจอ Omakase ก่อนเลย (เป็น section บนสุดจาก CSS order)
   }
 
   document.getElementById('catbar').addEventListener('click', (e) => {
