@@ -65,8 +65,8 @@
     display: inline-block;
     font-size: 12px;
     font-weight: 700;
-    color: #E8863A;
-    background: #FFF3E8;
+    color: var(--tab-accent, #E8863A);
+    background: var(--tab-accent-bg, #FFF3E8);
     border: 2px solid #F0E4D8;
     border-radius: 999px;
     padding: 5px 14px;
@@ -142,7 +142,7 @@
     bottom: 8px;
     width: 30px; height: 30px;
     border-radius: 50%;
-    background: #E8863A;
+    background: var(--tab-accent, #E8863A);
     color: #fff;
     border: none;
     font-size: 18px;
@@ -154,6 +154,15 @@
     z-index: 2;
   }
   .menu-card-addbtn.in-cart { background: #4A9B5C; }
+
+  .tab-tagline {
+    font-size: 12.5px;
+    color: #8a6a4a;
+    padding: 12px 16px 4px;
+    line-height: 1.6;
+  }
+  #tab-playful_comfort { --tab-accent: #C4318A; --tab-accent-bg: #FCE8F2; }
+  #tab-pawtein_twist { --tab-accent: #4A9B5C; --tab-accent-bg: #EAF6ED; }
 
   /* Signature — folder-tab strip (active tab wide, others tiny) + single content panel below */
   .sig-tabstrip {
@@ -762,11 +771,11 @@
 
 <div class="catbar-wrap">
   <div class="catbar" id="catbar">
-    <span class="cat-pill active" data-tab="omakase">OMAKASE</span>
-    <span class="cat-pill" data-tab="signature">SIGNATURE</span>
-    <span class="cat-pill" data-tab="comfort">COMFORT</span>
-    <span class="cat-pill" data-tab="playful_comfort">PLAYFUL COMFORT</span>
-    <span class="cat-pill" data-tab="pawtein_twist">PAW-TEIN TWIST</span>
+    <span class="cat-pill active" data-tab="omakase">🎴 OMAKASE</span>
+    <span class="cat-pill" data-tab="signature">🍊 SIGNATURE</span>
+    <span class="cat-pill" data-tab="comfort">☕ COMFORT</span>
+    <span class="cat-pill" data-tab="playful_comfort">🎭 PLAYFUL COMFORT · สนุกกว่าเดิม</span>
+    <span class="cat-pill" data-tab="pawtein_twist">🍓💪 PAW-TEIN TWIST · เมนูปั่นโปรตีน</span>
   </div>
 </div>
 
@@ -799,6 +808,7 @@
     <div class="header-banner-sub" id="headerBannerSub">เมนูประจำร้าน 14 แก้ว</div>
   </div>
 </div>
+<div class="tab-tagline" id="tabTagline" style="display:none;"></div>
 
 <div class="wrap">
 
@@ -825,7 +835,6 @@
       </div>
 
       <div class="tabpanel" id="tab-playful_comfort">
-        <div style="font-size:13px;color:#A8876F;padding:4px 2px 14px;line-height:1.6;">Aboong Meets… Your familiar favorites, with an orange-cat twist.</div>
         <div class="group">
           <h2>🎭 Playful Comfort</h2>
           <div class="menu-grid" id="playfulComfortGrid"></div>
@@ -1639,6 +1648,12 @@
     omakase:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-omakase.png', title: 'OMAKASE',             sub: 'Surprise You, Every Time! — เลือกได้ 3 ระดับ' },
   };
 
+  const TAB_TAGLINES = {
+    signature: '🍊 เมนูซิกเนเจอร์ — เรื่องราวเฉพาะร้าน คิดค้นเอง ไม่เหมือนใคร',
+    playful_comfort: '🎭 Aboong Meets… Your familiar favorites, with an orange-cat twist.',
+    pawtein_twist: '🍓💪 ปั่นเพื่อสายรักสุขภาพ โปรตีนจริง ไม่ต้องเดา',
+  };
+
   function selectTab(tab) {
     document.querySelectorAll('.tabpanel').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
@@ -1647,11 +1662,15 @@
 
     const b = TAB_BANNERS[tab];
     const bannerEl = document.getElementById('headerBanner');
+    const taglineEl = document.getElementById('tabTagline');
     if (tab === 'signature' || tab === 'playful_comfort' || tab === 'pawtein_twist') {
       // แท็บใหม่ยังไม่มีรูป banner ของตัวเอง — ซ่อนไว้ก่อนเหมือน Signature จนกว่า Fah จะส่งรูปมาเพิ่ม
       bannerEl.style.display = 'none';
+      taglineEl.style.display = '';
+      taglineEl.textContent = TAB_TAGLINES[tab] || '';
     } else if (b) {
       bannerEl.style.display = '';
+      taglineEl.style.display = 'none';
       document.getElementById('headerBannerImg').src = b.img;
       document.getElementById('headerBannerTitle').textContent = b.title;
       document.getElementById('headerBannerSub').textContent = b.sub;
