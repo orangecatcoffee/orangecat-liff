@@ -882,6 +882,15 @@
           <div class="section-header-title">🍊 SIGNATURE</div>
           <div class="section-header-sub">เมนูซิกเนเจอร์ — เรื่องราวเฉพาะร้าน คิดค้นเอง ไม่เหมือนใคร</div>
         </div>
+
+        <div id="seriesSection" style="display:none;">
+          <div class="section-header">
+            <div class="section-header-title">🍓 STRAWBERRY WEEK</div>
+            <div class="section-header-sub">One batch. Five ways to fall for strawberry. Only for 2 weeks.</div>
+          </div>
+          <div class="menu-grid" id="seriesGrid"></div>
+        </div>
+
         <div class="sig-tabstrip" id="sigTabstrip"></div>
         <div class="sig-panel" id="sigPanel"></div>
       </div>
@@ -1136,6 +1145,9 @@
 
   // 🗓️ สถานะเปิด/ปิดขาย Signature chapter — ใช้ available_from/available_until (ถ้าไม่ตั้งทั้งคู่ = ขายได้ตลอดปกติ ไม่กระทบเมนูอื่น)
   function signatureAvailability(item) {
+    if (item.status === 'resting') {
+      return { state: 'closed', label: '🔁 รอรอบต่อไป · Coming back soon' };
+    }
     if (!item.available_from && !item.available_until) return { state: 'open' };
     const todayISO = new Date().toISOString().slice(0, 10);
     const fmtTH = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
@@ -1156,8 +1168,9 @@
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('id', { ascending: true });
     // เมนูทดลองรายสัปดาห์ (omakase_only=true) ไม่โผล่ในเมนูปกติ จนกว่าจะโปรโมทเป็น Special of the Month
-    // เมนูที่ status ไม่ใช่ live (draft/pending/on_hold) ก็ไม่โผล่ในเมนูลูกค้าเหมือนกัน
-    const data = rawData ? rawData.filter(item => !item.omakase_only && item.status === 'live') : rawData;
+    // เมนูที่ status ไม่ใช่ live/resting (draft/pending/on_hold) ก็ไม่โผล่ในเมนูลูกค้าเหมือนกัน
+    // resting = เฉพาะ Signature เท่านั้น (เคยขาย รอรอบต่อไป — ลูกค้ายังเห็นแต่สั่งไม่ได้)
+    const data = rawData ? rawData.filter(item => !item.omakase_only && (item.status === 'live' || item.status === 'resting')) : rawData;
 
     const surpriseGrid = document.getElementById('surpriseGrid');
     const coffeeGrid = document.getElementById('coffeeGrid');
@@ -1166,6 +1179,7 @@
     const playfulComfortGrid = document.getElementById('playfulComfortGrid');
     const pawteinTwistGrid = document.getElementById('pawteinTwistGrid');
     const signatureItems = [];
+    const seriesItems = [];
 
     if (error) {
       coffeeGrid.innerHTML = `<div class="status-msg error">โหลดเมนูไม่สำเร็จ: ${error.message}</div>`;
@@ -1244,23 +1258,37 @@
 
     data.forEach(item => {
       const group = tabGroupFor(item.category);
-      const card = makeCard(item);
       if (group === 'surprise') {
-        surpriseGrid.appendChild(card);
+        surpriseGrid.appendChild(makeCard(item));
       } else if (group === 'signature') {
-        signatureItems.push(item);
+        if (item.chapter_number === null || item.chapter_number === undefined) {
+          seriesItems.push(item); // ไม่มีเลข Chapter = เป็นเมนู Series ชั่วคราว (เช่น Strawberry Week) ไม่ใช่ Chapter สะสม
+        } else {
+          signatureItems.push(item);
+        }
       } else if (group === 'matcha') {
-        matchaGrid.appendChild(card);
+        matchaGrid.appendChild(makeCard(item));
       } else if (group === 'coffee') {
-        coffeeGrid.appendChild(card);
+        coffeeGrid.appendChild(makeCard(item));
       } else if (group === 'playful_comfort') {
-        playfulComfortGrid.appendChild(card);
+        playfulComfortGrid.appendChild(makeCard(item));
       } else if (group === 'pawtein_twist') {
-        pawteinTwistGrid.appendChild(card);
+        pawteinTwistGrid.appendChild(makeCard(item));
       } else {
-        otherGrid.appendChild(card);
+        otherGrid.appendChild(makeCard(item));
       }
     });
+
+    // แสดง section "STRAWBERRY WEEK" เฉพาะตอนมีเมนู Series จริง (ไม่เช่นนั้นซ่อนไปเลย)
+    const seriesSection = document.getElementById('seriesSection');
+    const seriesGridEl = document.getElementById('seriesGrid');
+    seriesGridEl.innerHTML = '';
+    if (seriesItems.length) {
+      seriesSection.style.display = '';
+      seriesItems.forEach(item => seriesGridEl.appendChild(makeCard(item)));
+    } else {
+      seriesSection.style.display = 'none';
+    }
 
     surpriseGrid.appendChild(tarotCard); // ต่อท้าย แมวส้มเลือกหน่อย เสมอ (อยู่ขวา)
 
@@ -1274,7 +1302,8 @@
       return ca - cb;
     });
 
-    currentSecretItem = signatureItems.length ? signatureItems[0] : null;
+    // currentSecretItem ต้องเป็นตัวที่ "ขายอยู่จริง" (live) เท่านั้น — ไม่งั้น Omakase Solo อาจเสนอ Chapter ที่ resting อยู่ ซึ่งสั่งไม่ได้จริง
+    currentSecretItem = signatureItems.find(i => i.status === 'live') || null;
     renderSignatureTabs(signatureItems);
     renderOmakaseChapters(signatureItems);
   }
@@ -1322,7 +1351,7 @@
         : '';
       const orderBtnHtml = avail.state === 'open'
         ? `<button type="button" class="sig-order-btn" id="sigOrderBtn">สั่งเมนูนี้</button>`
-        : `<button type="button" class="sig-order-btn" id="sigOrderBtn" disabled style="opacity:.45;">${avail.state === 'not_yet' ? 'ยังสั่งไม่ได้' : 'ปิดขายแล้ว'}</button>`;
+        : `<button type="button" class="sig-order-btn" id="sigOrderBtn" disabled style="opacity:.45;">${item.status === 'resting' ? 'รอรอบต่อไป' : (avail.state === 'not_yet' ? 'ยังสั่งไม่ได้' : 'ปิดขายแล้ว')}</button>`;
       panelEl.innerHTML = `
         <div class="sig-photo-wrap">${photo}</div>
         ${mfsHtml}
