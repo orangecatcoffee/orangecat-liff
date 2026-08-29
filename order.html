@@ -248,6 +248,17 @@
     font-style: italic;
     letter-spacing: 0.3px;
   }
+  .sig-avail-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-top: 8px;
+  }
+  .sig-avail-open { background: rgba(74,155,92,0.12); color: #3A7B4A; }
+  .sig-avail-not_yet { background: rgba(168,135,111,0.15); color: #8a6a4a; }
+  .sig-avail-closed { background: rgba(200,120,90,0.12); color: #A85A1E; }
   .sig-price-row {
     display: flex;
     align-items: center;
@@ -1123,6 +1134,20 @@
     return CATEGORY_TAB_GROUP[category] || 'other';
   }
 
+  // 🗓️ สถานะเปิด/ปิดขาย Signature chapter — ใช้ available_from/available_until (ถ้าไม่ตั้งทั้งคู่ = ขายได้ตลอดปกติ ไม่กระทบเมนูอื่น)
+  function signatureAvailability(item) {
+    if (!item.available_from && !item.available_until) return { state: 'open' };
+    const todayISO = new Date().toISOString().slice(0, 10);
+    const fmtTH = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+    if (item.available_from && todayISO < item.available_from) {
+      return { state: 'not_yet', label: `🔒 เปิดขาย ${fmtTH(item.available_from)}` };
+    }
+    if (item.available_until && todayISO > item.available_until) {
+      return { state: 'closed', label: `⏳ ปิดขายแล้ว` };
+    }
+    return { state: 'open', label: item.available_until ? `🟢 เปิดขายถึง ${fmtTH(item.available_until)}` : '🟢 เปิดขายอยู่' };
+  }
+
   async function loadMenu() {
     await loadCategoryMap();
     const { data: rawData, error } = await sb
@@ -1291,20 +1316,29 @@
       const releaseStamp = item.release_date
         ? `<div class="sig-release-stamp">launched ${new Date(item.release_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>`
         : '';
+      const avail = signatureAvailability(item);
+      const availBadgeHtml = avail.label
+        ? `<div class="sig-avail-badge sig-avail-${avail.state}">${avail.label}</div>`
+        : '';
+      const orderBtnHtml = avail.state === 'open'
+        ? `<button type="button" class="sig-order-btn" id="sigOrderBtn">สั่งเมนูนี้</button>`
+        : `<button type="button" class="sig-order-btn" id="sigOrderBtn" disabled style="opacity:.45;">${avail.state === 'not_yet' ? 'ยังสั่งไม่ได้' : 'ปิดขายแล้ว'}</button>`;
       panelEl.innerHTML = `
         <div class="sig-photo-wrap">${photo}</div>
         ${mfsHtml}
         <div class="sig-eyebrow">SIGNATURE — CHAPTER #${String(activeIndex + 1).padStart(2, '0')}</div>
         <div class="sig-name">${item.name}</div>
+        ${availBadgeHtml}
         ${item.story_ingredients ? `<div class="sig-ingredients">${item.story_ingredients}</div>` : ''}
         <div class="sig-price-row">
           <span class="sig-price">${item.price} บาท</span>
-          <button type="button" class="sig-order-btn" id="sigOrderBtn">สั่งเมนูนี้</button>
+          ${orderBtnHtml}
         </div>
         ${item.story_body ? `<div class="sig-story">${item.story_body}</div>` : ''}
         ${releaseStamp}
       `;
       const btn = document.getElementById('sigOrderBtn');
+      if (avail.state !== 'open') return; // ปิดขายอยู่ — ไม่ผูก event สั่งซื้อ กันลูกค้ากดสั่งได้ทั้งที่ยังไม่เปิด/ปิดไปแล้ว
       btn.addEventListener('click', () => {
         addToCart({
           kind: 'regular',
