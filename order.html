@@ -394,6 +394,29 @@
     width: 100%; margin-top: 8px; margin-bottom: 0;
     padding: 7px 10px; font-size: 12px;
   }
+  .delivery-section {
+    background: #FBF3E9; border: 1px solid #F0E4D8; border-radius: 14px;
+    padding: 14px 16px; margin-top: 4px; margin-bottom: 8px;
+  }
+  .delivery-section .field-label:first-child { margin-top: 0; }
+  .delivery-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 8px;
+  }
+  .delivery-row-label {
+    font-size: 12.5px; color: #A8876F; font-weight: 500;
+    width: 60px; flex-shrink: 0;
+  }
+  .delivery-row-input {
+    flex: 1; padding: 9px 12px; font-size: 14px;
+    border-radius: 8px; border: 2px solid #F0E4D8; font-family: inherit;
+  }
+  .cart-summary-line {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fff; border: 1px solid #F0E4D8; border-radius: 12px;
+    padding: 10px 14px; margin-bottom: 8px;
+  }
+  .cart-summary-name { font-size: 13px; color: #4A3428; font-weight: 600; }
   .cart-empty {
     text-align: center; padding: 60px 20px; color: #A8876F;
   }
@@ -1001,18 +1024,6 @@
     <div class="cart-page-title">ตะกร้าของคุณ</div>
     <div id="cartLinesContainer"><div class="cart-empty">ยังไม่มีอะไรในตะกร้าเลย</div></div>
     <div id="cartOrderDetails" style="display:none;">
-      <div id="customerNameAuto" class="customer-name-auto" style="display:none;">
-        🐱 สั่งในนามคุณ: <b id="customerNameAutoText"></b>
-      </div>
-      <div id="customerNameManualWrap" style="display:none;">
-        <label class="field-label">ชื่อลูกค้า</label>
-        <input type="text" id="customerName" placeholder="ชื่อที่ให้เรียก เช่น หอนจ้า, ปั้นน">
-      </div>
-      <div id="customerNameLoading" class="customer-name-auto loading">🐾 กำลังโหลดข้อมูลสมาชิก...</div>
-
-      <label class="field-label">วันที่ต้องการรับ</label>
-      <input type="date" id="wantedDate">
-
       <label class="field-label">ความหวาน (ใช้กับทุกแก้วในตะกร้า)</label>
       <div class="sweetness-row" id="sweetnessRow">
         <button type="button" class="sweetness-btn selected" data-val="ไม่หวาน">ไม่หวาน</button>
@@ -1020,11 +1031,31 @@
         <button type="button" class="sweetness-btn" data-val="หวานปกติ">หวานปกติ</button>
       </div>
 
+      <label class="field-label">สรุปรายการ</label>
+      <div id="cartSummaryList"></div>
+
       <label class="field-label">หมายเหตุ (ไม่บังคับ)</label>
       <textarea id="notes" rows="2" maxlength="100" placeholder="เช่น แพ้นมวัว / ขอน้ำแข็งน้อย"></textarea>
 
-      <label class="field-label">ที่อยู่ / จุดรับ</label>
-      <textarea id="address" rows="2" placeholder="เช่น ชื่อตึก/ชั้น/แผนก หรือที่อยู่บ้าน"></textarea>
+      <div class="delivery-section">
+        <div class="field-label">🚚 การจัดส่ง</div>
+        <div id="customerNameAuto" class="customer-name-auto" style="display:none;">
+          🐱 สั่งในนามคุณ: <b id="customerNameAutoText"></b>
+        </div>
+        <div id="customerNameManualWrap" style="display:none;">
+          <input type="text" id="customerName" placeholder="ชื่อที่ให้เรียก เช่น หอนจ้า, ปั้นน">
+        </div>
+        <div id="customerNameLoading" class="customer-name-auto loading">🐾 กำลังโหลดข้อมูลสมาชิก...</div>
+
+        <div class="delivery-row">
+          <span class="delivery-row-label">วันที่รับ</span>
+          <input type="date" id="wantedDate" class="delivery-row-input">
+        </div>
+        <div class="delivery-row">
+          <span class="delivery-row-label">จุดรับ</span>
+          <input type="text" id="address" class="delivery-row-input" placeholder="เช่น ชื่อตึก/ชั้น/แผนก หรือที่อยู่บ้าน">
+        </div>
+      </div>
     </div>
   </div>
   <div class="cart-page-footer" id="cartPageFooter" style="display:none;">
@@ -1573,17 +1604,6 @@
     detailsEl.style.display = 'block';
     footerEl.style.display = 'block';
     linesEl.innerHTML = cart.map(line => {
-      const unitPrice = cartLineUnitPrice(line);
-      const priceLabel = line.is_surprise ? '70-85 บาท (ราคาจริงตามเมนูที่บาริสต้าเลือก)' : `${unitPrice * line.qty} บาท`;
-      const qtyControlHtml = line.qty_locked
-        ? `<span style="font-size:12px;color:#A8876F;">1 แพ็ค</span>`
-        : `
-          <div class="qty-control">
-            <button type="button" class="qty-btn" data-qty-minus="${line.lineId}">−</button>
-            <span>${line.qty}</span>
-            <button type="button" class="qty-btn" data-qty-plus="${line.lineId}">+</button>
-          </div>
-        `;
       const beanHtml = (line.needs_bean && !line.fixed_bean_name && availableBeans.length)
         ? beanSelectHtml(line) : '';
       const milkHtml = (line.milk_eligible && availableMilks.length)
@@ -1599,10 +1619,28 @@
           </div>
           ${beanHtml}
           ${milkHtml}
-          <div class="cart-line-bottom">
-            ${qtyControlHtml}
-            <span class="cart-line-price">${priceLabel}</span>
+        </div>
+      `;
+    }).join('');
+
+    const summaryEl = document.getElementById('cartSummaryList');
+    summaryEl.innerHTML = cart.map(line => {
+      const unitPrice = cartLineUnitPrice(line);
+      const priceLabel = line.is_surprise ? '70-85 บาท (ราคาจริงตามเมนูที่บาริสต้าเลือก)' : `${unitPrice * line.qty} บาท`;
+      const qtyControlHtml = line.qty_locked
+        ? `<span style="font-size:12px;color:#A8876F;">1 แพ็ค</span>`
+        : `
+          <div class="qty-control">
+            <button type="button" class="qty-btn" data-qty-minus="${line.lineId}">−</button>
+            <span>${line.qty}</span>
+            <button type="button" class="qty-btn" data-qty-plus="${line.lineId}">+</button>
           </div>
+        `;
+      return `
+        <div class="cart-summary-line">
+          <span class="cart-summary-name">${line.name}</span>
+          ${qtyControlHtml}
+          <span class="cart-line-price">${priceLabel}</span>
         </div>
       `;
     }).join('');
@@ -1610,10 +1648,10 @@
     linesEl.querySelectorAll('[data-remove]').forEach(btn => {
       btn.addEventListener('click', () => removeCartLine(Number(btn.dataset.remove)));
     });
-    linesEl.querySelectorAll('[data-qty-minus]').forEach(btn => {
+    summaryEl.querySelectorAll('[data-qty-minus]').forEach(btn => {
       btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.qtyMinus), -1));
     });
-    linesEl.querySelectorAll('[data-qty-plus]').forEach(btn => {
+    summaryEl.querySelectorAll('[data-qty-plus]').forEach(btn => {
       btn.addEventListener('click', () => changeCartQty(Number(btn.dataset.qtyPlus), 1));
     });
     linesEl.querySelectorAll('[data-bean-for]').forEach(sel => {
