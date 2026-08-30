@@ -1434,6 +1434,7 @@
           fixed_bean_name: item.fixed_bean_name || null,
           image_url: item.image_url || null,
           is_surprise: false,
+          milk_eligible: milkEligibleIds.has(item.id),
         });
         btn.textContent = 'เพิ่มลงตะกร้าแล้ว ✓';
         btn.classList.add('selected');
@@ -2187,6 +2188,7 @@
       fixed_bean_name: item.fixed_bean_name || null,
       image_url: item.image_url || null,
       is_surprise: tabGroupFor(item.category) === 'surprise',
+      milk_eligible: milkEligibleIds.has(item.id),
     });
     closeImageSheet();
   });
