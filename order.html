@@ -394,6 +394,11 @@
     width: 100%; margin-top: 8px; margin-bottom: 0;
     padding: 7px 10px; font-size: 12px;
   }
+  .cart-line-mood-input {
+    width: 100%; margin-top: 8px; margin-bottom: 0;
+    padding: 7px 10px; font-size: 12px; font-family: inherit;
+    border-radius: 8px; border: 1px solid #E8D8C4; resize: none;
+  }
   .delivery-section {
     background: #FBF3E9; border: 1px solid #F0E4D8; border-radius: 14px;
     padding: 14px 16px; margin-top: 4px; margin-bottom: 8px;
@@ -1087,6 +1092,7 @@
   let selectedSweetness = 'ไม่หวาน';
   let availableBeans = [];
   let availableMilks = [];
+  let availableFreestyleTeas = []; // ตัวเลือกชาสำหรับเมนู Freestyle Tea (ingredients.is_freestyle_tea_option = true)
   let milkEligibleIds = new Set(); // menu_item_id ที่มีนมสดในสูตรจริง (query จาก menu_recipes สด ไม่ hardcode)
 
   // needs_bean มาจาก menu_items ตรงๆ อยู่แล้ว ไม่ต้อง hardcode รายชื่อเมนูซ้ำ
@@ -1147,6 +1153,17 @@
       .gte('stock_quantity', BEAN_DOSE_G)
       .order('name');
     availableBeans = (!error && data) ? data : [];
+  }
+
+  async function loadFreestyleTeas() {
+    const { data, error } = await sb
+      .from('ingredients')
+      .select('id, name, stock_quantity')
+      .eq('is_freestyle_tea_option', true)
+      .eq('active', true)
+      .gt('stock_quantity', 0)
+      .order('name');
+    availableFreestyleTeas = (!error && data) ? data : [];
   }
 
   async function loadMilks() {
@@ -1284,6 +1301,7 @@
           image_url: item.image_url || null,
           is_surprise: isSurprise,
           milk_eligible: milkEligibleIds.has(item.id),
+          is_freestyle_tea: !!item.is_freestyle_tea,
         });
         flashAdded(e.currentTarget);
       });
@@ -1520,6 +1538,8 @@
       qty_locked: opts.qty_locked || false, // Omakase package ปรับจำนวนไม่ได้ (เอาออกแล้วสั่งใหม่แทน)
       milk_eligible: !!opts.milk_eligible, // มีนมสดในสูตรจริง (จาก menu_recipes) — เปลี่ยนนมได้
       milk_name: null, // null = นมสดปกติ (รวมในราคา), ไม่ null = นมทางเลือกที่เลือก
+      is_freestyle_tea: !!opts.is_freestyle_tea, // เมนู Freestyle Tea — เลือกชา (เก็บใน bean_name ใช้ร่วมกัน) + พิมพ์ mood
+      mood_note: '',
     });
     renderCartBar();
   }
@@ -1592,6 +1612,20 @@
     return `<select class="cart-line-milk-select" data-milk-for="${line.lineId}">${opts.join('')}</select>`;
   }
 
+  function freestyleTeaSelectHtml(line) {
+    const opts = ['<option value="">— เลือกชา (①) —</option>']
+      .concat(availableFreestyleTeas.map(t => {
+        const sel = line.bean_name === t.name ? 'selected' : '';
+        return `<option value="${t.name}" ${sel}>${t.name}</option>`;
+      }));
+    return `<select class="cart-line-bean-select" data-freestyle-tea-for="${line.lineId}">${opts.join('')}</select>`;
+  }
+
+  function moodTextareaHtml(line) {
+    const val = (line.mood_note || '').replace(/"/g, '&quot;');
+    return `<textarea class="cart-line-mood-input" data-mood-for="${line.lineId}" maxlength="100" rows="2" placeholder="② บอก mood วันนี้ เช่น สดใส เปรี้ยวนิด ไม่หวานมาก — แมวส้มจะตีโจทย์ให้เอง ③">${val}</textarea>`;
+  }
+
   function renderCartPage() {
     const linesEl = document.getElementById('cartLinesContainer');
     const detailsEl = document.getElementById('cartOrderDetails');
@@ -1609,6 +1643,9 @@
         ? beanSelectHtml(line) : '';
       const milkHtml = (line.milk_eligible && availableMilks.length)
         ? milkSelectHtml(line) : '';
+      const freestyleHtml = line.is_freestyle_tea
+        ? `${freestyleTeaSelectHtml(line)}${moodTextareaHtml(line)}`
+        : '';
       return `
         <div class="cart-line">
           <div class="cart-line-top">
@@ -1620,6 +1657,7 @@
           </div>
           ${beanHtml}
           ${milkHtml}
+          ${freestyleHtml}
         </div>
       `;
     }).join('');
@@ -1665,6 +1703,18 @@
       sel.addEventListener('change', () => {
         const line = cart.find(l => l.lineId === Number(sel.dataset.milkFor));
         if (line) { line.milk_name = sel.value || null; renderCartBar(); renderCartPage(); }
+      });
+    });
+    linesEl.querySelectorAll('[data-freestyle-tea-for]').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const line = cart.find(l => l.lineId === Number(sel.dataset.freestyleTeaFor));
+        if (line) { line.bean_name = sel.value || null; }
+      });
+    });
+    linesEl.querySelectorAll('[data-mood-for]').forEach(ta => {
+      ta.addEventListener('input', () => {
+        const line = cart.find(l => l.lineId === Number(ta.dataset.moodFor));
+        if (line) { line.mood_note = ta.value; }
       });
     });
 
@@ -1814,8 +1864,9 @@
       customer_name: ctx.customerName,
       wanted_date: ctx.wantedDate,
       sweetness: selectedSweetness,
-      bean_name: line.bean_name,
+      bean_name: line.bean_name, // สำหรับ Freestyle Tea: เก็บชื่อชาที่ลูกค้าเลือกไว้ในฟิลด์นี้ (ใช้ร่วมกับเมล็ดกาแฟ)
       milk_name: line.milk_eligible ? line.milk_name : null,
+      mood_note: line.is_freestyle_tea ? (line.mood_note || null) : null,
     }]);
   }
 
@@ -2277,7 +2328,7 @@
     stage.addEventListener('pointercancel', dragEnd);
   })();
 
-  Promise.all([loadBeans(), loadMilks(), loadMilkEligibleItems()]).then(loadMenu);
+  Promise.all([loadBeans(), loadMilks(), loadFreestyleTeas(), loadMilkEligibleItems()]).then(loadMenu);
   initDateAndSweetness();
   initLiffProfile();
 </script>
