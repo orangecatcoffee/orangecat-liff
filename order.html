@@ -1774,13 +1774,12 @@
     statusEl.className = 'status-msg';
 
     const wantedDate = document.getElementById('wantedDate').value || todayStr();
-    const addrFull = notes ? `${addr} (หมายเหตุ: ${notes})` : addr;
 
     // แตกแต่ละ cart line ตาม qty เป็นแถวจริงแยกกัน (ห้าม lump-sum) แล้วยิง insert ตาม kind ของมัน
     const jobs = [];
     for (const line of cart) {
       for (let i = 0; i < line.qty; i++) {
-        jobs.push(insertCartLine(line, { customerName, wantedDate, addrFull }));
+        jobs.push(insertCartLine(line, { customerName, wantedDate, addr, notes }));
       }
     }
 
@@ -1859,7 +1858,8 @@
       bean_surcharge: surcharge,
       milk_surcharge: milkSur,
       channel: 'liff-order',
-      address: ctx.addrFull,
+      address: ctx.addr,
+      notes: ctx.notes || null,
       status: 'pending',
       customer_name: ctx.customerName,
       wanted_date: ctx.wantedDate,
