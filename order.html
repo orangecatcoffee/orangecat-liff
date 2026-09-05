@@ -872,7 +872,7 @@
           <div class="menu-grid" id="surpriseGrid"></div>
         </div>
         <div class="group">
-          <h2>☕ กลุ่มกาแฟ</h2>
+          <h2>☕ Comfort Coffee</h2>
           <div class="menu-grid" id="coffeeGrid"></div>
         </div>
         <div class="group">
@@ -1348,7 +1348,7 @@
         } else {
           signatureItems.push(item);
         }
-      } else if (group === 'matcha') {
+      } else if (group === 'non_coffee') {
         nonCoffeeGrid.appendChild(makeCard(item));
       } else if (group === 'coffee') {
         coffeeGrid.appendChild(makeCard(item));
@@ -1388,7 +1388,13 @@
     // currentSecretItem ต้องเป็นตัวที่ "ขายอยู่จริง" (live) เท่านั้น — ไม่งั้น Omakase Solo อาจเสนอ Chapter ที่ resting อยู่ ซึ่งสั่งไม่ได้จริง
     currentSecretItem = signatureItems.find(i => i.status === 'live') || null;
     renderSignatureTabs(signatureItems);
-    renderOmakaseChapters();
+
+    // ประวัติแก้วลับ Omakase ที่เปิดเผยจริง — ดึงจาก omakase_reveal_week (ฟ้าตั้งเองได้ที่แท็บ "สูตร")
+    // คนละ field กับ chapter_number (คุมแท็บ Signature) เพราะแก้วเดียวกันอาจย้ายหมวดได้ แต่ประวัติการเปิดเผยไม่ควรเปลี่ยนตาม
+    const omakaseHistory = data
+      .filter(item => item.omakase_reveal_week !== null && item.omakase_reveal_week !== undefined)
+      .sort((a, b) => a.omakase_reveal_week - b.omakase_reveal_week);
+    renderOmakaseChapters(omakaseHistory);
   }
 
   function renderSignatureTabs(items) {
@@ -1491,30 +1497,21 @@
     renderPanel();
   }
 
-  // ประวัติแก้วลับ Omakase ที่เปิดเผยจริงแต่ละสัปดาห์ — คนละเรื่องกับเมนู Signature ปัจจุบัน
-  // (Signature เปลี่ยนแปลงได้ตามเวลา แต่ประวัตินี้คือของจริงที่เคยเกิดขึ้น ไม่ผูกกับ category/status ปัจจุบัน)
-  // อัปเดตมือทุกครั้งที่มีแก้วลับใหม่เปิดเผย ใส่ชื่อจริงในระบบเท่านั้น (ห้ามใช้ชื่อเล่น)
-  const OMAKASE_REVEAL_HISTORY = [
-    'Steamed Yuba Kek-Huay Latte',
-    'The Amber Velvet',
-    'Emerald On Cloud Nine',
-    '99 Ruby Kisses',
-  ];
-
-  // Chapters ใต้ Omakase — ใช้ประวัติจริงที่เปิดเผยแล้วเท่านั้น ไม่ผูกกับ Signature list อีกต่อไป
-  function renderOmakaseChapters() {
+  // Chapters ใต้ Omakase — ใช้ประวัติจริงจาก DB (omakase_reveal_week) ไม่ hardcode แล้ว
+  // แก้ไขได้จากแท็บ "สูตร" ใน brew.html โดยฟ้าเอง ไม่ต้องพึ่ง Claude แก้โค้ดทุกครั้ง
+  function renderOmakaseChapters(items) {
     const el = document.getElementById('omkChapters');
     if (!el) return;
-    const rows = OMAKASE_REVEAL_HISTORY.map((name, i) => {
+    const rows = items.map((item, i) => {
       const num = String(i + 1).padStart(2, '0');
       return `
         <div class="omk-chapter-row">
           <span class="omk-chapter-num">#${num}</span>
-          <span class="omk-chapter-text">${name}</span>
+          <span class="omk-chapter-text">${item.name}</span>
         </div>
       `;
     }).join('');
-    const teaserNum = String(OMAKASE_REVEAL_HISTORY.length + 1).padStart(2, '0');
+    const teaserNum = String(items.length + 1).padStart(2, '0');
     el.innerHTML = `
       <div class="omk-chapters">
         <div class="omk-chapters-title">📖 Omakase Chapters</div>
