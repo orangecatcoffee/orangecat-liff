@@ -1388,7 +1388,7 @@
     // currentSecretItem ต้องเป็นตัวที่ "ขายอยู่จริง" (live) เท่านั้น — ไม่งั้น Omakase Solo อาจเสนอ Chapter ที่ resting อยู่ ซึ่งสั่งไม่ได้จริง
     currentSecretItem = signatureItems.find(i => i.status === 'live') || null;
     renderSignatureTabs(signatureItems);
-    renderOmakaseChapters(signatureItems);
+    renderOmakaseChapters();
   }
 
   function renderSignatureTabs(items) {
@@ -1491,21 +1491,30 @@
     renderPanel();
   }
 
-  // Chapters ใต้ Omakase — จำนวน = เมนู Signature จริงที่มีอยู่ + 1 (ตัวทีเซอร์ชวนติดตามตอนต่อไป)
-  function renderOmakaseChapters(items) {
+  // ประวัติแก้วลับ Omakase ที่เปิดเผยจริงแต่ละสัปดาห์ — คนละเรื่องกับเมนู Signature ปัจจุบัน
+  // (Signature เปลี่ยนแปลงได้ตามเวลา แต่ประวัตินี้คือของจริงที่เคยเกิดขึ้น ไม่ผูกกับ category/status ปัจจุบัน)
+  // อัปเดตมือทุกครั้งที่มีแก้วลับใหม่เปิดเผย ใส่ชื่อจริงในระบบเท่านั้น (ห้ามใช้ชื่อเล่น)
+  const OMAKASE_REVEAL_HISTORY = [
+    'Steamed Yuba Kek-Huay Latte',
+    'The Amber Velvet',
+    'Emerald On Cloud Nine',
+    '99 Ruby Kisses',
+  ];
+
+  // Chapters ใต้ Omakase — ใช้ประวัติจริงที่เปิดเผยแล้วเท่านั้น ไม่ผูกกับ Signature list อีกต่อไป
+  function renderOmakaseChapters() {
     const el = document.getElementById('omkChapters');
     if (!el) return;
-    const rows = items.map((item, i) => {
+    const rows = OMAKASE_REVEAL_HISTORY.map((name, i) => {
       const num = String(i + 1).padStart(2, '0');
       return `
         <div class="omk-chapter-row">
           <span class="omk-chapter-num">#${num}</span>
-          <span class="omk-chapter-text">${item.name}</span>
-          <button type="button" class="omk-chapter-link">Signature</button>
+          <span class="omk-chapter-text">${name}</span>
         </div>
       `;
     }).join('');
-    const teaserNum = String(items.length + 1).padStart(2, '0');
+    const teaserNum = String(OMAKASE_REVEAL_HISTORY.length + 1).padStart(2, '0');
     el.innerHTML = `
       <div class="omk-chapters">
         <div class="omk-chapters-title">📖 Omakase Chapters</div>
@@ -1516,9 +1525,6 @@
         </div>
       </div>
     `;
-    el.querySelectorAll('.omk-chapter-link').forEach(btn => {
-      btn.addEventListener('click', () => selectTab('signature'));
-    });
   }
 
 
