@@ -876,12 +876,8 @@
           <div class="menu-grid" id="coffeeGrid"></div>
         </div>
         <div class="group">
-          <h2>🍵 กลุ่มชาเขียว</h2>
-          <div class="menu-grid" id="matchaGrid"></div>
-        </div>
-        <div class="group">
-          <h2>🥤 อื่นๆ</h2>
-          <div class="menu-grid" id="otherGrid"></div>
+          <h2>🥤 Comfort Non-coffee</h2>
+          <div class="menu-grid" id="nonCoffeeGrid"></div>
         </div>
 
         <div id="seriesSection" style="display:none;margin-top:24px;">
@@ -1254,8 +1250,7 @@
 
     const surpriseGrid = document.getElementById('surpriseGrid');
     const coffeeGrid = document.getElementById('coffeeGrid');
-    const matchaGrid = document.getElementById('matchaGrid');
-    const otherGrid = document.getElementById('otherGrid');
+    const nonCoffeeGrid = document.getElementById('nonCoffeeGrid');
     const playfulComfortGrid = document.getElementById('playfulComfortGrid');
     const pawteinTwistGrid = document.getElementById('pawteinTwistGrid');
     const maewsomPicksGrid = document.getElementById('maewsomPicksGrid');
@@ -1273,8 +1268,7 @@
 
     surpriseGrid.innerHTML = '';
     coffeeGrid.innerHTML = '';
-    matchaGrid.innerHTML = '';
-    otherGrid.innerHTML = '';
+    nonCoffeeGrid.innerHTML = '';
     playfulComfortGrid.innerHTML = '';
     pawteinTwistGrid.innerHTML = '';
     maewsomPicksGrid.innerHTML = '';
@@ -1355,7 +1349,7 @@
           signatureItems.push(item);
         }
       } else if (group === 'matcha') {
-        matchaGrid.appendChild(makeCard(item));
+        nonCoffeeGrid.appendChild(makeCard(item));
       } else if (group === 'coffee') {
         coffeeGrid.appendChild(makeCard(item));
       } else if (group === 'playful_comfort') {
@@ -1363,7 +1357,7 @@
       } else if (group === 'pawtein_twist') {
         pawteinTwistGrid.appendChild(makeCard(item));
       } else {
-        otherGrid.appendChild(makeCard(item));
+        nonCoffeeGrid.appendChild(makeCard(item));
       }
     });
 
