@@ -513,9 +513,10 @@
   /* ลำดับที่เห็นจริงบนจอ (บนลงล่าง) — ไม่ได้ย้าย HTML จริง แค่จัดลำดับด้วย CSS ให้ตรงกับปุ่มแท็บ ลดความเสี่ยงจากการย้ายบล็อกใหญ่ */
   #tab-omakase { order: 0; }
   #tab-signature { order: 1; }
-  #tab-comfort { order: 2; }
-  #tab-playful_comfort { order: 3; }
-  #tab-pawtein_twist { order: 4; }
+  #tab-maewsom_picks { order: 2; }
+  #tab-comfort { order: 3; }
+  #tab-playful_comfort { order: 4; display: none; }
+  #tab-pawtein_twist { order: 5; display: none; }
   .soon-box {
     text-align: center; padding: 40px 20px; border: 2px dashed #F0E4D8;
     border-radius: 16px; color: #A8876F; font-size: 14px; font-weight: 600;
@@ -821,9 +822,8 @@
   <div class="catbar" id="catbar">
     <span class="cat-pill active" data-tab="omakase">🎴 OMAKASE</span>
     <span class="cat-pill" data-tab="signature">🍊 SIGNATURE</span>
+    <span class="cat-pill" data-tab="maewsom_picks">🐱 MAEWSOM'S PICKS</span>
     <span class="cat-pill" data-tab="comfort">☕ COMFORT</span>
-    <span class="cat-pill" data-tab="playful_comfort">🎭 PLAYFUL COMFORT · สนุกกว่าเดิม</span>
-    <span class="cat-pill" data-tab="pawtein_twist">🍓💪 PAW-TEIN TWIST · เมนูปั่นโปรตีน</span>
   </div>
 </div>
 
@@ -890,6 +890,16 @@
             <div class="section-header-sub">One batch. Five ways to fall for strawberry. Only for 2 weeks.</div>
           </div>
           <div class="menu-grid" id="seriesGrid"></div>
+        </div>
+      </div>
+
+      <div class="tabpanel" id="tab-maewsom_picks">
+        <div class="section-header">
+          <div class="section-header-title">🐱 MAEWSOM'S PICKS</div>
+          <div class="section-header-sub">เมนูที่ร้านอื่นไม่มี หรือหายาก — คัดสรรเฉพาะจากแมวส้ม</div>
+        </div>
+        <div class="group">
+          <div class="menu-grid" id="maewsomPicksGrid"></div>
         </div>
       </div>
 
@@ -1248,6 +1258,7 @@
     const otherGrid = document.getElementById('otherGrid');
     const playfulComfortGrid = document.getElementById('playfulComfortGrid');
     const pawteinTwistGrid = document.getElementById('pawteinTwistGrid');
+    const maewsomPicksGrid = document.getElementById('maewsomPicksGrid');
     const signatureItems = [];
     const seriesItems = [];
 
@@ -1266,6 +1277,7 @@
     otherGrid.innerHTML = '';
     playfulComfortGrid.innerHTML = '';
     pawteinTwistGrid.innerHTML = '';
+    maewsomPicksGrid.innerHTML = '';
 
     function makeCard(item) {
       const div = document.createElement('div');
@@ -1330,7 +1342,11 @@
 
     data.forEach(item => {
       const group = tabGroupFor(item.category);
-      if (group === 'surprise') {
+      if (group === 'hidden') {
+        return; // secret / omakase-placeholder หมวด — ไม่โชว์ในเมนูลูกค้าเด็ดขาด
+      } else if (group === 'maewsom_picks') {
+        maewsomPicksGrid.appendChild(makeCard(item));
+      } else if (group === 'surprise') {
         surpriseGrid.appendChild(makeCard(item));
       } else if (group === 'signature') {
         if (item.chapter_number === null || item.chapter_number === undefined) {
