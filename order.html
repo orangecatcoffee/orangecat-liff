@@ -699,7 +699,7 @@
   .omk-chapters { background: #fff; border-radius: 14px; padding: 16px; margin-top: 12px; }
   .omk-chapters-title { font-weight: 800; font-size: 14px; color: #4A3428; margin-bottom: 10px; }
   .omk-chapter-row {
-    display: flex; align-items: center; gap: 10px; padding: 10px 0;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 0;
     border-top: 1px solid #F0E4D8;
   }
   .omk-chapter-row:first-of-type { border-top: none; padding-top: 0; }
@@ -708,7 +708,16 @@
   .omk-chapter-link {
     flex-shrink: 0; background: #FFF3E8; color: #E8863A; border: none;
     padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; font-family: inherit;
+    cursor: pointer;
   }
+  .omk-chapter-link.active { background: #E8621A; color: #fff; }
+  .omk-chapter-story {
+    flex-basis: 100%; width: 100%;
+    max-height: 0; overflow: hidden; transition: max-height .25s ease;
+    font-size: 12px; line-height: 1.7; color: #6B5445; white-space: pre-line;
+  }
+  .omk-chapter-story.open { max-height: 600px; padding-top: 10px; }
+  .omk-chapter-story .story-ing { font-weight: 700; color: #4A3428; margin-bottom: 8px; }
 
   /* Image preview modal — centered */
   .img-sheet-overlay {
@@ -1499,15 +1508,28 @@
 
   // Chapters ใต้ Omakase — ใช้ประวัติจริงจาก DB (omakase_reveal_week) ไม่ hardcode แล้ว
   // แก้ไขได้จากแท็บ "สูตร" ใน brew.html โดยฟ้าเอง ไม่ต้องพึ่ง Claude แก้โค้ดทุกครั้ง
+  // แต่ละ chapter มีปุ่ม "Full Story" กดขยายอ่านเรื่องราวเต็ม (story_body/story_ingredients) กดซ้ำเพื่อปิด
+  function escapeHtml(s) {
+    return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
   function renderOmakaseChapters(items) {
     const el = document.getElementById('omkChapters');
     if (!el) return;
     const rows = items.map((item, i) => {
       const num = String(i + 1).padStart(2, '0');
+      const hasStory = item.story_body || item.story_ingredients;
+      const storyHtml = hasStory ? `
+        <div class="omk-chapter-story" id="omk-story-${i}">
+          ${item.story_ingredients ? `<div class="story-ing">${escapeHtml(item.story_ingredients)}</div>` : ''}
+          ${item.story_body ? escapeHtml(item.story_body) : ''}
+        </div>
+      ` : '';
       return `
         <div class="omk-chapter-row">
           <span class="omk-chapter-num">#${num}</span>
           <span class="omk-chapter-text">${item.name}</span>
+          ${hasStory ? `<button type="button" class="omk-chapter-link" data-story-idx="${i}">Full Story</button>` : ''}
+          ${storyHtml}
         </div>
       `;
     }).join('');
@@ -1522,6 +1544,17 @@
         </div>
       </div>
     `;
+    el.querySelectorAll('.omk-chapter-link').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = btn.dataset.storyIdx;
+        const panel = document.getElementById(`omk-story-${idx}`);
+        if (!panel) return;
+        const isOpen = panel.classList.contains('open');
+        panel.classList.toggle('open', !isOpen);
+        btn.classList.toggle('active', !isOpen);
+        btn.textContent = isOpen ? 'Full Story' : 'ปิด';
+      });
+    });
   }
 
 
