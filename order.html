@@ -716,7 +716,7 @@
     max-height: 0; overflow: hidden; transition: max-height .25s ease;
     font-size: 12px; line-height: 1.7; color: #6B5445; white-space: pre-line;
   }
-  .omk-chapter-story.open { max-height: 600px; padding-top: 10px; }
+  .omk-chapter-story.open { max-height: 1200px; padding-top: 10px; }
   .omk-chapter-story .story-ing { font-weight: 700; color: #4A3428; margin-bottom: 8px; }
 
   /* Image preview modal — centered */
@@ -1400,7 +1400,8 @@
 
     // ประวัติแก้วลับ Omakase ที่เปิดเผยจริง — ดึงจาก omakase_reveal_week (ฟ้าตั้งเองได้ที่แท็บ "สูตร")
     // คนละ field กับ chapter_number (คุมแท็บ Signature) เพราะแก้วเดียวกันอาจย้ายหมวดได้ แต่ประวัติการเปิดเผยไม่ควรเปลี่ยนตาม
-    const omakaseHistory = data
+    // ใช้ rawData (ไม่ใช่ data ที่กรอง omakase_only ออกไปแล้ว) — เพราะแก้วที่ยังเป็น Secret อยู่ (ยังไม่ขึ้น Chapter จริง) ก็ต้องโชว์ story/รูป/วิดีโอที่ฟ้าเตรียมไว้ได้เหมือนกัน ไม่ใช่รอจนกว่าจะโปรโมทเป็น Signature เท่านั้น
+    const omakaseHistory = (rawData || [])
       .filter(item => item.omakase_reveal_week !== null && item.omakase_reveal_week !== undefined)
       .sort((a, b) => a.omakase_reveal_week - b.omakase_reveal_week);
     renderOmakaseChapters(omakaseHistory);
@@ -1517,11 +1518,27 @@
     if (!el) return;
     const rows = items.map((item, i) => {
       const num = String(i + 1).padStart(2, '0');
-      const hasStory = item.story_body || item.story_ingredients;
+      const hasPhoto = !!item.image_url;
+      const hasMfs = item.made_from_scratch_images && item.made_from_scratch_images.length;
+      const hasStory = item.story_body || item.story_ingredients || hasPhoto || hasMfs;
+      const photoHtml = hasPhoto ? `<div class="sig-photo-wrap" style="height:180px;margin-bottom:10px;"><img src="${item.image_url}" alt="${item.name}"></div>` : '';
+      const mfsHtml = hasMfs ? `
+          <div class="sig-mfs-title">🧡 Made From Scratch</div>
+          <div class="sig-mfs-scroll">
+            ${item.made_from_scratch_images.map(url => {
+              const isVideo = /\.(mov|mp4|webm|m4v)(\?.*)?$/i.test(url);
+              return isVideo
+                ? `<video src="${url}" class="sig-mfs-img" autoplay muted loop playsinline></video>`
+                : `<img src="${url}" class="sig-mfs-img" alt="Made From Scratch">`;
+            }).join('')}
+          </div>
+      ` : '';
       const storyHtml = hasStory ? `
         <div class="omk-chapter-story" id="omk-story-${i}">
+          ${photoHtml}
           ${item.story_ingredients ? `<div class="story-ing">${escapeHtml(item.story_ingredients)}</div>` : ''}
           ${item.story_body ? escapeHtml(item.story_body) : ''}
+          ${mfsHtml}
         </div>
       ` : '';
       return `
