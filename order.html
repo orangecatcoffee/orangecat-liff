@@ -1536,9 +1536,9 @@
       const storyHtml = hasStory ? `
         <div class="omk-chapter-story" id="omk-story-${i}">
           ${photoHtml}
+          ${mfsHtml}
           ${item.story_ingredients ? `<div class="story-ing">${escapeHtml(item.story_ingredients)}</div>` : ''}
           ${item.story_body ? escapeHtml(item.story_body) : ''}
-          ${mfsHtml}
         </div>
       ` : '';
       return `
