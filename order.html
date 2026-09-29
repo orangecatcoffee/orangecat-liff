@@ -1155,6 +1155,7 @@
 
   function iconFor(item) {
     if (item.image_url) return `<img src="${item.image_url}" alt="${item.name}" class="cup-icon">`;
+    if (item.category === 'cold_pressed_juice') return '🥤';
     if (item.name.toLowerCase().includes('matcha')) return '🍵';
     return '☕';
   }
