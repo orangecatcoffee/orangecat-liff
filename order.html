@@ -1385,7 +1385,7 @@
 
     surpriseGrid.appendChild(tarotCard); // ต่อท้าย แมวส้มเลือกหน่อย เสมอ (อยู่ขวา)
 
-    // เรียง Chapter ตามเลขที่ Fah ตั้งเองใน chapter_number เท่านั้น ไม่ใช้ sort_order/ลำดับ query
+    // เรียง Chapter ตามเลขที่ อาบุ้ง ตั้งเองใน chapter_number เท่านั้น ไม่ใช้ sort_order/ลำดับ query
     // กันปัญหาสร้างเมนูใหม่แล้วแทรกผิดที่ — ไม่ตั้งเลขไว้ (null) จะไปอยู่ท้ายสุด
     signatureItems.sort((a, b) => {
       const ca = a.chapter_number, cb = b.chapter_number;
@@ -1399,9 +1399,9 @@
     currentSecretItem = signatureItems.find(i => i.status === 'live') || null;
     renderSignatureTabs(signatureItems);
 
-    // ประวัติแก้วลับ Omakase ที่เปิดเผยจริง — ดึงจาก omakase_reveal_week (ฟ้าตั้งเองได้ที่แท็บ "สูตร")
+    // ประวัติแก้วลับ Omakase ที่เปิดเผยจริง — ดึงจาก omakase_reveal_week (อาบุ้งตั้งเองได้ที่แท็บ "สูตร")
     // คนละ field กับ chapter_number (คุมแท็บ Signature) เพราะแก้วเดียวกันอาจย้ายหมวดได้ แต่ประวัติการเปิดเผยไม่ควรเปลี่ยนตาม
-    // ใช้ rawData (ไม่ใช่ data ที่กรอง omakase_only ออกไปแล้ว) — เพราะแก้วที่ยังเป็น Secret อยู่ (ยังไม่ขึ้น Chapter จริง) ก็ต้องโชว์ story/รูป/วิดีโอที่ฟ้าเตรียมไว้ได้เหมือนกัน ไม่ใช่รอจนกว่าจะโปรโมทเป็น Signature เท่านั้น
+    // ใช้ rawData (ไม่ใช่ data ที่กรอง omakase_only ออกไปแล้ว) — เพราะแก้วที่ยังเป็น Secret อยู่ (ยังไม่ขึ้น Chapter จริง) ก็ต้องโชว์ story/รูป/วิดีโอที่อาบุ้งเตรียมไว้ได้เหมือนกัน ไม่ใช่รอจนกว่าจะโปรโมทเป็น Signature เท่านั้น
     const omakaseHistory = (rawData || [])
       .filter(item => item.omakase_reveal_week !== null && item.omakase_reveal_week !== undefined)
       .sort((a, b) => a.omakase_reveal_week - b.omakase_reveal_week);
@@ -1509,7 +1509,7 @@
   }
 
   // Chapters ใต้ Omakase — ใช้ประวัติจริงจาก DB (omakase_reveal_week) ไม่ hardcode แล้ว
-  // แก้ไขได้จากแท็บ "สูตร" ใน brew.html โดยฟ้าเอง ไม่ต้องพึ่ง Claude แก้โค้ดทุกครั้ง
+  // แก้ไขได้จากแท็บ "สูตร" ใน brew.html โดยอาบุ้งเอง ไม่ต้องพึ่ง Claude แก้โค้ดทุกครั้ง
   // แต่ละ chapter มีปุ่ม "Full Story" กดขยายอ่านเรื่องราวเต็ม (story_body/story_ingredients) กดซ้ำเพื่อปิด
   function escapeHtml(s) {
     return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1936,7 +1936,7 @@
 
 
 
-  // รูป banner + ข้อความ เปลี่ยนตามแท็บที่เลือก — แก้ URL ตรงนี้ทีเดียวเมื่อ Fah ส่งรูปใหม่มาแทน
+  // รูป banner + ข้อความ เปลี่ยนตามแท็บที่เลือก — แก้ URL ตรงนี้ทีเดียวเมื่อ อาบุ้ง ส่งรูปใหม่มาแทน
   const TAB_BANNERS = {
     comfort:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png', title: 'COMFORT',   sub: 'เมนูประจำร้าน 14 แก้ว' },
     signature: { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-signature.png', title: 'SIGNATURE',            sub: 'ซิกเนเจอร์ประจำร้าน' },
