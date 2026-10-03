@@ -144,7 +144,7 @@
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oempudXR2aXJqZ2ljbGtrZmd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMjc3NjEsImV4cCI6MjA5ODcwMzc2MX0.Bv2zsjmo3yd9YpmfxUAmXf-aaFy7SbY77fmM_k4f7eg";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ดึง PromptPay ID จากฐานข้อมูล ไม่ hardcode ในไฟล์แล้ว — Fah เปลี่ยนเองได้จากหน้า owner โดยไม่ต้องแก้โค้ด
+  // ดึง PromptPay ID จากฐานข้อมูล ไม่ hardcode ในไฟล์แล้ว — อาบุ้ง เปลี่ยนเองได้จากหน้า owner โดยไม่ต้องแก้โค้ด
   let PROMPTPAY_ID = "004629000776791";
   let PROMPTPAY_ID_TAG = "03";
 
@@ -227,7 +227,7 @@
     renderQR(null);
   });
 
-  // initial render: โหลด PromptPay ID จากฐานข้อมูลก่อน แล้วค่อยสร้าง QR (กันกรณี Fah เปลี่ยนค่าไว้)
+  // initial render: โหลด PromptPay ID จากฐานข้อมูลก่อน แล้วค่อยสร้าง QR (กันกรณี อาบุ้ง เปลี่ยนค่าไว้)
   async function loadPaymentSettingsAndRender() {
     try {
       const { data, error } = await sb.from('payment_settings').select('promptpay_id, promptpay_id_tag, label').eq('id', 1).maybeSingle();
