@@ -1183,15 +1183,18 @@
   }
 
   async function loadMilks() {
-    const { data, error } = await sb
+    // นมที่โชว์: สต็อก > 0 หรือมีไอเทมแพ็กเกจอื่นที่ขายในชื่อเดียวกัน (sells_as) สต็อกพอ 1 แก้ว (เช่น Oat milk กล่องเล็ก)
+    const { data: variants } = await sb.from('ingredients')
+      .select('sells_as, stock_quantity, serving_qty').eq('active', true).not('sells_as', 'is', null);
+    const variantInStock = new Set((variants || []).filter(v => Number(v.stock_quantity) >= Number(v.serving_qty || 1)).map(v => v.sells_as));
+    const { data: milkRows, error } = await sb
       .from('ingredients')
       .select('id, name, customer_bean_surcharge, stock_quantity')
       .eq('category', 'milk')
       .eq('active', true)
       .gt('customer_bean_surcharge', 0) // เฉพาะนมทางเลือกที่มี upcharge (ไม่ดึง Dairy milk/Coconut water/Whipping Cream/Syrup)
-      .gt('stock_quantity', 0)
       .order('customer_bean_surcharge');
-    availableMilks = (!error && data) ? data : [];
+    availableMilks = (!error && milkRows) ? milkRows.filter(m => Number(m.stock_quantity) > 0 || variantInStock.has(m.name)) : [];
   }
 
   async function loadMilkEligibleItems() {
