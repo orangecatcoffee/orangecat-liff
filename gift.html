@@ -47,9 +47,6 @@
   /* ---------- Screen 2: coupons ---------- */
   .page-title{font-size:26px;font-weight:500;margin:4px 0 14px;}
   .quote{border-left:3px solid var(--orange);padding:4px 0 4px 14px;margin-bottom:6px;font-size:15px;line-height:1.85;white-space:pre-line;}
-  .sign{margin:10px 0 0 17px;min-height:34px;}
-  .sign img{max-height:54px;max-width:70%;display:block;}
-  .sign .sign-text{font-size:18px;color:var(--orange);font-weight:500;}
   .counter{display:flex;justify-content:space-between;align-items:baseline;margin:24px 0 12px;}
   .counter b{font-size:15px;font-weight:500;}
   .counter span{font-size:12px;color:var(--muted);}
@@ -176,7 +173,6 @@
     <div class="eyebrow" style="color:var(--muted)">Picked just for you</div>
     <h1 class="page-title" id="cpTitle"></h1>
     <div class="quote" id="cpMessage"></div>
-    <div class="sign" id="cpSign"></div>
     <div class="counter"><b id="cpCount"></b><span>แตะ “ใช้คูปอง” เมื่ออยากดื่ม</span></div>
     <div id="ticketList"></div>
   </div>
@@ -314,9 +310,6 @@
     const g = state.gift, list = state.coupons, total = list.length;
     $('cpTitle').textContent = 'กล่องนี้ของ' + g.recipient_name;
     $('cpMessage').textContent = g.message || '';
-    const sg = $('cpSign'); sg.innerHTML = '';
-    if (g.signature_image_url) sg.innerHTML = '<img src="' + esc(g.signature_image_url) + '" alt="ลายเซ็น">';
-    else if (g.signature_text) sg.innerHTML = '<div class="sign-text">' + esc(g.signature_text) + '</div>';
     const avail = list.filter(c => c.status === 'available').length;
     $('cpCount').textContent = 'เหลือ ' + avail + ' จาก ' + total + ' แก้ว';
 
