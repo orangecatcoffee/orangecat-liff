@@ -73,11 +73,20 @@
   .ready .cta-spk{display:block;} .cta-spk{display:none;}
 
   /* ---------- Screen 2: card ---------- */
-  .paper{position:relative;background:#FFFDF8;border:1px solid #EAD9C4;border-radius:8px;padding:34px 26px 30px;margin:8px 0 26px;
+  /* the card screen is locked to one viewport: no page scroll, paper (with tape) fully visible, text auto-fits */
+  body.card-view{overflow:hidden;height:var(--app-h,100dvh);padding-bottom:0;}
+  body.card-view .wrap{height:100%;}
+  #scCard.active{display:flex;flex-direction:column;height:100%;padding-bottom:max(14px,env(safe-area-inset-bottom));}
+  #scCard .topbar{flex:none;padding:14px 0 10px;margin-bottom:0;}
+  .card-area{flex:1 1 auto;min-height:0;display:flex;align-items:center;padding:20px 0 10px;}
+  .card-actions{flex:none;padding-top:6px;}
+  .paper{position:relative;width:100%;max-height:100%;display:flex;flex-direction:column;background:#FFFDF8;border:1px solid #EAD9C4;border-radius:8px;padding:22px 20px 20px;
          box-shadow:0 10px 24px rgba(74,52,40,.12);transform-origin:50% 0;animation:cardIn .8s cubic-bezier(.2,.9,.3,1) both;}
   .paper::before{content:'';position:absolute;top:-12px;left:50%;width:84px;height:24px;transform:translateX(-50%) rotate(-2deg);
                  background:rgba(232,134,58,.28);border-radius:3px;}
-  .paper-text{font-size:16.5px;line-height:2;white-space:pre-line;color:var(--brown);}
+  .paper-text{flex:1 1 auto;min-height:0;overflow-y:auto;font-size:14.5px;line-height:1.6;color:var(--brown);}
+  .paper-text p{margin:0 0 .7em;white-space:pre-line;}
+  .paper-text p:last-child{margin-bottom:0;}
   @keyframes cardIn{from{opacity:0;transform:perspective(700px) rotateX(-65deg) scaleY(.6)}to{opacity:1;transform:none}}
 
   /* ---------- Screen 3: coupons ---------- */
@@ -235,8 +244,8 @@
   <!-- 2) card: text written in the back office -->
   <div class="screen" id="scCard">
     <div class="topbar"><div class="eyebrow">Maewsom · A little thank you</div></div>
-    <div class="paper"><div class="paper-text" id="cardText"></div></div>
-    <button class="btn primary" id="toCouponsBtn">ดูคูปองกาแฟ</button>
+    <div class="card-area"><div class="paper"><div class="paper-text" id="cardText"></div></div></div>
+    <div class="card-actions"><button class="btn primary" id="toCouponsBtn">ดูคูปองกาแฟ</button></div>
   </div>
 
   <!-- 3) coupons -->
@@ -332,8 +341,29 @@
 
   function show(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+    document.body.classList.toggle('card-view', id === 'scCard');
     window.scrollTo({ top: 0 });
+    if (id === 'scCard') requestAnimationFrame(fitCard);
   }
+  // real visible height (webviews/Safari toolbars make 100vh unreliable)
+  function setAppH() {
+    document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+    const bar = document.getElementById('pvBar');
+    if (bar && bar.style.display === 'block') document.body.style.paddingTop = bar.offsetHeight + 'px';
+  }
+  // shrink the type just enough so the whole card (top edge, tape, bottom edge) sits inside one screen
+  function fitCard() {
+    const t = $('cardText'), area = document.querySelector('.card-area'), paper = document.querySelector('.paper');
+    if (!t || !area || !paper || !$('scCard').classList.contains('active')) return;
+    paper.style.maxHeight = Math.max(area.clientHeight - 30, 120) + 'px'; // area padding: 20 top (tape) + 10 bottom
+    let fs = 14.5; t.style.fontSize = fs + 'px'; t.style.lineHeight = '1.6';
+    while (t.scrollHeight > t.clientHeight + 1 && fs > 11) {
+      fs -= 0.5; t.style.fontSize = fs + 'px';
+      if (fs <= 12.5) t.style.lineHeight = '1.5';
+    }
+  }
+  setAppH();
+  window.addEventListener('resize', () => { setAppH(); fitCard(); });
   function fail(msg) { if (msg) $('errText').innerHTML = msg; show('scError'); }
 
   /* ---------- load ---------- */
@@ -388,7 +418,12 @@
   $('cardBtn').addEventListener('click', () => { renderCard(); show('scCard'); });
 
   /* ---------- screen 2: card ---------- */
-  function renderCard() { $('cardText').textContent = (state.gift && state.gift.message) || ''; }
+  function renderCard() {
+    const box = $('cardText'); box.innerHTML = '';
+    const txt = (state.gift && state.gift.message) || '';
+    txt.split(/\n\s*\n/).forEach(par => { if (!par.trim()) return; const p = document.createElement('p'); p.textContent = par.trim(); box.appendChild(p); });
+    if ($('scCard').classList.contains('active')) fitCard();
+  }
   $('toCouponsBtn').addEventListener('click', () => { renderCoupons(); show('scCoupons'); });
   $('rereadBtn').addEventListener('click', () => { renderCard(); show('scCard'); });
 
@@ -533,6 +568,7 @@
   function setupPreview() {
     document.body.classList.add('pv');
     $('pvBar').style.display = 'block';
+    setTimeout(setAppH, 0);
     const g = state.gift;
     const st = { draft: 'ฉบับร่าง (ผู้รับยังเข้าลิงก์จริงไม่ได้)', active: 'เปิดใช้งานอยู่', archived: 'เก็บเข้าคลังแล้ว (ลิงก์จริงใช้ไม่ได้)' }[g.status] || g.status;
     const opened = g.opened_at ? 'ผู้รับเปิดกล่องแล้ว ' + new Date(g.opened_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'ผู้รับยังไม่เปิดกล่อง';
