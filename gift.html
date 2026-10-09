@@ -26,28 +26,63 @@
   .eyebrow{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:var(--orange);font-weight:500;}
   .topbar{padding:22px 0 14px;border-bottom:1px solid var(--line);margin-bottom:22px;}
 
-  /* ---------- Screen 1: box ---------- */
-  .box-headline{font-size:29px;line-height:1.35;font-weight:500;margin:6px 0 4px;white-space:pre-line;}
-  .box-stage{display:flex;justify-content:center;margin:18px 0 8px;position:relative;}
-  .box-stage svg{width:78%;max-width:300px;height:auto;overflow:visible;cursor:pointer;}
-  #lid{transition:transform .75s cubic-bezier(.3,1.4,.5,1);transform-origin:50% 100%;}
-  .opening #lid{transform:translateY(-58px) rotate(-9deg);}
-  #giftTag{transition:transform .5s ease,opacity .5s;}
-  .opening #giftTag{opacity:.0;transform:translateY(-20px) rotate(-6deg);}
-  .intro{font-size:15px;line-height:1.9;color:var(--muted);margin:14px 0 26px;white-space:pre-line;}
   .btn{width:100%;padding:16px;border:none;border-radius:999px;background:#F0B07F;color:var(--brown);
        font-family:inherit;font-size:16px;font-weight:500;cursor:pointer;transition:transform .15s,background .2s;}
   .btn:active{transform:scale(.98);}
   .btn.primary{background:var(--orange);color:#fff;}
   .btn.ghost{background:transparent;border:2px solid var(--line);color:var(--brown);}
   .btn:disabled{background:#E0C8AC;color:#fff;cursor:not-allowed;}
-  .float-heart{position:absolute;font-size:20px;opacity:0;pointer-events:none;animation:rise 1.6s ease-out forwards;}
-  @keyframes rise{0%{opacity:0;transform:translateY(0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translateY(-150px) scale(1.2)}}
+  .linkbtn{background:none;border:none;font-family:inherit;font-size:12.5px;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;}
 
-  /* ---------- Screen 2: coupons ---------- */
-  .page-title{font-size:26px;font-weight:500;margin:4px 0 14px;}
-  .quote{border-left:3px solid var(--orange);padding:4px 0 4px 14px;margin-bottom:6px;font-size:15px;line-height:1.85;white-space:pre-line;}
-  .counter{display:flex;justify-content:space-between;align-items:baseline;margin:24px 0 12px;}
+  /* ---------- Screen 1: box → Abung pops out ---------- */
+  .box-headline{font-size:27px;line-height:1.35;font-weight:500;margin:6px 0 0;white-space:pre-line;}
+  .stage{position:relative;width:100%;max-width:320px;margin:4px auto 6px;aspect-ratio:300/420;cursor:pointer;}
+  .stage svg{position:absolute;left:0;width:100%;top:35.714%;height:64.286%;overflow:visible;}
+  .box-body{z-index:2;}
+  .box-lid{z-index:3;transform-origin:50% 100%;transition:transform .85s cubic-bezier(.3,1.45,.5,1);}
+  .cat-clip{position:absolute;left:0;right:0;top:0;bottom:5.7%;overflow:hidden;z-index:1;}
+  .peek-cat{position:absolute;left:19%;width:62%;top:0;height:auto;display:block;transform:translateY(135%);
+            transition:transform 1s cubic-bezier(.22,1.25,.4,1) .3s;pointer-events:none;}
+  #giftTag{transition:opacity .4s ease;}
+  .opening .box-lid{transform:translateY(-60.7%) rotate(-8deg);}
+  .opening .peek-cat{transform:translateY(53%);}
+  .opening #giftTag{opacity:0;}
+  .ready .box-lid{animation:lidFloat 2.8s ease-in-out infinite;}
+  @keyframes lidFloat{
+    0%,100%{transform:translateY(-60.7%) rotate(-8deg);}
+    50%{transform:translateY(-63%) rotate(-5.5deg);}
+  }
+  .spark{position:absolute;z-index:4;font-size:18px;opacity:0;pointer-events:none;}
+  .ready .spark{animation:twinkle 2.2s ease-in-out infinite;}
+  .spark.s1{left:6%;top:30%;} .spark.s2{right:5%;top:24%;animation-delay:.5s!important;font-size:22px;}
+  .spark.s3{left:12%;top:56%;animation-delay:1.1s!important;font-size:14px;} .spark.s4{right:10%;top:52%;animation-delay:1.6s!important;}
+  @keyframes twinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(20deg)}}
+  .intro{font-size:14px;line-height:1.9;color:var(--muted);margin:6px 0 16px;white-space:pre-line;text-align:center;}
+  .cta-wrap{position:relative;margin-top:14px;min-height:56px;}
+  #cardBtn{display:none;}
+  .ready #cardBtn{animation:fade .6s ease both;}
+  .btn.shimmer{position:relative;overflow:hidden;background:linear-gradient(135deg,#F2A862,#E8863A);color:#fff;font-weight:600;
+               animation:pulse 1.9s infinite;}
+  .btn.shimmer::after{content:'';position:absolute;top:0;left:-60%;width:38%;height:100%;
+                      background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);
+                      transform:skewX(-20deg);animation:sheen 2.5s infinite;}
+  @keyframes sheen{0%{left:-60%}55%,100%{left:135%}}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(232,134,58,.55)}70%{box-shadow:0 0 0 16px rgba(232,134,58,0)}100%{box-shadow:0 0 0 0 rgba(232,134,58,0)}}
+  .cta-spk{position:absolute;pointer-events:none;font-size:15px;animation:twinkle 2s ease-in-out infinite;}
+  .cta-spk.a{left:7%;top:-10px;} .cta-spk.b{right:9%;top:-8px;animation-delay:.9s;} .cta-spk.c{right:28%;bottom:-10px;animation-delay:1.5s;font-size:12px;}
+  .ready .cta-spk{display:block;} .cta-spk{display:none;}
+
+  /* ---------- Screen 2: card ---------- */
+  .paper{position:relative;background:#FFFDF8;border:1px solid #EAD9C4;border-radius:8px;padding:34px 26px 30px;margin:8px 0 26px;
+         box-shadow:0 10px 24px rgba(74,52,40,.12);transform-origin:50% 0;animation:cardIn .8s cubic-bezier(.2,.9,.3,1) both;}
+  .paper::before{content:'';position:absolute;top:-12px;left:50%;width:84px;height:24px;transform:translateX(-50%) rotate(-2deg);
+                 background:rgba(232,134,58,.28);border-radius:3px;}
+  .paper-text{font-size:16.5px;line-height:2;white-space:pre-line;color:var(--brown);}
+  @keyframes cardIn{from{opacity:0;transform:perspective(700px) rotateX(-65deg) scaleY(.6)}to{opacity:1;transform:none}}
+
+  /* ---------- Screen 3: coupons ---------- */
+  .page-title{font-size:26px;font-weight:500;margin:4px 0 4px;}
+  .counter{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 12px;}
   .counter b{font-size:15px;font-weight:500;}
   .counter span{font-size:12px;color:var(--muted);}
 
@@ -112,7 +147,7 @@
   .confirm h4{font-size:18px;font-weight:500;margin-bottom:8px;}
   .confirm p{font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:18px;}
 
-  /* ---------- Screen 3: done ---------- */
+  /* ---------- Screen 4: done ---------- */
   .done{text-align:center;padding-top:44px;}
   .done-badge{width:132px;height:132px;border-radius:50%;margin:0 auto 20px;background:var(--orange-soft);display:flex;align-items:center;justify-content:center;
               border:3px dashed var(--orange);animation:pop .6s cubic-bezier(.3,1.5,.5,1) both;font-size:56px;}
@@ -135,9 +170,14 @@
   #pvBar{position:fixed;top:0;left:0;right:0;z-index:90;background:#4A3428;color:#FFF8F0;padding:8px 12px 9px;font-size:12px;line-height:1.5;}
   #pvBar .pv-top{max-width:480px;margin:0 auto 6px;}
   #pvBar .pv-top b{color:#F0B07F;font-weight:500;}
-  #pvBar .pv-tabs{max-width:480px;margin:0 auto;display:flex;gap:6px;}
-  #pvBar .pv-tabs button{flex:1;font-family:inherit;font-size:11.5px;padding:6px 4px;border-radius:999px;border:1px solid rgba(255,248,240,.35);background:transparent;color:#FFF8F0;cursor:pointer;}
+  #pvBar .pv-tabs{max-width:480px;margin:0 auto;display:flex;gap:5px;}
+  #pvBar .pv-tabs button{flex:1;font-family:inherit;font-size:11px;padding:6px 2px;border-radius:999px;border:1px solid rgba(255,248,240,.35);background:transparent;color:#FFF8F0;cursor:pointer;}
   #pvBar .pv-tabs button.on{background:#E8863A;border-color:#E8863A;color:#fff;}
+
+  @media (prefers-reduced-motion: reduce){
+    .btn.shimmer,.btn.shimmer::after,.ready .box-lid,.ready .spark,.cta-spk{animation:none!important;}
+    .peek-cat,.box-lid{transition-duration:.01s!important;transition-delay:0s!important;}
+  }
 </style>
 </head>
 <body>
@@ -146,8 +186,9 @@
   <div class="pv-top"><b>👀 ดูตัวอย่าง</b> <span id="pvInfo"></span></div>
   <div class="pv-tabs">
     <button type="button" data-go="box">1 กล่อง</button>
-    <button type="button" data-go="coupons">2 คูปอง</button>
-    <button type="button" data-go="done">3 ยืนยัน (ตัวอย่าง)</button>
+    <button type="button" data-go="card">2 การ์ด</button>
+    <button type="button" data-go="coupons">3 คูปอง</button>
+    <button type="button" data-go="done">4 ยืนยัน</button>
   </div>
 </div>
 
@@ -157,45 +198,57 @@
   <div class="screen active" id="scLoading"><div class="center-msg"><div class="big">🐱</div><p>รอแป๊บนะคะ…</p></div></div>
   <div class="screen" id="scError"><div class="center-msg"><div class="big">🧡</div><p id="errText">ลิงก์นี้เปิดไม่ได้ในตอนนี้ค่ะ<br>ลองทักแมวส้มได้เลยนะคะ</p></div></div>
 
-  <!-- 1) gift box -->
+  <!-- 1) gift box: tap → Abung pops out, lid floats above -->
   <div class="screen" id="scBox">
     <div class="topbar"><div class="eyebrow">Maewsom · A little thank you</div></div>
     <div class="eyebrow" id="boxFor" style="color:var(--muted)"></div>
     <h1 class="box-headline" id="boxHeadline"></h1>
-    <div class="box-stage" id="boxStage">
-      <svg viewBox="0 0 300 270" id="boxSvg" aria-label="กล่องของขวัญ">
-        <ellipse cx="150" cy="252" rx="108" ry="10" fill="rgba(74,52,40,.12)"/>
+    <div class="stage" id="boxStage" aria-label="กล่องของขวัญ">
+      <div class="cat-clip"><img class="peek-cat" id="peekCat" alt="อาบุ้ง"></div>
+      <svg class="box-body" viewBox="0 0 300 270" aria-hidden="true">
+        <ellipse cx="150" cy="254" rx="112" ry="10" fill="rgba(74,52,40,.13)"/>
         <rect x="42" y="118" width="216" height="130" rx="14" fill="#A5613A"/>
         <rect x="136" y="118" width="28" height="130" fill="#F2D8B8"/>
-        <g id="giftTag" transform="translate(150 178) rotate(-7)">
+        <g id="giftTag" transform="translate(150 182) rotate(-7)">
           <rect x="-82" y="-34" width="164" height="68" rx="10" fill="#2B211B"/>
           <text id="tagL1" x="-66" y="-6" fill="#F7EDE0" font-size="15" font-family="Mitr,sans-serif"></text>
           <text id="tagL2" x="-66" y="19" fill="#F7EDE0" font-size="15" font-family="Mitr,sans-serif"></text>
         </g>
-        <g id="lid">
-          <rect x="30" y="86" width="240" height="40" rx="12" fill="#B26E44"/>
-          <rect x="136" y="86" width="28" height="40" fill="#F2D8B8"/>
-          <path d="M150 86 C120 50 78 56 96 80 C108 94 140 90 150 86 Z" fill="#F2D8B8"/>
-          <path d="M150 86 C180 50 222 56 204 80 C192 94 160 90 150 86 Z" fill="#F2D8B8"/>
-          <circle cx="150" cy="84" r="9" fill="#E8C9A4"/>
-        </g>
       </svg>
+      <svg class="box-lid" viewBox="0 0 300 270" aria-hidden="true">
+        <rect x="30" y="86" width="240" height="40" rx="12" fill="#B26E44"/>
+        <rect x="136" y="86" width="28" height="40" fill="#F2D8B8"/>
+        <path d="M150 86 C120 50 78 56 96 80 C108 94 140 90 150 86 Z" fill="#F2D8B8"/>
+        <path d="M150 86 C180 50 222 56 204 80 C192 94 160 90 150 86 Z" fill="#F2D8B8"/>
+        <circle cx="150" cy="84" r="9" fill="#E8C9A4"/>
+      </svg>
+      <span class="spark s1">✨</span><span class="spark s2">✨</span><span class="spark s3">🧡</span><span class="spark s4">✨</span>
     </div>
-    <div class="intro" id="boxIntro"></div>
-    <button class="btn" id="openBtn">เปิดของขวัญ</button>
+    <div class="intro" id="boxIntro" style="display:none"></div>
+    <div class="cta-wrap">
+      <button class="btn" id="openBtn">เปิดกล่อง</button>
+      <button class="btn shimmer" id="cardBtn">เปิดการ์ด</button>
+      <span class="cta-spk a">✨</span><span class="cta-spk b">✨</span><span class="cta-spk c">✨</span>
+    </div>
   </div>
 
-  <!-- 2) coupons -->
+  <!-- 2) card: text written in the back office -->
+  <div class="screen" id="scCard">
+    <div class="topbar"><div class="eyebrow">Maewsom · A little thank you</div></div>
+    <div class="paper"><div class="paper-text" id="cardText"></div></div>
+    <button class="btn primary" id="toCouponsBtn">ดูคูปองกาแฟ</button>
+  </div>
+
+  <!-- 3) coupons -->
   <div class="screen" id="scCoupons">
     <div class="topbar"><div class="eyebrow">Maewsom · A little thank you</div></div>
-    <div class="eyebrow" style="color:var(--muted)">Picked just for you</div>
-    <h1 class="page-title" id="cpTitle"></h1>
-    <div class="quote" id="cpMessage"></div>
-    <div class="counter"><b id="cpCount"></b><span>แตะ “ใช้คูปอง” เมื่ออยากดื่ม</span></div>
+    <h1 class="page-title">คูปองกาแฟ</h1>
+    <button class="linkbtn" id="rereadBtn">อ่านการ์ดอีกครั้ง</button>
+    <div class="counter"><b id="cpCount"></b><span>แตะ “ใช้คูปอง” เมื่อพร้อม</span></div>
     <div id="ticketList"></div>
   </div>
 
-  <!-- 3) confirmation -->
+  <!-- 4) confirmation -->
   <div class="screen" id="scDone">
     <div class="done">
       <div class="done-badge">🐾</div>
@@ -249,6 +302,7 @@
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oempudXR2aXJqZ2ljbGtrZmd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMjc3NjEsImV4cCI6MjA5ODcwMzc2MX0.Bv2zsjmo3yd9YpmfxUAmXf-aaFy7SbY77fmM_k4f7eg";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const FALLBACK_MASCOT = 'icon-mascot.png';
+  const DEFAULT_HERO = 'images/abung-peek.webp';
   const STUB_CLASSES = ['s0','s1','s2','s3','s4'];
 
   const $ = id => document.getElementById(id);
@@ -288,56 +342,66 @@
     const { data, error } = await sb.rpc('gift_get', { p_token: TOKEN, p_preview: PREVIEW });
     if (error || !data) return fail();
     state.gift = data.gift; state.coupons = data.coupons;
-    renderBox();
+    renderBox(); renderCard();
     if (PREVIEW) { setupPreview(); await loadMenu(); previewGo('box'); return; }
-    // already opened before → straight to coupons (the box is a first-time moment)
+    // already opened before → straight to coupons (box + card are a first-time moment; the card can be re-read from the coupon page)
     if (state.gift.opened_at) { renderCoupons(); show('scCoupons'); }
     else show('scBox');
     loadMenu();
   }
 
-  /* ---------- screen 1 ---------- */
+  /* ---------- screen 1: box ---------- */
   function renderBox() {
     const g = state.gift;
-    $('boxFor').textContent = 'For ' + g.recipient_name + ' only';
+    $('boxFor').textContent = 'For ' + g.recipient_name;
     $('boxHeadline').textContent = g.headline;
-    $('boxIntro').textContent = g.intro_text || '';
+    const intro = $('boxIntro');
+    if (g.intro_text) { intro.textContent = g.intro_text; intro.style.display = 'block'; } else { intro.style.display = 'none'; }
     const lines = (g.box_label || ('ถึง ' + g.recipient_name + '\nจาก แมวส้ม')).split('\n');
     $('tagL1').textContent = lines[0] || '';
     $('tagL2').textContent = lines[1] || '';
-    $('openBtn').textContent = 'เปิดของขวัญของ' + g.recipient_name;
+    const cat = $('peekCat');
+    cat.onerror = () => { cat.onerror = null; if (cat.src.indexOf(DEFAULT_HERO) < 0) cat.src = DEFAULT_HERO; };
+    cat.src = g.hero_image_url || DEFAULT_HERO;
+    $('openBtn').textContent = 'เปิดกล่อง';
+    $('cardBtn').textContent = g.card_button_text || 'เปิดการ์ด';
   }
-  function hearts() {
-    const st = $('boxStage');
-    for (let i = 0; i < 7; i++) {
-      const h = document.createElement('div');
-      h.className = 'float-heart'; h.textContent = ['🧡','🐾','✨'][i % 3];
-      h.style.left = (22 + Math.random() * 56) + '%'; h.style.top = '34%';
-      h.style.animationDelay = (i * 0.09) + 's';
-      st.appendChild(h); setTimeout(() => h.remove(), 2200);
-    }
+  function resetBox() {
+    $('scBox').classList.remove('opening', 'ready');
+    $('openBtn').style.display = ''; $('cardBtn').style.display = 'none';
+    state.busy = false;
   }
-  async function openBox() {
-    if (state.busy) return; state.busy = true;
-    $('scBox').classList.add('opening'); hearts();
+  function openBox() {
+    if (state.busy || $('scBox').classList.contains('opening')) return;
+    state.busy = true;
+    $('scBox').classList.add('opening');
     if (!PREVIEW) sb.rpc('gift_open', { p_token: TOKEN }); // fire & forget: shop gets a ping the first time only (never in preview)
-    setTimeout(() => { renderCoupons(); show('scCoupons'); state.busy = false; }, 1250);
+    // Abung rises, the lid floats above; once settled, the shimmering "open card" button takes the place of "open box"
+    setTimeout(() => {
+      $('scBox').classList.add('ready');
+      $('openBtn').style.display = 'none'; $('cardBtn').style.display = 'block';
+      state.busy = false;
+    }, 1550);
   }
   $('openBtn').addEventListener('click', openBox);
-  $('boxSvg').addEventListener('click', openBox);
+  $('boxStage').addEventListener('click', openBox);
+  $('cardBtn').addEventListener('click', () => { renderCard(); show('scCard'); });
 
-  /* ---------- screen 2 ---------- */
+  /* ---------- screen 2: card ---------- */
+  function renderCard() { $('cardText').textContent = (state.gift && state.gift.message) || ''; }
+  $('toCouponsBtn').addEventListener('click', () => { renderCoupons(); show('scCoupons'); });
+  $('rereadBtn').addEventListener('click', () => { renderCard(); show('scCard'); });
+
+  /* ---------- screen 3: coupons ---------- */
   function renderCoupons() {
-    const g = state.gift, list = state.coupons, total = list.length;
-    $('cpTitle').textContent = 'กล่องนี้ของ' + g.recipient_name;
-    $('cpMessage').textContent = g.message || '';
+    const list = state.coupons, total = list.length;
     const avail = list.filter(c => c.status === 'available').length;
     $('cpCount').textContent = 'เหลือ ' + avail + ' จาก ' + total + ' แก้ว';
 
     $('ticketList').innerHTML = list.map((c, i) => {
       const img = esc(c.image_url || FALLBACK_MASCOT);
       const stub = STUB_CLASSES[i % STUB_CLASSES.length];
-      let action = '', cls = '', stamp = '', tail = '<em>CUP</em>';
+      let action = '', cls = '', stamp = '';
       if (c.status === 'available') {
         action = '<button class="t-btn" data-id="' + esc(c.id) + '">ใช้คูปอง</button>';
       } else if (c.status === 'requested') {
@@ -444,15 +508,8 @@
     }
     closeSheet();
     const idx = state.coupons.findIndex(c => c.id === state.couponId);
-    $('doneSub').innerHTML = 'ใช้คูปองใบที่ ' + (idx + 1) + ' แล้ว<br>แมวส้มรับเรื่องเรียบร้อย จะชงและส่งให้ตามวันที่เลือกค่ะ 🛵';
-    $('doneSum').innerHTML =
-      '<div><span>เมนู</span><span>' + esc(data.menu_item_name) + ' (' + esc(state.sweet) + ')</span></div>'
-      + '<div><span>วันที่</span><span>' + esc(thDate(date)) + '</span></div>'
-      + '<div><span>ส่งที่</span><span>' + esc(place) + '</span></div>'
-      + (note ? '<div><span>โน้ต</span><span>' + esc(note) + '</span></div>' : '');
-    $('doneRemain').innerHTML = data.remaining > 0 ? 'เหลืออีก <b>' + data.remaining + '</b> แก้ว' : 'ใช้ครบทุกใบแล้ว ขอบคุณที่ดื่มด้วยกันนะคะ 🧡';
+    showDone({ menu: data.menu_item_name, sweet: state.sweet, date, place, note, remaining: data.remaining, idx });
     await refresh();
-    show('scDone');
   });
 
   async function refresh() {
@@ -468,7 +525,7 @@
       + '<div><span>วันที่</span><span>' + esc(thDate(d.date)) + '</span></div>'
       + '<div><span>ส่งที่</span><span>' + esc(d.place) + '</span></div>'
       + (d.note ? '<div><span>โน้ต</span><span>' + esc(d.note) + '</span></div>' : '');
-    $('doneRemain').innerHTML = d.remaining > 0 ? 'เหลืออีก <b>' + d.remaining + '</b> แก้ว' : 'ใช้ครบทุกใบแล้ว ขอบคุณที่ดื่มด้วยกันนะคะ 🧡';
+    $('doneRemain').innerHTML = d.remaining > 0 ? 'เหลืออีก <b>' + d.remaining + '</b> แก้ว' : 'ใช้ครบทุกใบแล้วค่ะ ขอบคุณนะคะ';
     show('scDone');
   }
 
@@ -485,7 +542,8 @@
   function previewGo(which) {
     document.querySelectorAll('#pvBar [data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === which));
     state.busy = false; closeSheet();
-    if (which === 'box') { $('scBox').classList.remove('opening'); show('scBox'); }
+    if (which === 'box') { resetBox(); show('scBox'); }
+    else if (which === 'card') { renderCard(); show('scCard'); }
     else if (which === 'coupons') { renderCoupons(); show('scCoupons'); }
     else {
       const avail = state.coupons.filter(c => c.status === 'available').length;
@@ -494,9 +552,9 @@
                  place: state.gift.default_delivery_place || 'จุดส่งตัวอย่าง', note: '', remaining: Math.max(avail - 1, 0), idx: idx < 0 ? 0 : idx });
     }
   }
-  // opening the box inside preview jumps to the coupon screen but keeps the tabs in sync
+  // moving between screens inside preview keeps the tabs in sync
   const _show = show;
-  show = function (id) { _show(id); if (PREVIEW) { const m = { scBox: 'box', scCoupons: 'coupons', scDone: 'done' }[id]; if (m) document.querySelectorAll('#pvBar [data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === m)); } };
+  show = function (id) { _show(id); if (PREVIEW) { const m = { scBox: 'box', scCard: 'card', scCoupons: 'coupons', scDone: 'done' }[id]; if (m) document.querySelectorAll('#pvBar [data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === m)); } };
 
   init();
 </script>
