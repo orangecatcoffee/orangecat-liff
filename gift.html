@@ -74,7 +74,8 @@
 
   /* ---------- Screen 2: card ---------- */
   /* the card screen is locked to one viewport: no page scroll, paper (with tape) fully visible, text auto-fits */
-  body.card-view{overflow:hidden;height:var(--app-h,100dvh);padding-bottom:0;}
+  body.card-view{overflow:hidden;height:var(--app-h,100dvh);min-height:0;padding-bottom:0;}
+  html:has(body.card-view){height:var(--app-h,100dvh);overflow:hidden;}
   body.card-view .wrap{height:100%;}
   #scCard.active{display:flex;flex-direction:column;height:100%;padding-bottom:max(14px,env(safe-area-inset-bottom));}
   #scCard .topbar{flex:none;padding:14px 0 10px;margin-bottom:0;}
