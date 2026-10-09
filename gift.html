@@ -129,9 +129,27 @@
   .center-msg{text-align:center;padding:90px 10px;}
   .center-msg .big{font-size:50px;margin-bottom:12px;}
   .center-msg p{font-size:15px;color:var(--muted);line-height:1.8;}
+
+  /* ---------- Preview mode (owner only: ?preview=1) ---------- */
+  body.pv{padding-top:78px;}
+  #pvBar{position:fixed;top:0;left:0;right:0;z-index:90;background:#4A3428;color:#FFF8F0;padding:8px 12px 9px;font-size:12px;line-height:1.5;}
+  #pvBar .pv-top{max-width:480px;margin:0 auto 6px;}
+  #pvBar .pv-top b{color:#F0B07F;font-weight:500;}
+  #pvBar .pv-tabs{max-width:480px;margin:0 auto;display:flex;gap:6px;}
+  #pvBar .pv-tabs button{flex:1;font-family:inherit;font-size:11.5px;padding:6px 4px;border-radius:999px;border:1px solid rgba(255,248,240,.35);background:transparent;color:#FFF8F0;cursor:pointer;}
+  #pvBar .pv-tabs button.on{background:#E8863A;border-color:#E8863A;color:#fff;}
 </style>
 </head>
 <body>
+
+<div id="pvBar" style="display:none">
+  <div class="pv-top"><b>👀 ดูตัวอย่าง</b> <span id="pvInfo"></span></div>
+  <div class="pv-tabs">
+    <button type="button" data-go="box">1 กล่อง</button>
+    <button type="button" data-go="coupons">2 คูปอง</button>
+    <button type="button" data-go="done">3 ยืนยัน (ตัวอย่าง)</button>
+  </div>
+</div>
 
 <div class="wrap">
 
@@ -253,6 +271,8 @@
     return t;
   }
   const TOKEN = resolveToken();
+  // owner preview: shows every screen exactly as the recipient sees it, but never marks the box as opened, never redeems, never pings the shop
+  const PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 
   let state = { gift: null, coupons: [], menu: [], pick: null, sweet: 'ไม่หวาน', couponId: null, busy: false };
 
@@ -265,10 +285,11 @@
   /* ---------- load ---------- */
   async function init() {
     if (!TOKEN) return fail();
-    const { data, error } = await sb.rpc('gift_get', { p_token: TOKEN });
+    const { data, error } = await sb.rpc('gift_get', { p_token: TOKEN, p_preview: PREVIEW });
     if (error || !data) return fail();
     state.gift = data.gift; state.coupons = data.coupons;
     renderBox();
+    if (PREVIEW) { setupPreview(); await loadMenu(); previewGo('box'); return; }
     // already opened before → straight to coupons (the box is a first-time moment)
     if (state.gift.opened_at) { renderCoupons(); show('scCoupons'); }
     else show('scBox');
@@ -299,7 +320,7 @@
   async function openBox() {
     if (state.busy) return; state.busy = true;
     $('scBox').classList.add('opening'); hearts();
-    sb.rpc('gift_open', { p_token: TOKEN }); // fire & forget: shop gets a ping the first time only
+    if (!PREVIEW) sb.rpc('gift_open', { p_token: TOKEN }); // fire & forget: shop gets a ping the first time only (never in preview)
     setTimeout(() => { renderCoupons(); show('scCoupons'); state.busy = false; }, 1250);
   }
   $('openBtn').addEventListener('click', openBox);
@@ -401,6 +422,13 @@
     over_cap: 'เมนูนี้เกินสิทธิ์ของคูปองใบนี้ค่ะ'
   };
   $('cfYes').addEventListener('click', async () => {
+    if (PREVIEW) { // simulate only — nothing is written, no coupon is used, no notification is sent
+      const date = $('dateInput').value;
+      closeSheet();
+      showDone({ menu: state.pick, sweet: state.sweet, date, place: $('placeInput').value.trim(), note: $('noteInput').value.trim(),
+                 remaining: Math.max(state.coupons.filter(c => c.status === 'available').length - 1, 0), idx: state.coupons.findIndex(c => c.id === state.couponId) });
+      return;
+    }
     if (state.busy) return; state.busy = true; $('cfYes').disabled = true;
     const place = $('placeInput').value.trim(), date = $('dateInput').value, note = $('noteInput').value.trim();
     const { data, error } = await sb.rpc('gift_request', {
@@ -428,10 +456,47 @@
   });
 
   async function refresh() {
-    const { data } = await sb.rpc('gift_get', { p_token: TOKEN });
+    const { data } = await sb.rpc('gift_get', { p_token: TOKEN, p_preview: PREVIEW });
     if (data) { state.gift = data.gift; state.coupons = data.coupons; renderCoupons(); }
   }
   $('backBtn').addEventListener('click', () => { renderCoupons(); show('scCoupons'); });
+
+  function showDone(d) {
+    $('doneSub').innerHTML = 'ใช้คูปองใบที่ ' + (d.idx + 1) + ' แล้ว<br>แมวส้มรับเรื่องเรียบร้อย จะชงและส่งให้ตามวันที่เลือกค่ะ 🛵';
+    $('doneSum').innerHTML =
+      '<div><span>เมนู</span><span>' + esc(d.menu) + ' (' + esc(d.sweet) + ')</span></div>'
+      + '<div><span>วันที่</span><span>' + esc(thDate(d.date)) + '</span></div>'
+      + '<div><span>ส่งที่</span><span>' + esc(d.place) + '</span></div>'
+      + (d.note ? '<div><span>โน้ต</span><span>' + esc(d.note) + '</span></div>' : '');
+    $('doneRemain').innerHTML = d.remaining > 0 ? 'เหลืออีก <b>' + d.remaining + '</b> แก้ว' : 'ใช้ครบทุกใบแล้ว ขอบคุณที่ดื่มด้วยกันนะคะ 🧡';
+    show('scDone');
+  }
+
+  // ---------- owner preview ----------
+  function setupPreview() {
+    document.body.classList.add('pv');
+    $('pvBar').style.display = 'block';
+    const g = state.gift;
+    const st = { draft: 'ฉบับร่าง (ผู้รับยังเข้าลิงก์จริงไม่ได้)', active: 'เปิดใช้งานอยู่', archived: 'เก็บเข้าคลังแล้ว (ลิงก์จริงใช้ไม่ได้)' }[g.status] || g.status;
+    const opened = g.opened_at ? 'ผู้รับเปิดกล่องแล้ว ' + new Date(g.opened_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'ผู้รับยังไม่เปิดกล่อง';
+    $('pvInfo').textContent = g.recipient_name + ' · ' + st + (g.expired ? ' · หมดอายุแล้ว' : '') + ' · ' + opened + ' · ไม่ส่งแจ้งเตือน ไม่ตัดสิทธิ์จริง';
+    document.querySelectorAll('#pvBar [data-go]').forEach(b => b.addEventListener('click', () => previewGo(b.dataset.go)));
+  }
+  function previewGo(which) {
+    document.querySelectorAll('#pvBar [data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === which));
+    state.busy = false; closeSheet();
+    if (which === 'box') { $('scBox').classList.remove('opening'); show('scBox'); }
+    else if (which === 'coupons') { renderCoupons(); show('scCoupons'); }
+    else {
+      const avail = state.coupons.filter(c => c.status === 'available').length;
+      const idx = state.coupons.findIndex(c => c.status === 'available');
+      showDone({ menu: (state.menu[0] && state.menu[0].name) || 'เมนูตัวอย่าง', sweet: 'หวานน้อย', date: addDays(bkkToday(), 1),
+                 place: state.gift.default_delivery_place || 'จุดส่งตัวอย่าง', note: '', remaining: Math.max(avail - 1, 0), idx: idx < 0 ? 0 : idx });
+    }
+  }
+  // opening the box inside preview jumps to the coupon screen but keeps the tabs in sync
+  const _show = show;
+  show = function (id) { _show(id); if (PREVIEW) { const m = { scBox: 'box', scCoupons: 'coupons', scDone: 'done' }[id]; if (m) document.querySelectorAll('#pvBar [data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === m)); } };
 
   init();
 </script>
