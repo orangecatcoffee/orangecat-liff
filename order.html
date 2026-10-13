@@ -267,6 +267,8 @@
     gap: 10px;
   }
   .sig-price { font-size: 15px; font-weight: 700; color: #E8863A; }
+  .std-price { font-size: 10.5px; font-weight: 400; color: #A8876F; text-decoration: line-through; margin-left: 5px; }
+  .pg-banner { margin: 0 0 14px; padding: 10px 14px; border-radius: 12px; background: #EAF6EC; border: 1px solid #BFE3C6; color: #2E7D46; font-size: 12.5px; font-weight: 600; line-height: 1.6; }
   .sig-order-btn {
     background: #E8863A;
     color: #fff;
@@ -871,6 +873,8 @@
   <div class="layout">
     <div class="menu-col">
 
+      <div id="priceGroupBanner" class="pg-banner" style="display:none;"></div>
+
       <div class="tabpanel" id="tab-comfort">
         <div class="section-header">
           <div class="section-header-title">☕ COMFORT</div>
@@ -1099,6 +1103,8 @@
   let cartLineSeq = 0;
 
   let memberId = null; // เซ็ตจริงถ้าเจอ member ที่ผูก LINE user id นี้ไว้ใน members
+  let menuRenderedGroupKey = null; // กลุ่มราคาที่ใช้ตอน render เมนูล่าสุด — ถ้าข้อมูลสมาชิกมาช้ากว่าเมนู จะ render ใหม่ให้ราคาถูกต้อง
+  let memberPriceGroup = { key: 'standard', label_th: 'Standard Price', discount_per_cup: 0 }; // กลุ่มราคาของสมาชิก (ชิดลม = ราคากลางลดต่อแก้ว)
   let lineUserId = null;
   let omakasePlaceholderId = null; // menu_items.id ของแถว placeholder (is_omakase_placeholder=true) — ดึงสดจาก DB ไม่ hardcode
   let currentSecretItem = null; // เมนู Signature/Secret ตัวปัจจุบัน (Chapter ล่าสุด) — ใช้ตอนสั่ง Omakase Solo
@@ -1126,11 +1132,17 @@
       // เช็คว่าเป็นสมาชิกที่ลงทะเบียนไว้ไหม (เอาไว้ผูก member_id สำหรับประวัติออเดอร์)
       const { data: memberRow } = await sb
         .from('members')
-        .select('id')
+        .select('id, price_group')
         .eq('line_user_id', lineUserId)
         .maybeSingle();
       if (memberRow) {
         memberId = memberRow.id;
+        // กลุ่มราคา: ถ้าโหลดไม่ได้ = ราคากลาง (ปลอดภัยไว้ก่อน ไม่เดาส่วนลดให้)
+        try {
+          const { data: pg } = await sb.from('price_groups').select('key, label_th, discount_per_cup').eq('key', memberRow.price_group || 'standard').eq('active', true).maybeSingle();
+          if (pg) memberPriceGroup = { key: pg.key, label_th: pg.label_th, discount_per_cup: Number(pg.discount_per_cup) || 0 };
+        } catch (e) { /* ใช้ราคากลาง */ }
+        if (menuRenderedGroupKey !== null && menuRenderedGroupKey !== memberPriceGroup.key) loadMenu();
         renderProgramBadges();
         initAllOmkSwitches();
       }
@@ -1261,6 +1273,22 @@
     // resting = เฉพาะ Signature เท่านั้น (เคยขาย รอรอบต่อไป — ลูกค้ายังเห็นแต่สั่งไม่ได้)
     const data = rawData ? rawData.filter(item => !item.omakase_only && (item.status === 'live' || item.status === 'resting')) : rawData;
 
+    // ราคาตามกลุ่มสมาชิก: ราคากลาง (menu_items.price) - ส่วนลดต่อแก้วของกลุ่ม · ไม่แตะเมนูสุ่ม/Omakase/ซีเคร็ต · ทุกจุดที่ใช้ item.price (การ์ด ตะกร้า บันทึกออเดอร์) จึงได้ราคาสุทธิตรงกันหมด
+    const pgDiscount = memberPriceGroup.discount_per_cup || 0;
+    if (data && pgDiscount > 0) {
+      data.forEach(item => {
+        if (tabGroupFor(item.category) === 'surprise' || item.is_omakase_placeholder || !(Number(item.price) > 0)) return;
+        item.price_std = Number(item.price);
+        item.price = Math.max(0, Number(item.price) - pgDiscount);
+      });
+    }
+    menuRenderedGroupKey = memberPriceGroup.key;
+    const pgBanner = document.getElementById('priceGroupBanner');
+    if (pgBanner) {
+      if (pgDiscount > 0) { pgBanner.style.display = 'block'; pgBanner.textContent = `🏢 ราคาสมาชิก${memberPriceGroup.label_th} — ลด ฿${pgDiscount} ต่อแก้วจากราคามาตรฐาน (ราคาที่เห็นเป็นราคาของคุณแล้ว)`; }
+      else pgBanner.style.display = 'none';
+    }
+
     const surpriseGrid = document.getElementById('surpriseGrid');
     const coffeeGrid = document.getElementById('coffeeGrid');
     const nonCoffeeGrid = document.getElementById('nonCoffeeGrid');
@@ -1291,7 +1319,7 @@
       div.className = 'menu-card';
       div.dataset.id = item.id;
       const isSurprise = tabGroupFor(item.category) === 'surprise';
-      const priceLabel = isSurprise ? '70-85 บาท' : `${item.price} บาท`;
+      const priceLabel = isSurprise ? '70-85 บาท' : `${item.price} บาท${item.price_std ? `<span class="std-price">${item.price_std}</span>` : ''}`;
       const captionHtml = isSurprise ? `<div class="caption">กดมาเดี๋ยวบาริสต้าเลือกให้เอง</div>` : '';
       const imgHtml = item.image_url ? `<img src="${item.image_url}" alt="${item.name}" class="cup-icon">` : `<div class="icon">${iconFor(item)}</div>`;
       div.innerHTML = `
@@ -1463,7 +1491,7 @@
         ${availBadgeHtml}
         ${item.story_ingredients ? `<div class="sig-ingredients">${item.story_ingredients}</div>` : ''}
         <div class="sig-price-row">
-          <span class="sig-price">${item.price} บาท</span>
+          <span class="sig-price">${item.price} บาท${item.price_std ? `<span class="std-price">${item.price_std}</span>` : ''}</span>
           ${orderBtnHtml}
         </div>
         ${item.story_body ? `<div class="sig-story">${item.story_body}</div>` : ''}
@@ -2395,9 +2423,9 @@
     stage.addEventListener('pointercancel', dragEnd);
   })();
 
-  Promise.all([loadBeans(), loadMilks(), loadFreestyleTeas(), loadMilkEligibleItems()]).then(loadMenu);
+  const profileReady = initLiffProfile();
+  Promise.all([loadBeans(), loadMilks(), loadFreestyleTeas(), loadMilkEligibleItems(), Promise.race([profileReady, new Promise(r => setTimeout(r, 4000))])]).then(loadMenu);
   initDateAndSweetness();
-  initLiffProfile();
 </script>
 
 </body>
