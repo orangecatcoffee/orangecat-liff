@@ -6,6 +6,7 @@
 <title>เมนู - กาแฟแมวส้ม</title>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="beans-cards.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -519,40 +520,6 @@
   .menu-card .closed-note { font-size: 10.5px; color: #8A6F5A; font-weight: 600; padding: 2px 10px 0; line-height: 1.35; }
   .menu-sec-sub { font-size: 12px; color: #A8876F; margin: -4px 0 10px; line-height: 1.5; }
   .go-link { display: inline-block; margin-top: 10px; padding: 9px 14px; border-radius: 10px; border: 2px solid #F0E4D8; background: #fff; color: #4A3428; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; }
-  /* ---- แท็บ BEANS (ใช้ prefix bn- กันชนกับ CSS เดิม) ---- */
-  .bn-wrap { background: #C69C6D; border-radius: 18px; padding: 18px 14px 22px; color: #2A1A0E; }
-  .bn-top h3 { font-size: 17px; font-weight: 700; line-height: 1.3; }
-  .bn-top p { font-size: 12px; margin-top: 4px; opacity: .85; line-height: 1.5; }
-  .bn-fl { font-size: 12px; margin: 14px 0 8px; opacity: .85; }
-  .bn-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-  .bn-chip { border: 1.5px solid #2A1A0E; background: transparent; border-radius: 99px; padding: 6px 12px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; color: #2A1A0E; }
-  .bn-chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: var(--d, #999); }
-  .bn-chip.on { background: #2A1A0E; color: #F7F2E7; }
-  .bn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 10px; align-items: start; }
-  .bn-state { grid-column: 1 / -1; text-align: center; padding: 26px 0; font-size: 13px; opacity: .85; }
-  .bn-card { container-type: inline-size; aspect-ratio: 7 / 12; background: #F7F2E7; color: #231810; box-shadow: 0 3px 8px rgba(60,35,10,.26); text-align: left; width: 100%; cursor: pointer; position: relative; overflow: hidden; }
-  .bn-in { display: flex; flex-direction: column; padding: 4.8cqw 4.8cqw 0; }
-  .bn-art { position: relative; width: 100%; aspect-ratio: 1 / 1.02; border: 2.3cqw dotted #F7F2E7; background-color: #8A6A4A; background-size: cover; background-position: center; }
-  .bn-art.ph { display: grid; place-items: center; }
-  .bn-art.ph span { font: italic 300 6.5cqw sans-serif; color: rgba(255,255,255,.92); }
-  .bn-stk { position: absolute; top: 2cqw; left: 2cqw; font-weight: 600; font-size: 4.6cqw; line-height: 1.5; padding: 0 2.6cqw; border-radius: 99px; box-shadow: 0 1px 2px rgba(0,0,0,.4); background: #E8B23A; color: #2a1a05; }
-  .bn-tag { position: absolute; top: 0; left: 0; z-index: 3; font-weight: 600; font-size: 4.7cqw; line-height: 1.5; padding: .4cqw 3.4cqw .6cqw 2.6cqw; border-radius: 0 0 3cqw 0; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
-  .bn-tag.store { background: #E8621A; color: #fff; } .bn-tag.limited { background: #6E1F2C; color: #F7F2E7; }
-  .bn-name { display: flex; align-items: center; justify-content: center; text-align: center; font-family: Georgia, 'Times New Roman', serif; font-weight: 700; line-height: 1.1; padding: 2.6cqw 1cqw 2.2cqw; }
-  .bn-name.l1 { font-size: 10.5cqw; } .bn-name.l2 { font-size: 8cqw; } .bn-name.l3 { font-size: 6.4cqw; }
-  .bn-rule { border: none; border-top: .35cqw solid rgba(35,24,16,.45); margin: 0; } .bn-rule.dbl { border-top: 1cqw double rgba(35,24,16,.45); }
-  .bn-g2 { display: grid; grid-template-columns: 1fr 1fr; }
-  .bn-gc { padding: 1.6cqw 2.2cqw 1.8cqw; min-width: 0; }
-  .bn-gc:nth-child(1) { border-right: .35cqw solid rgba(35,24,16,.45); }
-  .bn-gc:nth-child(n+3) { border-top: .35cqw solid rgba(35,24,16,.45); grid-column: 1 / -1; }
-  .bn-gc small { display: block; font-size: 5.6cqw; line-height: 1.1; font-weight: 700; font-style: italic; }
-  .bn-gc .bn-v { font-size: 5.4cqw; line-height: 1.3; margin-top: .4cqw; overflow-wrap: anywhere; }
-  .bn-gc .bn-v .sub { color: #7a6556; font-weight: 400; }
-  .bn-desc { padding: 2.4cqw 3cqw 4cqw; font-size: 4.9cqw; line-height: 1.4; }
-  .bn-tbc { color: #8a7868; font-style: italic; }
-  .bn-veil { position: fixed; inset: 0; background: rgba(30,16,6,.72); display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; overflow-y: auto; }
-  .bn-veil.on { display: flex; }
-  .bn-veil .bn-card { width: min(86vw, 360px); aspect-ratio: auto; cursor: default; overflow: visible; box-shadow: 0 14px 40px rgba(0,0,0,.5); }
   .soon-box {
     text-align: center; padding: 40px 20px; border: 2px dashed #F0E4D8;
     border-radius: 16px; color: #A8876F; font-size: 14px; font-weight: 600;
@@ -910,20 +877,18 @@
       <div id="priceGroupBanner" class="pg-banner" style="display:none;"></div>
 
       <div class="tabpanel active" id="tab-menu">
-        <div class="section-header">
-          <div class="section-header-title">☕ MENU</div>
-          <div class="section-header-sub">ทุกเมนูที่สั่งได้อยู่ที่นี่ที่เดียว · แตะ + เพื่อใส่ตะกร้า</div>
+        <div class="group">
+          <h2>🐱 วันนี้ไม่อยากเลือก</h2>
+          <div class="menu-grid" id="surpriseGrid"></div>
         </div>
         <div class="group" id="signatureBuySection" style="display:none;">
           <h2>Signature</h2>
-          <div class="menu-sec-sub">เมนูที่พักอยู่จะขึ้น “รอรอบต่อไป”</div>
           <div class="menu-grid" id="signatureBuyGrid"></div>
           <button type="button" class="go-link" data-goto="signature">📖 อ่านเรื่องราวของแต่ละ Chapter →</button>
         </div>
         <div class="group">
           <h2>Coffee</h2>
           <div class="menu-grid" id="coffeeGrid"></div>
-          <div class="menu-grid" id="surpriseGrid" style="margin-top:12px;"></div>
         </div>
         <div class="group" id="matchaSection" style="display:none;">
           <h2>Matcha</h2>
@@ -951,8 +916,7 @@
       </div>
 
       <div class="tabpanel" id="tab-beans">
-        <div class="bn-wrap" id="beansPanel"><div class="bn-state">กำลังโหลด…</div></div>
-        <div class="bn-veil" id="bnVeil" role="dialog" aria-modal="true"><div id="bnBig"></div></div>
+        <div id="beansPanel"></div>
       </div>
 
       <div class="tabpanel" id="tab-signature">
@@ -1167,7 +1131,6 @@
           if (pg) memberPriceGroup = { key: pg.key, label_th: pg.label_th, discount_per_cup: Number(pg.discount_per_cup) || 0 };
         } catch (e) { /* ใช้ราคากลาง */ }
         if (menuRenderedGroupKey !== null && menuRenderedGroupKey !== memberPriceGroup.key) loadMenu();
-        if (typeof renderBeansTab === 'function') renderBeansTab(); // ราคาในแท็บ BEANS ตามกลุ่มของสมาชิก
         renderProgramBadges();
         initAllOmkSwitches();
       }
@@ -1307,6 +1270,14 @@
         item.price = Math.max(0, Number(item.price) - pgDiscount);
       });
     }
+    // ช่วงราคาเมนูสุ่ม = ต่ำสุด-สูงสุดของเมนูในหมวด Coffee (หลังส่วนลดกลุ่ม) — ไม่ฮาร์ดโค้ด
+    const _cp = (data || []).filter(i => tabGroupFor(i.category) === 'coffee' && Number(i.price) > 0).map(i => Number(i.price));
+    window.SURPRISE_RANGE = _cp.length ? (Math.min(..._cp) === Math.max(..._cp) ? `${_cp[0]} บาท` : `${Math.min(..._cp)}-${Math.max(..._cp)} บาท`) : '';
+    // อันดับขายดี (60 วันล่าสุด) — เมนูขายดีขึ้นก่อนในทุกส่วน · ถ้าดึงไม่ได้ใช้ลำดับเดิม
+    const salesRank = {};
+    try { const { data: sr } = await sb.rpc('menu_sales_rank', { days: 60 }); (sr || []).forEach(r => { salesRank[r.menu_item_name] = Number(r.qty) || 0; }); } catch (e) {}
+    const rk = n => salesRank[n] || 0;
+    if (data) data.sort((a, b) => rk(b.name) - rk(a.name));
     menuRenderedGroupKey = memberPriceGroup.key;
     const pgBanner = document.getElementById('priceGroupBanner');
     if (pgBanner) {
@@ -1351,7 +1322,7 @@
       const sigAvail = tabGroupFor(item.category) === 'signature' ? signatureAvailability(item) : null;
       const isClosed = !!(sigAvail && sigAvail.state !== 'open');
       if (isClosed) div.classList.add('is-closed');
-      const priceLabel = isSurprise ? '70-85 บาท' : `${item.price} บาท${item.price_std ? `<span class="std-price">${item.price_std}</span>` : ''}`;
+      const priceLabel = isSurprise ? (window.SURPRISE_RANGE || '') : `${item.price} บาท${item.price_std ? `<span class="std-price">${item.price_std}</span>` : ''}`;
       const captionHtml = isSurprise ? `<div class="caption">กดมาเดี๋ยวบาริสต้าเลือกให้เอง</div>` : (isClosed ? `<div class="closed-note">${sigAvail.label}</div>` : '');
       const imgHtml = item.image_url ? `<img src="${item.image_url}" alt="${item.name}" class="cup-icon">` : `<div class="icon">${iconFor(item)}</div>`;
       div.innerHTML = `
@@ -1401,7 +1372,7 @@
     tarotCard.innerHTML = `
       <div class="menu-card-imgwrap">${TAROT_CARD_IMAGE_URL ? `<img src="${TAROT_CARD_IMAGE_URL}" alt="กาแฟแมวสุ่ม" class="cup-icon">` : '<div class="icon">🎴</div>'}</div>
       <div class="name" style="margin-top:8px;">กาแฟแมวสุ่ม</div>
-      <div class="price">70-85 บาท</div>
+      <div class="price">${window.SURPRISE_RANGE || ''}</div>
       <div class="caption">ไม่มีใครได้เลือก</div>
     `;
     tarotCard.addEventListener('click', () => {
@@ -1441,7 +1412,7 @@
     seriesGridEl.innerHTML = '';
     if (seriesItems.length) {
       seriesSection.style.display = '';
-      seriesItems.sort((a, b) => Number(a.price) - Number(b.price)); // ไล่ราคาถูกไปแพง
+      seriesItems.sort((a, b) => (rk(b.name) - rk(a.name)) || (Number(a.price) - Number(b.price))); // ขายดีก่อน แล้วไล่ราคาถูกไปแพง
       seriesItems.forEach(item => seriesGridEl.appendChild(makeCard(item)));
     } else {
       seriesSection.style.display = 'none';
@@ -1450,7 +1421,7 @@
     surpriseGrid.appendChild(tarotCard); // ต่อท้าย แมวส้มเลือกหน่อย เสมอ (อยู่ขวา)
 
     // 🍊 รายการสั่งซื้อ Signature อยู่ในแท็บ MENU (ราคาเดียวกับทุกเมนู) — แท็บ SIGNATURE เหลือเฉพาะเรื่องราว · เมนูที่เปิดขายขึ้นก่อน เมนูที่พักตามหลัง
-    const sigSorted = signatureItems.slice().sort((x, y) => ((signatureAvailability(x).state === 'open') ? 0 : 1) - ((signatureAvailability(y).state === 'open') ? 0 : 1) || (x.chapter_number - y.chapter_number));
+    const sigSorted = signatureItems.slice().sort((x, y) => ((signatureAvailability(x).state === 'open') ? 0 : 1) - ((signatureAvailability(y).state === 'open') ? 0 : 1) || (rk(y.name) - rk(x.name)) || (x.chapter_number - y.chapter_number));
     sigSorted.forEach(item => signatureBuyGrid.appendChild(makeCard(item)));
     document.getElementById('signatureBuySection').style.display = sigSorted.length ? '' : 'none';
     document.getElementById('matchaSection').style.display = matchaGrid.children.length ? '' : 'none';
@@ -1801,7 +1772,7 @@
     const summaryEl = document.getElementById('cartSummaryList');
     summaryEl.innerHTML = cart.map(line => {
       const unitPrice = cartLineUnitPrice(line);
-      const priceLabel = line.is_surprise ? '70-85 บาท (ราคาจริงตามเมนูที่บาริสต้าเลือก)' : `${unitPrice * line.qty} บาท`;
+      const priceLabel = line.is_surprise ? `${window.SURPRISE_RANGE || ''} (ราคาจริงตามเมนูที่บาริสต้าเลือก)` : `${unitPrice * line.qty} บาท`;
       const qtyControlHtml = line.qty_locked
         ? `<span style="font-size:12px;color:#A8876F;">1 แพ็ค</span>`
         : `
@@ -2009,91 +1980,9 @@
 
 
 
-  // ============================================================
-  // 🫘 แท็บ BEANS — การ์ดเมล็ดกาแฟ (ข้อมูลจาก bean_profiles + ingredients · จัดการที่ Admin > หน้าเมล็ดกาแฟ)
-  // ราคาแก้ว = (ราคากลางเมนูตัวอย่าง − ส่วนลดกลุ่มของสมาชิก) + ราคาเพิ่มของเมล็ด — สูตรเดียวกับตะกร้าจริง
-  // ============================================================
-  const BN_TONES = [
-    { id: 'choc', label: 'ช็อกโกแลต · นัท', d: '#7A4A2B' }, { id: 'fruit', label: 'ผลไม้', d: '#D9546E' },
-    { id: 'citrus', label: 'ซิตรัส', d: '#E8A33A' }, { id: 'floral', label: 'ดอกไม้', d: '#7FA38B' }, { id: 'sweet', label: 'หวาน · ครีมมี่', d: '#C98A5A' },
-  ];
-  const BN_RANK = { store: 0, limited: 1, '': 2 };
-  const bn = { loaded: false, failed: false, enabled: true, showCup: true, refs: [], beans: [], sel: new Set() };
-  const bnEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-  const BN_TBC = '<span class="bn-tbc">รอยืนยัน</span>';
-  const bnV = x => x ? bnEsc(x) : BN_TBC;
-
-  async function loadBeansTab() {
-    try {
-      const { data: st } = await sb.from('system_settings').select('key,value').like('key', 'beans_page.%');
-      const S = {}; (st || []).forEach(r => S[r.key] = r.value);
-      bn.enabled = S['beans_page.enabled'] !== false && S['beans_page.enabled'] !== 'false';
-      bn.showCup = S['beans_page.show_cup_price'] !== false && S['beans_page.show_cup_price'] !== 'false';
-      const names = [S['beans_page.ref_menu_1'], S['beans_page.ref_menu_2']].filter(x => typeof x === 'string' && x.trim());
-      bn.refs = [];
-      if (bn.showCup && names.length) {
-        const { data: mi } = await sb.from('menu_items').select('name,price').in('name', names);
-        bn.refs = names.map(n => (mi || []).find(m => m.name === n)).filter(m => m && Number(m.price) > 0).map(m => ({ name: m.name, price: Number(m.price) }));
-      }
-      const { data, error } = await sb.from('bean_profiles')
-        .select('*, ingredients!inner(id, name, active, stock_quantity, customer_bean_surcharge)')
-        .eq('visible', true).eq('ingredients.active', true).gte('ingredients.stock_quantity', BEAN_DOSE_G);
-      if (error) throw error;
-      bn.beans = (data || []).map(p => ({
-        id: p.ingredient_id, name: p.ingredients.name, surcharge: Number(p.ingredients.customer_bean_surcharge) || 0,
-        photo: p.photo_url, pos: p.photo_pos, roast: p.roast, body: p.body, notes: p.notes, tones: p.tones || [], status: p.status || '',
-        house: !!p.house_pick, sort: p.sort_order || 0,
-      })).sort((a, b) => (BN_RANK[a.status] - BN_RANK[b.status]) || (a.sort - b.sort) || a.name.localeCompare(b.name));
-    } catch (e) { bn.failed = true; }
-    bn.loaded = true; renderBeansTab();
-  }
-  function bnPrice(b) {
-    if (bn.showCup && bn.refs.length) {
-      const d = memberPriceGroup.discount_per_cup || 0;
-      const prices = bn.refs.map(m => '฿' + (Math.max(0, m.price - d) + b.surcharge));
-      const names = bn.refs.map(m => bnEsc(String(m.name).replace(/^Iced\s+/i, '')));
-      return '<b>' + prices.join(' · ') + '</b><br><span class="sub">' + names.join(' · ') + (b.surcharge > 0 ? ' · รวมเมล็ดนี้ +' + b.surcharge + '฿' : '') + '</span>';
-    }
-    return b.surcharge > 0 ? '+' + b.surcharge + '฿ ต่อแก้ว' : 'ไม่บวกเพิ่ม';
-  }
-  function bnCard(b, attrs) {
-    const L = b.name.length <= 11 ? 'l1' : (b.name.length <= 17 ? 'l2' : 'l3');
-    const art = b.photo ? `<div class="bn-art" style="background-image:url('${bnEsc(b.photo)}');background-position:${bnEsc(b.pos || 'center')}">` : `<div class="bn-art ph"><span>รอรูป</span>`;
-    const tag = b.status === 'store' ? '<span class="bn-tag store">เมล็ดประจำร้าน</span>' : b.status === 'limited' ? '<span class="bn-tag limited">Limited</span>' : '';
-    return `<div class="bn-card" ${attrs || ''}>${tag}<div class="bn-in">${art}${b.house ? '<span class="bn-stk">⭐ House Pick</span>' : ''}</div></div>
-      <div class="bn-name ${L}">${bnEsc(b.name)}</div><hr class="bn-rule bn-dbl dbl">
-      <div class="bn-g2"><div class="bn-gc"><small>Roast</small><div class="bn-v">${bnV(b.roast)}</div></div><div class="bn-gc"><small>Body</small><div class="bn-v">${bnV(b.body)}</div></div>
-      <div class="bn-gc"><small>Price</small><div class="bn-v">${bnPrice(b)}</div></div></div>
-      <hr class="bn-rule"><div class="bn-desc">${bnV(b.notes)}</div></div>`;
-  }
-  function renderBeansTab() {
-    const el = document.getElementById('beansPanel');
-    if (!el || !bn.loaded) return;
-    const list = bn.beans.filter(b => bn.sel.size === 0 || b.tones.some(t => bn.sel.has(t)));
-    let body;
-    if (bn.failed) body = '<div class="bn-state">โหลดข้อมูลไม่สำเร็จ ลองเปิดหน้านี้ใหม่อีกครั้งนะคะ</div>';
-    else if (!bn.enabled) body = '<div class="bn-state">หน้าเมล็ดกาแฟกำลังเตรียมตัว เร็วๆ นี้นะคะ 🐱</div>';
-    else if (!list.length) body = '<div class="bn-state">' + (bn.sel.size ? 'ยังไม่มีเมล็ดในโทนนี้' : 'ยังไม่มีเมล็ดในรายการ') + '</div>';
-    else body = list.map(b => bnCard(b, `role="button" tabindex="0" data-bnid="${bnEsc(b.id)}"`)).join('');
-    el.innerHTML = `<div class="bn-top"><h3>Maewsom Beans Selection - เลือกเมล็ดกาแฟ</h3>
-      <p>${bn.enabled && !bn.failed ? 'เมล็ดในร้านตอนนี้ ' + bn.beans.length + ' รายการ · แตะการ์ดเพื่อขยาย · เลือกเมล็ดตอนใส่ตะกร้าได้เลย' : ''}</p></div>
-      ${bn.enabled && !bn.failed ? `<div class="bn-fl">เลือกโทนรสที่ชอบ</div><div class="bn-chips">
-        <button type="button" class="bn-chip ${bn.sel.size === 0 ? 'on' : ''}" data-bntone="">ทั้งหมด</button>
-        ${BN_TONES.map(t => `<button type="button" class="bn-chip ${bn.sel.has(t.id) ? 'on' : ''}" style="--d:${t.d}" data-bntone="${t.id}"><i></i>${bnEsc(t.label)}</button>`).join('')}</div>` : ''}
-      <div class="bn-grid">${body}</div>`;
-  }
-  document.getElementById('beansPanel').addEventListener('click', (e) => {
-    const tn = e.target.closest('[data-bntone]');
-    if (tn) { const id = tn.dataset.bntone; if (!id) bn.sel.clear(); else if (bn.sel.has(id)) bn.sel.delete(id); else bn.sel.add(id); renderBeansTab(); return; }
-    const c = e.target.closest('.bn-card[data-bnid]');
-    if (c) { const b = bn.beans.find(x => String(x.id) === c.dataset.bnid); if (b) { document.getElementById('bnBig').innerHTML = bnCard(b, ''); document.getElementById('bnVeil').classList.add('on'); } }
-  });
-  document.getElementById('bnVeil').addEventListener('click', () => document.getElementById('bnVeil').classList.remove('on'));
 
   // รูป banner + ข้อความ เปลี่ยนตามแท็บที่เลือก — แก้ URL ตรงนี้ทีเดียวเมื่อ อาบุ้ง ส่งรูปใหม่มาแทน (BEANS ไม่มี banner)
   const TAB_BANNERS = {
-    menu:      { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-comfort.png', title: 'MENU', sub: 'ทุกเมนูที่สั่งได้ ราคาตามกลุ่มของคุณ' },
-    signature: { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-signature.png', title: 'SIGNATURE', sub: 'ซิกเนเจอร์ประจำร้าน' },
     omakase:   { img: 'https://raw.githubusercontent.com/orangecatcoffee/orangecat-liff/main/images/banner-omakase.png', title: 'OMAKASE', sub: 'Surprise You, Every Time! — เลือกได้ 3 ระดับ' },
   };
   // ลิงก์เก่า ?tab=comfort|maewsom_picks|playful_comfort|pawtein_twist → รวมอยู่แท็บ menu แล้ว
@@ -2426,7 +2315,7 @@
     imgEl.classList.toggle('contain-img', !!item.fixed_bean_name);
     document.getElementById('imgSheetName').textContent = item.name;
     const total = item.fixed_bean_name ? item.price + beanSurcharge(item.fixed_bean_name) : item.price;
-    document.getElementById('imgSheetPrice').textContent = tabGroupFor(item.category) === 'surprise' ? '70-85 บาท' : (total + ' บาท');
+    document.getElementById('imgSheetPrice').textContent = tabGroupFor(item.category) === 'surprise' ? (window.SURPRISE_RANGE || '') : (total + ' บาท');
     document.getElementById('imgSheetSelectBtn').style.display = '';
     document.getElementById('imgSheetOverlay').dataset.itemId = item.id;
     imgSheetCurrentItem = item;
@@ -2544,7 +2433,7 @@
 
   const profileReady = initLiffProfile();
   Promise.all([loadBeans(), loadMilks(), loadFreestyleTeas(), loadMilkEligibleItems(), Promise.race([profileReady, new Promise(r => setTimeout(r, 4000))])]).then(loadMenu);
-  loadBeansTab();
+  OCBeans.mount(document.getElementById('beansPanel'), sb); // การ์ดเมล็ด: ไฟล์ beans-cards.js (ใช้ร่วมกับ beans.html)
   initDateAndSweetness();
 </script>
 
