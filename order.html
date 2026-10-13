@@ -897,7 +897,6 @@
         <div class="group">
           <h2>Something Else</h2>
           <div class="menu-grid" id="nonCoffeeGrid"></div>
-          <div class="menu-grid" id="maewsomPicksGrid" style="margin-top:12px;"></div>
         </div>
         <div class="group" id="seriesSection" style="display:none;">
           <h2>Cloud Series</h2>
@@ -1273,9 +1272,9 @@
     // ช่วงราคาเมนูสุ่ม = ต่ำสุด-สูงสุดของเมนูในหมวด Coffee (หลังส่วนลดกลุ่ม) — ไม่ฮาร์ดโค้ด
     const _cp = (data || []).filter(i => tabGroupFor(i.category) === 'coffee' && Number(i.price) > 0).map(i => Number(i.price));
     window.SURPRISE_RANGE = _cp.length ? (Math.min(..._cp) === Math.max(..._cp) ? `${_cp[0]} บาท` : `${Math.min(..._cp)}-${Math.max(..._cp)} บาท`) : '';
-    // อันดับขายดี (60 วันล่าสุด) — เมนูขายดีขึ้นก่อนในทุกส่วน · ถ้าดึงไม่ได้ใช้ลำดับเดิม
+    // อันดับขายดี (90 วันล่าสุด · นับเฉพาะออเดอร์ที่ชงเสร็จ) — เมนูขายดีขึ้นก่อนในทุกส่วน · ถ้าดึงไม่ได้ใช้ลำดับเดิม
     const salesRank = {};
-    try { const { data: sr } = await sb.rpc('menu_sales_rank', { days: 60 }); (sr || []).forEach(r => { salesRank[r.menu_item_name] = Number(r.qty) || 0; }); } catch (e) {}
+    try { const { data: sr } = await sb.rpc('menu_sales_rank', { days: 90 }); (sr || []).forEach(r => { salesRank[r.menu_item_name] = Number(r.qty) || 0; }); } catch (e) {}
     const rk = n => salesRank[n] || 0;
     if (data) data.sort((a, b) => rk(b.name) - rk(a.name));
     menuRenderedGroupKey = memberPriceGroup.key;
@@ -1290,7 +1289,7 @@
     const nonCoffeeGrid = document.getElementById('nonCoffeeGrid');
     const playfulComfortGrid = document.getElementById('playfulComfortGrid');
     const pawteinTwistGrid = document.getElementById('pawteinTwistGrid');
-    const maewsomPicksGrid = document.getElementById('maewsomPicksGrid');
+    const maewsomPicksGrid = nonCoffeeGrid; // รวมเป็นกริดเดียวกับ Something Else — เรียงขายดีรวมกัน ไม่มีช่องว่างคั่น
     const signatureItems = [];
     const seriesItems = [];
 
@@ -2018,6 +2017,8 @@
   });
 
   // เปิดตรงแท็บผ่าน ?tab=menu|beans|omakase|signature (ลิงก์เก่า comfort/maewsom_picks ก็ยังใช้ได้) · มี ?item= = ไปหน้าเรื่องราว Signature · ไม่ระบุ = MENU
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; // เปิดมาเริ่มที่ด้านบนเสมอ ไม่ค้างตำแหน่งเดิม
+  window.scrollTo(0, 0);
   (function initialTab() {
     const q = new URLSearchParams(location.search);
     const dl = q.get('tab');
