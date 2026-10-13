@@ -914,32 +914,28 @@
           <div class="section-header-title">☕ MENU</div>
           <div class="section-header-sub">ทุกเมนูที่สั่งได้อยู่ที่นี่ที่เดียว · แตะ + เพื่อใส่ตะกร้า</div>
         </div>
-        <div class="group">
-          <h2>🐱 วันนี้ไม่อยากเลือก</h2>
-          <div class="menu-grid" id="surpriseGrid"></div>
-        </div>
-        <div class="group">
-          <h2>☕ Coffee</h2>
-          <div class="menu-grid" id="coffeeGrid"></div>
-        </div>
-        <div class="group">
-          <h2>🥤 Non-coffee</h2>
-          <div class="menu-grid" id="nonCoffeeGrid"></div>
-        </div>
-        <div class="group">
-          <h2>🐱 Maewsom's Picks</h2>
-          <div class="menu-sec-sub">เมนูที่ร้านอื่นไม่มี หรือหายาก — คัดสรรเฉพาะจากแมวส้ม</div>
-          <div class="menu-grid" id="maewsomPicksGrid"></div>
-        </div>
         <div class="group" id="signatureBuySection" style="display:none;">
-          <h2>🍊 Signature</h2>
-          <div class="menu-sec-sub">เมนูซิกเนเจอร์ คิดค้นเอง — เมนูที่พักอยู่จะขึ้น “รอรอบต่อไป”</div>
+          <h2>Signature</h2>
+          <div class="menu-sec-sub">เมนูที่พักอยู่จะขึ้น “รอรอบต่อไป”</div>
           <div class="menu-grid" id="signatureBuyGrid"></div>
           <button type="button" class="go-link" data-goto="signature">📖 อ่านเรื่องราวของแต่ละ Chapter →</button>
         </div>
+        <div class="group">
+          <h2>Coffee</h2>
+          <div class="menu-grid" id="coffeeGrid"></div>
+          <div class="menu-grid" id="surpriseGrid" style="margin-top:12px;"></div>
+        </div>
+        <div class="group" id="matchaSection" style="display:none;">
+          <h2>Matcha</h2>
+          <div class="menu-grid" id="matchaGrid"></div>
+        </div>
+        <div class="group">
+          <h2>Something Else</h2>
+          <div class="menu-grid" id="nonCoffeeGrid"></div>
+          <div class="menu-grid" id="maewsomPicksGrid" style="margin-top:12px;"></div>
+        </div>
         <div class="group" id="seriesSection" style="display:none;">
-          <h2>🍓 STRAWBERRY WEEK</h2>
-          <div class="menu-sec-sub">One batch. Five ways to fall for strawberry. Only for 2 weeks.</div>
+          <h2>Cloud Series</h2>
           <div class="menu-grid" id="seriesGrid"></div>
         </div>
         <div class="group" id="playfulSection" style="display:none;">
@@ -1344,6 +1340,8 @@
     maewsomPicksGrid.innerHTML = '';
     const signatureBuyGrid = document.getElementById('signatureBuyGrid');
     signatureBuyGrid.innerHTML = '';
+    const matchaGrid = document.getElementById('matchaGrid');
+    matchaGrid.innerHTML = '';
 
     function makeCard(item) {
       const div = document.createElement('div');
@@ -1425,7 +1423,7 @@
           signatureItems.push(item);
         }
       } else if (group === 'non_coffee') {
-        nonCoffeeGrid.appendChild(makeCard(item));
+        (item.category === 'matcha' ? matchaGrid : nonCoffeeGrid).appendChild(makeCard(item));
       } else if (group === 'coffee') {
         coffeeGrid.appendChild(makeCard(item));
       } else if (group === 'playful_comfort') {
@@ -1455,6 +1453,7 @@
     const sigSorted = signatureItems.slice().sort((x, y) => ((signatureAvailability(x).state === 'open') ? 0 : 1) - ((signatureAvailability(y).state === 'open') ? 0 : 1) || (x.chapter_number - y.chapter_number));
     sigSorted.forEach(item => signatureBuyGrid.appendChild(makeCard(item)));
     document.getElementById('signatureBuySection').style.display = sigSorted.length ? '' : 'none';
+    document.getElementById('matchaSection').style.display = matchaGrid.children.length ? '' : 'none';
     document.getElementById('playfulSection').style.display = playfulComfortGrid.children.length ? '' : 'none';
     document.getElementById('pawteinSection').style.display = pawteinTwistGrid.children.length ? '' : 'none';
 
