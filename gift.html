@@ -79,7 +79,12 @@
   body.card-view .wrap{height:100%;}
   #scCard.active{display:flex;flex-direction:column;height:100%;padding-bottom:max(14px,env(safe-area-inset-bottom));}
   #scCard .topbar{flex:none;padding:14px 0 10px;margin-bottom:0;}
-  .card-area{flex:1 1 auto;min-height:0;display:flex;align-items:center;padding:20px 0 10px;}
+  .card-area{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:stretch;justify-content:center;padding:20px 0 10px;}
+  .polaroid{flex:none;align-self:center;position:relative;width:min(30%,112px);margin:14px 0 0;padding:5px 5px 9px;background:#FFFDF8;border:1px solid #EAD9C4;border-radius:3px;
+            box-shadow:0 8px 18px rgba(74,52,40,.16);transform:rotate(-2.5deg);animation:photoIn .6s .5s ease both;}
+  .polaroid::before{content:'';position:absolute;top:-9px;left:50%;width:46px;height:16px;transform:translateX(-50%) rotate(3deg);background:rgba(232,134,58,.28);border-radius:3px;}
+  .polaroid img{display:block;width:100%;height:auto;border-radius:1px;}   /* keeps the photo's own aspect ratio */
+  @keyframes photoIn{from{opacity:0;transform:translateY(8px) rotate(-2.5deg)}to{opacity:1;transform:rotate(-2.5deg)}}
   .card-actions{flex:none;padding-top:6px;}
   .paper{position:relative;width:100%;max-height:100%;display:flex;flex-direction:column;background:#FFFDF8;border:1px solid #EAD9C4;border-radius:8px;padding:22px 20px 20px;
          box-shadow:0 10px 24px rgba(74,52,40,.12);transform-origin:50% 0;animation:cardIn .8s cubic-bezier(.2,.9,.3,1) both;}
@@ -246,7 +251,7 @@
   <!-- 2) card: text written in the back office -->
   <div class="screen" id="scCard">
     <div class="topbar"><div class="eyebrow">Maewsom · A little thank you</div></div>
-    <div class="card-area"><div class="paper"><div class="paper-text" id="cardText"></div></div></div>
+    <div class="card-area"><div class="paper"><div class="paper-text" id="cardText"></div></div><figure class="polaroid" id="cardPhotoWrap" style="display:none;margin-left:auto;margin-right:auto;"><img id="cardPhoto" alt="" decoding="async"></figure></div>
     <div class="card-actions"><button class="btn primary" id="toCouponsBtn">ดูคูปองกาแฟ</button></div>
   </div>
 
@@ -357,7 +362,8 @@
   function fitCard() {
     const t = $('cardText'), area = document.querySelector('.card-area'), paper = document.querySelector('.paper');
     if (!t || !area || !paper || !$('scCard').classList.contains('active')) return;
-    paper.style.maxHeight = Math.max(area.clientHeight - 30, 120) + 'px'; // area padding: 20 top (tape) + 10 bottom
+    const ph = $('cardPhotoWrap'), phH = ph && ph.style.display !== 'none' ? ph.offsetHeight + 14 : 0; // photo under the card takes its own room
+    paper.style.maxHeight = Math.max(area.clientHeight - 30 - phH, 120) + 'px'; // area padding: 20 top (tape) + 10 bottom
     let fs = 14.5; t.style.fontSize = fs + 'px'; t.style.lineHeight = '1.6';
     while (t.scrollHeight > t.clientHeight + 1 && fs > 11) {
       fs -= 0.5; t.style.fontSize = fs + 'px';
@@ -424,6 +430,9 @@
     const box = $('cardText'); box.innerHTML = '';
     const txt = (state.gift && state.gift.message) || '';
     txt.split(/\n\s*\n/).forEach(par => { if (!par.trim()) return; const p = document.createElement('p'); p.textContent = par.trim(); box.appendChild(p); });
+    const photo = state.gift && state.gift.card_photo_url, wrap = $('cardPhotoWrap'), img = $('cardPhoto');
+    if (photo) { img.onload = () => fitCard(); img.onerror = () => { wrap.style.display = 'none'; fitCard(); }; img.src = photo; wrap.style.display = ''; }
+    else { wrap.style.display = 'none'; img.removeAttribute('src'); }
     if ($('scCard').classList.contains('active')) fitCard();
   }
   $('toCouponsBtn').addEventListener('click', () => { renderCoupons(); show('scCoupons'); });
