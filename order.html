@@ -1159,6 +1159,13 @@
     return '☕';
   }
 
+  let beanChanPrices = {};   // ingredient_id -> { office|standard: surcharge } set by the owner per channel
+  function beanSurOf(b) {    // members in the ชิดลม price group pay the 'office' price, everyone else the 'standard' price
+    if (!b) return 0;
+    const ch = (typeof memberPriceGroup !== 'undefined' && memberPriceGroup && memberPriceGroup.key === 'chidlom') ? 'office' : 'standard';
+    const ov = beanChanPrices[b.id] && beanChanPrices[b.id][ch];
+    return ov !== undefined ? (Number(ov) || 0) : (Number(b.customer_bean_surcharge) || 0);
+  }
   async function loadBeans() {
     const { data, error } = await sb
       .from('ingredients')
@@ -1168,6 +1175,7 @@
       .gte('stock_quantity', BEAN_DOSE_G)
       .order('name');
     availableBeans = (!error && data) ? data : [];
+    try { const { data: bcp } = await sb.from('bean_channel_prices').select('ingredient_id, channel_key, surcharge').in('channel_key', ['office', 'standard']); beanChanPrices = {}; (bcp || []).forEach(r => { (beanChanPrices[r.ingredient_id] = beanChanPrices[r.ingredient_id] || {})[r.channel_key] = Number(r.surcharge); }); } catch (e) { beanChanPrices = {}; }
   }
 
   async function loadFreestyleTeas() {
@@ -1621,7 +1629,7 @@
 
   function beanSurcharge(fixedBeanName) {
     const bean = availableBeans.find(b => b.name === fixedBeanName);
-    return bean ? (Number(bean.customer_bean_surcharge) || 0) : 0;
+    return beanSurOf(bean);
   }
 
   // ===================== CART =====================
@@ -1699,7 +1707,7 @@
   function beanSelectHtml(line) {
     const opts = ['<option value="">— ไม่ระบุ (ให้บาริสต้าเลือกให้) —</option>']
       .concat(availableBeans.map(b => {
-        const sur = Number(b.customer_bean_surcharge) || 0;
+        const sur = beanSurOf(b);
         const label = sur > 0 ? `${b.name} (+${sur}฿)` : b.name;
         const sel = line.bean_name === b.name ? 'selected' : '';
         return `<option value="${b.name}" ${sel}>${label}</option>`;
