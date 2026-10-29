@@ -36,7 +36,9 @@
     '.bc-c .v.one{-webkit-line-clamp:1}.bc-c .v.dt{color:#C4401E;letter-spacing:.3cqw}.bc-c .v.pr{font-weight:500;color:#B8480F}' +
     '.bn-veil{position:fixed;inset:0;background:rgba(30,16,6,.72);display:none;align-items:center;justify-content:center;z-index:300;padding:16px;overflow-y:auto}.bn-veil.on{display:flex}' +
     '.bn-veil .bc{width:min(86vw,360px);aspect-ratio:auto;overflow:visible;cursor:default;padding-bottom:3cqw;box-shadow:0 14px 40px rgba(0,0,0,.5)}' +
-    '.bn-veil .bc-c .v{-webkit-line-clamp:unset;display:block}';
+    '.bn-veil .bc-c .v{-webkit-line-clamp:unset;display:block}' +
+    '.bn-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;margin:auto}' +
+    '.bn-order{font:500 15.5px "Mitr",system-ui,sans-serif;background:#E8621A;color:#fff;border:none;border-radius:99px;padding:14px 22px;box-shadow:0 6px 16px rgba(0,0,0,.4);cursor:pointer;width:min(86vw,360px)}';
   function css() {
     if (document.getElementById('oc-bn-css')) return;
     var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Caveat:wght@600&family=Mitr:wght@300;400;500&display=swap'; document.head.appendChild(l);
@@ -57,13 +59,18 @@
       '<div class="bc-c"><small>Price</small><div class="v pr one">' + price + '</div></div></div></div>';
   }
 
-  function mount(el, sb) {
+  function mount(el, sb, opts) {
+    opts = opts || {};   // opts.onOrder(bean): shows 'order a drink with this bean'; opts.surFor(id, default): price for this member's channel
     css();
     var S = { beans: [], enabled: true, failed: false, loaded: false, recOpts: [], tone: {}, roast: {}, rec: {} };
     el.className = (el.className + ' oc-bn').trim();
     el.innerHTML = '<div class="bn-state">กำลังโหลด…</div>';
     var veil = document.createElement('div'); veil.className = 'bn-veil'; document.body.appendChild(veil);
-    veil.addEventListener('click', function () { veil.classList.remove('on'); });
+    veil.addEventListener('click', function (e) {
+      var o = e.target.closest('[data-order]');
+      veil.classList.remove('on');
+      if (o && opts.onOrder) { var b = S.beans[Number(o.dataset.order)]; if (b) opts.onOrder(b); }
+    });
 
     function chips(label, key, opts) {
       if (!opts.length) return '';
@@ -95,7 +102,7 @@
       if (c) { S[c.dataset.k][c.dataset.v] = !S[c.dataset.k][c.dataset.v]; render(); return; }
       if (e.target.closest('[data-clear]')) { S.tone = {}; S.roast = {}; S.rec = {}; render(); return; }
       var k = e.target.closest('.bc[data-i]');
-      if (k) { var b = S.beans[Number(k.dataset.i)]; if (b) { veil.innerHTML = card(b, ''); veil.classList.add('on'); } }
+      if (k) { var b = S.beans[Number(k.dataset.i)]; if (b) { veil.innerHTML = '<div class="bn-wrap">' + card(b, '') + (opts.onOrder && b.ing ? '<button type="button" class="bn-order" data-order="' + S.beans.indexOf(b) + '">☕ สั่งเครื่องดื่มด้วยเมล็ดนี้ ›</button>' : '') + '</div>'; veil.classList.add('on'); } }
     });
 
     Promise.all([
@@ -111,13 +118,13 @@
       var ok = function (i) { return i && Number(i.stock_quantity) >= DOSE; };
       S.beans = (r[1].data || []).map(function (p) {
         var name, sur;
-        if (p.ingredient_id) { var i = ing[p.ingredient_id]; if (!ok(i)) return null; name = i.name; sur = Number(i.customer_bean_surcharge) || 0; }
+        if (p.ingredient_id) { var i = ing[p.ingredient_id]; if (!ok(i)) return null; name = i.name; sur = Number(i.customer_bean_surcharge) || 0; if (opts.surFor) sur = Number(opts.surFor(i.id, sur)) || 0; }
         else { // Houseblend: โชว์เมื่อเมล็ดผสมทุกตัวมีสต็อกพอ — ส่วนผสมไม่แสดงให้ลูกค้า
           var ids = p.blend_member_ids || [], ms = ids.map(function (x) { return ing[x]; });
           if (!ids.length || !ms.every(ok)) return null;
           name = p.display_name; sur = Math.max.apply(null, ms.map(function (m) { return Number(m.customer_bean_surcharge) || 0; }));
         }
-        return { name: name, sur: sur, photo: p.photo_url, pos: p.photo_pos, roast: p.roast, notes: p.notes, body: p.body_score, rec: p.recommend || [], tones: p.tones || [], status: p.status || '', sort: p.sort_order || 0 };
+        return { name: name, ing: p.ingredient_id || null, sur: sur, photo: p.photo_url, pos: p.photo_pos, roast: p.roast, notes: p.notes, body: p.body_score, rec: p.recommend || [], tones: p.tones || [], status: p.status || '', sort: p.sort_order || 0 };
       }).filter(Boolean).sort(function (a, b) { return (RANK[a.status] - RANK[b.status]) || (a.sort - b.sort) || a.name.localeCompare(b.name); });
     }).catch(function () { S.failed = true; }).then(function () { S.loaded = true; render(); });
   }
