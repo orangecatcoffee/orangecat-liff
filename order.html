@@ -814,11 +814,24 @@
                width .65s cubic-bezier(.4,0,.2,1), height .65s cubic-bezier(.4,0,.2,1),
                opacity .65s ease, transform .65s cubic-bezier(.4,0,.2,1);
   }
+
+  /* order a drink from a bean card */
+  .bo-overlay{position:fixed;inset:0;background:rgba(30,16,6,.55);z-index:310;display:none}.bo-overlay.open{display:block}
+  .bo-sheet{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:#FFF8F0;border-radius:22px 22px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:86vh;overflow-y:auto;color:#4A3428;font-family:inherit}
+  .bo-h{display:flex;justify-content:space-between;align-items:center;gap:10px}.bo-h b{font-size:17px;line-height:1.3}
+  .bo-x{width:36px;height:36px;border-radius:50%;border:none;background:rgba(74,52,40,.1);font-size:16px;color:#4A3428}
+  .bo-sub{font-size:12.5px;color:rgba(74,52,40,.7);margin:6px 0 12px;line-height:1.5}
+  .bo-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid rgba(74,52,40,.12)}.bo-row:first-child{border-top:none}
+  .bo-row .n{flex:1;min-width:0;font-weight:500;font-size:14.5px;line-height:1.35}.bo-row .n small{display:block;font-weight:400;font-size:11.5px;color:#C2541A}
+  .bo-row .p{font-weight:600;font-size:14px;white-space:nowrap}
+  .bo-add{border:none;background:#E8621A;color:#fff;border-radius:99px;min-width:76px;min-height:40px;font-family:inherit;font-size:13.5px;font-weight:500}.bo-add.in{background:#2E7D46}
+  .bo-cart{width:100%;margin-top:14px;border:none;background:#4A3428;color:#FFF8F0;border-radius:14px;min-height:48px;font-family:inherit;font-size:15px;font-weight:500}
 </style>
 </head>
 <body>
 
 
+<div class="bo-overlay" id="boOverlay"><div class="bo-sheet"><div class="bo-h"><b id="boTitle"></b><button type="button" class="bo-x" id="boClose" aria-label="ปิด">✕</button></div><div class="bo-sub" id="boSub"></div><div id="boList"></div><button type="button" class="bo-cart" id="boCart">ไปที่ตะกร้า</button></div></div>
 <div class="img-sheet-overlay" id="imgSheetOverlay">
   <div class="img-sheet" id="imgSheet">
     <button type="button" class="img-sheet-close" id="imgSheetClose">✕</button>
@@ -1101,6 +1114,7 @@
   let availableBeans = [];
   let availableMilks = [];
   let availableFreestyleTeas = []; // ตัวเลือกชาสำหรับเมนู Freestyle Tea (ingredients.is_freestyle_tea_option = true)
+  let lineBeanDrinks = [];   // drinks that take a free choice of bean (for ordering from a bean card)
   let milkEligibleIds = new Set(); // menu_item_id ที่มีนมสดในสูตรจริง (query จาก menu_recipes สด ไม่ hardcode)
 
   // needs_bean มาจาก menu_items ตรงๆ อยู่แล้ว ไม่ต้อง hardcode รายชื่อเมนูซ้ำ
@@ -1286,6 +1300,7 @@
     const rk = n => salesRank[n] || 0;
     if (data) data.sort((a, b) => rk(b.name) - rk(a.name));
     menuRenderedGroupKey = memberPriceGroup.key;
+    lineBeanDrinks = (data || []).filter(i => i.status === 'live' && i.needs_bean && !i.fixed_bean_name && !i.is_freestyle_tea && !i.is_omakase_placeholder && tabGroupFor(i.category) !== 'surprise' && Number(i.price) > 0);
     const pgBanner = document.getElementById('priceGroupBanner');
     if (pgBanner) {
       if (pgDiscount > 0) { pgBanner.style.display = 'block'; pgBanner.textContent = `🏢 ราคาสมาชิก${memberPriceGroup.label_th} — ลด ฿${pgDiscount} ต่อแก้วจากราคามาตรฐาน (ราคาที่เห็นเป็นราคาของคุณแล้ว)`; }
@@ -2440,9 +2455,38 @@
     stage.addEventListener('pointercancel', dragEnd);
   })();
 
+
+  // ---------- order a drink straight from a bean card ----------
+  function orderFromBean(bean) {
+    if (!lineBeanDrinks.length) { alert('เมนูยังโหลดไม่เสร็จ ลองอีกครั้งนะคะ'); return; }
+    const sur = Number(bean.sur) || 0;   // already the price for this member's group (set when the cards were built)
+    const rec = (bean.rec || []).map(r => String(r).toLowerCase()).filter(Boolean);
+    const isRec = i => rec.some(r => i.name.toLowerCase().includes(r));
+    const list = lineBeanDrinks.slice().sort((a, b) => (isRec(b) - isRec(a)));
+    document.getElementById('boTitle').textContent = `สั่งด้วยเมล็ด ${bean.name}`;
+    document.getElementById('boSub').textContent = sur > 0 ? `เมล็ดนี้บวก +${sur}฿ ต่อแก้ว (รวมในราคาด้านล่างแล้ว) · เลือกความหวานและนมได้ในตะกร้า` : 'เมล็ดนี้ไม่บวกราคาเพิ่ม · เลือกความหวานและนมได้ในตะกร้า';
+    document.getElementById('boList').innerHTML = list.map(i => `<div class="bo-row"><div class="n">${i.name}${isRec(i) ? '<small>⭐ เมนูแนะนำของเมล็ดนี้</small>' : ''}</div><div class="p">${Number(i.price) + sur} บาท</div><button type="button" class="bo-add" data-bo-add="${i.id}">+ เพิ่ม</button></div>`).join('');
+    document.getElementById('boOverlay').dataset.bean = bean.name;
+    document.getElementById('boOverlay').classList.add('open');
+  }
+  document.getElementById('boList').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-bo-add]'); if (!b) return;
+    const item = lineBeanDrinks.find(i => String(i.id) === String(b.dataset.boAdd)); if (!item) return;
+    addToCart({ kind: 'regular', name: item.name, price: item.price, category: item.category, menu_item_id: item.id, needs_bean: item.needs_bean, fixed_bean_name: null,
+      image_url: item.image_url || null, is_surprise: false, milk_eligible: milkEligibleIds.has(item.id), is_freestyle_tea: false });
+    cart[cart.length - 1].bean_name = document.getElementById('boOverlay').dataset.bean;   // the bean is already chosen — no second trip to the menu
+    b.classList.add('in'); b.textContent = '✓ ในตะกร้า'; setTimeout(() => { b.classList.remove('in'); b.textContent = '+ เพิ่มอีก'; }, 1200);
+  });
+  const closeBeanOrder = () => document.getElementById('boOverlay').classList.remove('open');
+  document.getElementById('boClose').addEventListener('click', closeBeanOrder);
+  document.getElementById('boOverlay').addEventListener('click', (e) => { if (e.target.id === 'boOverlay') closeBeanOrder(); });
+  document.getElementById('boCart').addEventListener('click', () => { closeBeanOrder(); openCartPage(); });
+
   const profileReady = initLiffProfile();
-  Promise.all([loadBeans(), loadMilks(), loadFreestyleTeas(), loadMilkEligibleItems(), Promise.race([profileReady, new Promise(r => setTimeout(r, 4000))])]).then(loadMenu);
-  OCBeans.mount(document.getElementById('beansPanel'), sb); // การ์ดเมล็ด: ไฟล์ beans-cards.js (ใช้ร่วมกับ beans.html)
+  const _ready = Promise.all([loadBeans(), loadMilks(), loadFreestyleTeas(), loadMilkEligibleItems(), Promise.race([profileReady, new Promise(r => setTimeout(r, 4000))])]);
+  _ready.then(loadMenu);
+  // การ์ดเมล็ด: ไฟล์ beans-cards.js (ใช้ร่วมกับ beans.html) — รอราคาตามกลุ่มสมาชิกก่อน เพื่อโชว์ราคาเมล็ดตรงกับที่จะคิดจริง และมีปุ่มสั่งจากการ์ด
+  _ready.then(() => OCBeans.mount(document.getElementById('beansPanel'), sb, { surFor: (id, d) => beanSurOf({ id: id, customer_bean_surcharge: d }), onOrder: orderFromBean }));
   initDateAndSweetness();
 </script>
 
