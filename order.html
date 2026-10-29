@@ -826,6 +826,11 @@
   .bo-row .p{font-weight:600;font-size:14px;white-space:nowrap}
   .bo-add{border:none;background:#E8621A;color:#fff;border-radius:99px;min-width:76px;min-height:40px;font-family:inherit;font-size:13.5px;font-weight:500}.bo-add.in{background:#2E7D46}
   .bo-cart{width:100%;margin-top:14px;border:none;background:#4A3428;color:#FFF8F0;border-radius:14px;min-height:48px;font-family:inherit;font-size:15px;font-weight:500}
+
+  .news-pref{margin:16px 0 4px;background:#fff;border:1px solid rgba(74,52,40,.15);border-radius:14px;padding:12px 14px;color:#4A3428}
+  .np-t{font-weight:600;font-size:14px;margin-bottom:6px}
+  .np-r{display:flex;align-items:center;gap:12px;font-size:13.5px;line-height:1.4}.np-r span{flex:1}.np-r small{display:block;font-size:11.5px;color:rgba(74,52,40,.65);margin-top:2px}
+  .np-r input{width:24px;height:24px;accent-color:#E8621A;flex:none}
 </style>
 </head>
 <body>
@@ -929,6 +934,7 @@
 
       <div class="tabpanel" id="tab-beans">
         <div id="beansPanel"></div>
+        <div id="newsPref" class="news-pref" style="display:none"></div>
       </div>
 
       <div class="tabpanel" id="tab-signature">
@@ -2482,11 +2488,29 @@
   document.getElementById('boOverlay').addEventListener('click', (e) => { if (e.target.id === 'boOverlay') closeBeanOrder(); });
   document.getElementById('boCart').addEventListener('click', () => { closeBeanOrder(); openCartPage(); });
 
+
+  // customer can switch off shop NEWS (new beans etc.) without blocking the whole LINE account — order/ready messages are not affected
+  let newsPrefReady = false;
+  async function initNewsPref() {
+    const box = document.getElementById('newsPref'); if (newsPrefReady || !lineUserId || !box) return;
+    let off = false;
+    try { const { data, error } = await sb.rpc('get_news_opt_out', { p_line_user_id: lineUserId }); if (error) return; off = !!data; } catch (e) { return; }
+    newsPrefReady = true;
+    box.style.display = '';
+    box.innerHTML = `<div class="np-t">🔔 ตั้งค่าการรับข่าว</div><label class="np-r"><span>รับข่าวเมล็ดใหม่ / เมล็ดกลับมาจากร้าน<small>ปิดได้ทุกเมื่อ · ยังได้รับแจ้งเรื่องออเดอร์ของคุณตามปกติ</small></span><input type="checkbox" id="npTgl" ${off ? '' : 'checked'}></label>`;
+    box.addEventListener('change', async (e) => {
+      if (e.target.id !== 'npTgl') return; const want = !e.target.checked;
+      try { const { error } = await sb.rpc('set_news_opt_out', { p_line_user_id: lineUserId, p_opt_out: want }); if (error) throw error; }
+      catch (err) { e.target.checked = !e.target.checked; alert('บันทึกไม่สำเร็จ ลองอีกครั้งนะคะ'); }
+    });
+  }
+
   const profileReady = initLiffProfile();
   const _ready = Promise.all([loadBeans(), loadMilks(), loadFreestyleTeas(), loadMilkEligibleItems(), Promise.race([profileReady, new Promise(r => setTimeout(r, 4000))])]);
   _ready.then(loadMenu);
   // การ์ดเมล็ด: ไฟล์ beans-cards.js (ใช้ร่วมกับ beans.html) — รอราคาตามกลุ่มสมาชิกก่อน เพื่อโชว์ราคาเมล็ดตรงกับที่จะคิดจริง และมีปุ่มสั่งจากการ์ด
-  _ready.then(() => OCBeans.mount(document.getElementById('beansPanel'), sb, { surFor: (id, d) => beanSurOf({ id: id, customer_bean_surcharge: d }), onOrder: orderFromBean }));
+  _ready.then(() => { OCBeans.mount(document.getElementById('beansPanel'), sb, { surFor: (id, d) => beanSurOf({ id: id, customer_bean_surcharge: d }), onOrder: orderFromBean }); initNewsPref(); });
+  profileReady.then(initNewsPref);
   initDateAndSweetness();
 </script>
 
